@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5DF4B8DA-0B17-438D-84A5-8C71F473DE69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RomPilot.Core", "src\RomPilot.Core\RomPilot.Core.csproj", "{565F98B9-A9B2-469D-BB44-D6A5BFE43BB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RomPilot.UI", "src\RomPilot.UI\RomPilot.UI.csproj", "{30D79AE9-BC0E-4A9C-82CD-24AA9C609990}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RomPilot.Tests", "src\RomPilot.Tests\RomPilot.Tests.csproj", "{9DBA7F4C-B1A1-44CD-B479-643714B977D7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{565F98B9-A9B2-469D-BB44-D6A5BFE43BB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{565F98B9-A9B2-469D-BB44-D6A5BFE43BB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{565F98B9-A9B2-469D-BB44-D6A5BFE43BB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{565F98B9-A9B2-469D-BB44-D6A5BFE43BB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30D79AE9-BC0E-4A9C-82CD-24AA9C609990}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30D79AE9-BC0E-4A9C-82CD-24AA9C609990}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30D79AE9-BC0E-4A9C-82CD-24AA9C609990}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30D79AE9-BC0E-4A9C-82CD-24AA9C609990}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DBA7F4C-B1A1-44CD-B479-643714B977D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DBA7F4C-B1A1-44CD-B479-643714B977D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DBA7F4C-B1A1-44CD-B479-643714B977D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DBA7F4C-B1A1-44CD-B479-643714B977D7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{565F98B9-A9B2-469D-BB44-D6A5BFE43BB1} = {5DF4B8DA-0B17-438D-84A5-8C71F473DE69}
+		{30D79AE9-BC0E-4A9C-82CD-24AA9C609990} = {5DF4B8DA-0B17-438D-84A5-8C71F473DE69}
+		{9DBA7F4C-B1A1-44CD-B479-643714B977D7} = {5DF4B8DA-0B17-438D-84A5-8C71F473DE69}
+	EndGlobalSection
+EndGlobal

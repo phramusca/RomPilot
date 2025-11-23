@@ -26,15 +26,15 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create solution file RomPilot.sln in repository root
-- [ ] T002 [P] Create RomPilot.Core class library project in src/RomPilot.Core/RomPilot.Core.csproj
-- [ ] T003 [P] Create RomPilot.UI Avalonia MVVM project in src/RomPilot.UI/RomPilot.UI.csproj
-- [ ] T004 [P] Create RomPilot.Tests xUnit project in src/RomPilot.Tests/RomPilot.Tests.csproj
-- [ ] T005 Add project references: UI references Core, Tests references Core
-- [ ] T006 [P] Install NuGet packages in RomPilot.Core: Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design, SharpCompress
-- [ ] T007 [P] Install NuGet packages in RomPilot.UI: CommunityToolkit.Mvvm
-- [ ] T008 [P] Install NuGet packages in RomPilot.Tests: Moq, FluentAssertions, Microsoft.EntityFrameworkCore.InMemory
-- [ ] T009 Configure .gitignore for .NET projects (bin/, obj/, *.db, etc.) in .gitignore
+- [x] T001 Create solution file RomPilot.sln in repository root
+- [x] T002 [P] Create RomPilot.Core class library project in src/RomPilot.Core/RomPilot.Core.csproj
+- [x] T003 [P] Create RomPilot.UI Avalonia MVVM project in src/RomPilot.UI/RomPilot.UI.csproj
+- [x] T004 [P] Create RomPilot.Tests xUnit project in src/RomPilot.Tests/RomPilot.Tests.csproj
+- [x] T005 Add project references: UI references Core, Tests references Core
+- [x] T006 [P] Install NuGet packages in RomPilot.Core: Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design, SharpCompress
+- [x] T007 [P] Install NuGet packages in RomPilot.UI: CommunityToolkit.Mvvm
+- [x] T008 [P] Install NuGet packages in RomPilot.Tests: Moq, FluentAssertions, Microsoft.EntityFrameworkCore.InMemory
+- [x] T009 Configure .gitignore for .NET projects (bin/, obj/, *.db, etc.) in .gitignore
 
 ---
 
@@ -44,41 +44,41 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T010 Create database context class in src/RomPilot.Core/Database/RomPilotDbContext.cs
-- [ ] T011 [P] Create Console entity model in src/RomPilot.Core/Models/Console.cs
-- [ ] T012 [P] Create RomFile entity model in src/RomPilot.Core/Models/RomFile.cs
-- [ ] T013 [P] Create Checksum entity model in src/RomPilot.Core/Models/Checksum.cs
-- [ ] T014 [P] Create DatabaseSource entity model in src/RomPilot.Core/Models/DatabaseSource.cs
-- [ ] T015 [P] Create GameEntry entity model in src/RomPilot.Core/Models/GameEntry.cs
-- [ ] T016 [P] Create Game entity model in src/RomPilot.Core/Models/Game.cs
-- [ ] T017 [P] Create GameRomVersion entity model in src/RomPilot.Core/Models/GameRomVersion.cs
-- [ ] T018 [P] Create Metadata entity model in src/RomPilot.Core/Models/Metadata.cs
-- [ ] T019 [P] Create UserData entity model in src/RomPilot.Core/Models/UserData.cs
-- [ ] T020 [P] Create UserPreferences entity model in src/RomPilot.Core/Models/UserPreferences.cs
-- [ ] T021 Configure Entity Framework Core DbContext with all entity relationships and indexes in src/RomPilot.Core/Database/RomPilotDbContext.cs
-- [ ] T022 Create initial EF Core migration InitialCreate in src/RomPilot.Core/Database/Migrations/
-- [ ] T023 [P] Create repository interface IRomFileRepository in src/RomPilot.Core/Repositories/IRomFileRepository.cs
-- [ ] T024 [P] Create repository interface IGameRepository in src/RomPilot.Core/Repositories/IGameRepository.cs
-- [ ] T025 [P] Create repository interface IChecksumRepository in src/RomPilot.Core/Repositories/IChecksumRepository.cs
-- [ ] T026 [P] Create repository interface IConsoleRepository in src/RomPilot.Core/Repositories/IConsoleRepository.cs
-- [ ] T027 [P] Create repository interface IDatabaseSourceRepository in src/RomPilot.Core/Repositories/IDatabaseSourceRepository.cs
-- [ ] T028 [P] Create repository interface IMetadataRepository in src/RomPilot.Core/Repositories/IMetadataRepository.cs
-- [ ] T029 [P] Create repository implementation RomFileRepository in src/RomPilot.Core/Repositories/RomFileRepository.cs
-- [ ] T030 [P] Create repository implementation GameRepository in src/RomPilot.Core/Repositories/GameRepository.cs
-- [ ] T031 [P] Create repository implementation ChecksumRepository in src/RomPilot.Core/Repositories/ChecksumRepository.cs
-- [ ] T032 [P] Create repository implementation ConsoleRepository in src/RomPilot.Core/Repositories/ConsoleRepository.cs
-- [ ] T033 [P] Create repository implementation DatabaseSourceRepository in src/RomPilot.Core/Repositories/DatabaseSourceRepository.cs
-- [ ] T034 [P] Create repository implementation MetadataRepository in src/RomPilot.Core/Repositories/MetadataRepository.cs
-- [ ] T035 Create checksum calculator interface IChecksumCalculator in src/RomPilot.Core/Checksums/IChecksumCalculator.cs
-- [ ] T036 Create checksum calculator implementation ChecksumCalculator in src/RomPilot.Core/Checksums/ChecksumCalculator.cs (MD5, SHA1, SHA256, CRC32)
-- [ ] T037 Create archive scanner interface IArchiveScanner in src/RomPilot.Core/Archives/IArchiveScanner.cs
-- [ ] T038 Create archive scanner implementation ArchiveScanner in src/RomPilot.Core/Archives/ArchiveScanner.cs (ZIP, 7Z, recursive up to 5 levels)
-- [ ] T039 Create console detection service interface IConsoleDetectionService in src/RomPilot.Core/Services/IConsoleDetectionService.cs
-- [ ] T040 Create console detection service implementation ConsoleDetectionService in src/RomPilot.Core/Services/ConsoleDetectionService.cs
-- [ ] T041 Create database seed data service SeedDataService in src/RomPilot.Core/Database/SeedDataService.cs (35+ consoles, database sources)
-- [ ] T042 Create user preferences service interface IUserPreferencesService in src/RomPilot.Core/Preferences/IUserPreferencesService.cs
-- [ ] T043 Create user preferences service implementation UserPreferencesService in src/RomPilot.Core/Preferences/UserPreferencesService.cs
-- [ ] T044 Configure dependency injection container in src/RomPilot.UI/App.axaml.cs (register all services and repositories)
+- [x] T010 Create database context class in src/RomPilot.Core/Database/RomPilotDbContext.cs
+- [x] T011 [P] Create Console entity model in src/RomPilot.Core/Models/Console.cs
+- [x] T012 [P] Create RomFile entity model in src/RomPilot.Core/Models/RomFile.cs
+- [x] T013 [P] Create Checksum entity model in src/RomPilot.Core/Models/Checksum.cs
+- [x] T014 [P] Create DatabaseSource entity model in src/RomPilot.Core/Models/DatabaseSource.cs
+- [x] T015 [P] Create GameEntry entity model in src/RomPilot.Core/Models/GameEntry.cs
+- [x] T016 [P] Create Game entity model in src/RomPilot.Core/Models/Game.cs
+- [x] T017 [P] Create GameRomVersion entity model in src/RomPilot.Core/Models/GameRomVersion.cs
+- [x] T018 [P] Create Metadata entity model in src/RomPilot.Core/Models/Metadata.cs
+- [x] T019 [P] Create UserData entity model in src/RomPilot.Core/Models/UserData.cs
+- [x] T020 [P] Create UserPreferences entity model in src/RomPilot.Core/Models/UserPreferences.cs
+- [x] T021 Configure Entity Framework Core DbContext with all entity relationships and indexes in src/RomPilot.Core/Database/RomPilotDbContext.cs
+- [x] T022 Create initial EF Core migration InitialCreate in src/RomPilot.Core/Database/Migrations/
+- [x] T023 [P] Create repository interface IRomFileRepository in src/RomPilot.Core/Repositories/IRomFileRepository.cs
+- [x] T024 [P] Create repository interface IGameRepository in src/RomPilot.Core/Repositories/IGameRepository.cs
+- [x] T025 [P] Create repository interface IChecksumRepository in src/RomPilot.Core/Repositories/IChecksumRepository.cs
+- [x] T026 [P] Create repository interface IConsoleRepository in src/RomPilot.Core/Repositories/IConsoleRepository.cs
+- [x] T027 [P] Create repository interface IDatabaseSourceRepository in src/RomPilot.Core/Repositories/IDatabaseSourceRepository.cs
+- [x] T028 [P] Create repository interface IMetadataRepository in src/RomPilot.Core/Repositories/IMetadataRepository.cs
+- [x] T029 [P] Create repository implementation RomFileRepository in src/RomPilot.Core/Repositories/RomFileRepository.cs
+- [x] T030 [P] Create repository implementation GameRepository in src/RomPilot.Core/Repositories/GameRepository.cs
+- [x] T031 [P] Create repository implementation ChecksumRepository in src/RomPilot.Core/Repositories/ChecksumRepository.cs
+- [x] T032 [P] Create repository implementation ConsoleRepository in src/RomPilot.Core/Repositories/ConsoleRepository.cs
+- [x] T033 [P] Create repository implementation DatabaseSourceRepository in src/RomPilot.Core/Repositories/DatabaseSourceRepository.cs
+- [x] T034 [P] Create repository implementation MetadataRepository in src/RomPilot.Core/Repositories/MetadataRepository.cs
+- [x] T035 Create checksum calculator interface IChecksumCalculator in src/RomPilot.Core/Checksums/IChecksumCalculator.cs
+- [x] T036 Create checksum calculator implementation ChecksumCalculator in src/RomPilot.Core/Checksums/ChecksumCalculator.cs (MD5, SHA1, SHA256, CRC32)
+- [x] T037 Create archive scanner interface IArchiveScanner in src/RomPilot.Core/Archives/IArchiveScanner.cs
+- [x] T038 Create archive scanner implementation ArchiveScanner in src/RomPilot.Core/Archives/ArchiveScanner.cs (ZIP, 7Z, recursive up to 5 levels)
+- [x] T039 Create console detection service interface IConsoleDetectionService in src/RomPilot.Core/Services/IConsoleDetectionService.cs
+- [x] T040 Create console detection service implementation ConsoleDetectionService in src/RomPilot.Core/Services/ConsoleDetectionService.cs
+- [x] T041 Create database seed data service SeedDataService in src/RomPilot.Core/Database/SeedDataService.cs (35+ consoles, database sources)
+- [x] T042 Create user preferences service interface IUserPreferencesService in src/RomPilot.Core/Preferences/IUserPreferencesService.cs
+- [x] T043 Create user preferences service implementation UserPreferencesService in src/RomPilot.Core/Preferences/UserPreferencesService.cs
+- [x] T044 Configure dependency injection container in src/RomPilot.UI/App.axaml.cs (register all services and repositories)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
