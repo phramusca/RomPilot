@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +43,7 @@ public partial class ScanViewModel : ViewModelBase
     private List<string> _progressMessages = new();
 
     private IScanProgressReporter? _progressReporter;
+    private Window? _parentWindow;
 
     public ScanViewModel(
         IScanService scanService,
@@ -51,13 +53,52 @@ public partial class ScanViewModel : ViewModelBase
         _serviceProvider = serviceProvider;
     }
 
-    [RelayCommand]
-    private Task SelectDirectoryAsync()
+    public void SetParentWindow(Window window)
     {
-        // TODO: Implement directory picker dialog
-        // For now, we'll use a simple approach
-        StatusMessage = "Directory selection not yet implemented. Please enter path manually.";
-        return Task.CompletedTask;
+        _parentWindow = window;
+    }
+
+    [RelayCommand]
+    private async Task SelectDirectoryAsync()
+    {
+        if (_parentWindow == null)
+        {
+            StatusMessage = "Parent window not available. Please enter path manually.";
+            return;
+        }
+
+        try
+        {
+            var folder = await _parentWindow.StorageProvider.OpenFolderPickerAsync(
+                new Avalonia.Platform.Storage.FolderPickerOpenOptions
+                {
+                    Title = "Select Directory to Scan",
+                    AllowMultiple = false
+                });
+
+            if (folder.Count > 0)
+            {
+                var selectedFolder = folder[0];
+                // Get the local path from the storage folder
+                // In Avalonia 11, we need to check if it's a file system path
+                var path = selectedFolder.Path;
+                if (path != null && path.IsAbsoluteUri && path.Scheme == "file")
+                {
+                    SelectedDirectory = path.LocalPath;
+                    StatusMessage = $"Selected: {path.LocalPath}";
+                }
+                else
+                {
+                    // Fallback: try to get path from name or URI
+                    var name = selectedFolder.Name;
+                    StatusMessage = $"Selected folder: {name} (path: {path})";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error selecting directory: {ex.Message}";
+        }
     }
 
     [RelayCommand]
