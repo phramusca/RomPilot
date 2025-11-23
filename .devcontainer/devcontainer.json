@@ -1,0 +1,31 @@
+{
+	"name": "RomPilot Development",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "devcontainer",
+	"workspaceFolder": "/workspace",
+	"postCreateCommand": "dotnet restore && dotnet build",
+	"remoteUser": "vscode",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csharp",
+				"ms-dotnettools.csdevkit",
+				"ms-dotnettools.vscode-dotnet-runtime",
+				"aaron-bond.better-comments",
+				"formulahendry.dotnet-test-explorer",
+				"jchannon.csharpextensions",
+				"kreativ-software.csharpextensions",
+				"josefpihrt-vscode.roslynator"
+			],
+			"settings": {
+				"omnisharp.enableRoslynAnalyzers": true,
+				"omnisharp.enableEditorConfigSupport": true,
+				"files.exclude": {
+					"**/bin": true,
+					"**/obj": true
+				}
+			}
+		}
+	}
+}
+

@@ -1,6 +1,9 @@
 # Cursor IDE
 .cursor/
 
+# Dev Containers
+.devcontainer/.env
+
 # .NET / C#
 bin/
 obj/
@@ -89,3 +92,6 @@ Thumbs.db
 # Universal
 *.log
 *.cache
+
+# Avalonia
+.avalonia-build-tasks/
