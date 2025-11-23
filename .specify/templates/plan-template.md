@@ -33,11 +33,10 @@
 
 Verify compliance with RomPilot Constitution principles:
 
-- **Test-First**: Test strategy defined? Tests will be written before implementation?
-- **User Story Independence**: Are user stories independently testable and deployable?
-- **Specification-Driven**: Does spec.md contain complete user stories, acceptance scenarios, and requirements?
-- **Documentation**: Will documentation be updated alongside implementation?
-- **Simplicity**: Is complexity justified? Are simpler alternatives considered?
+- **Code Quality**: Will code follow project style conventions? Are code reviews planned? Is code documentation included?
+- **Testing Standards**: Test strategy defined? Tests will be written before implementation (TDD)? Coverage targets defined? CI/CD tests configured?
+- **User Experience Consistency**: Are UI/UX patterns consistent with existing design system? Is navigation logical? Are error messages clear and actionable?
+- **Performance Requirements**: Are performance goals defined and measurable? Are benchmarks planned? Is monitoring/instrumentation included?
 
 If any principle is violated, document justification in Complexity Tracking section below.
 

@@ -1,50 +1,153 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+Version change: N/A → 1.0.0 (initial creation)
+Modified principles: N/A (new constitution)
+Added sections: Core Principles (4 principles), Quality Standards, Development Workflow, Governance
+Removed sections: N/A
+Templates requiring updates:
+  ✅ .specify/templates/plan-template.md - Constitution Check section updated
+  ✅ .specify/templates/spec-template.md - No changes needed (already aligned)
+  ✅ .specify/templates/tasks-template.md - No changes needed (already aligned)
+Follow-up TODOs: None
+-->
+
+# RomPilot Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Code Quality (NON-NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+Le code DOIT respecter les standards de qualité établis. Tous les fichiers de code source DOIVENT être :
+- Lisible et maintenable : nommage explicite, fonctions courtes et focalisées, commentaires pour la logique complexe uniquement
+- Cohérent : respect des conventions de style du projet (formatage, structure, patterns)
+- Documenté : docstrings pour les APIs publiques, README pour les modules complexes
+- Révisable : code review obligatoire avant merge, aucune exception
+- Refactorisé régulièrement : dette technique identifiée et traitée dans les sprints
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Rationale** : La qualité du code est la fondation de la maintenabilité à long terme. Un code de qualité réduit les bugs, facilite l'onboarding, et accélère le développement futur.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. Testing Standards (NON-NEGOTIABLE)
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+Les tests DOIVENT être écrits selon les standards suivants :
+- Test-First : Les tests sont écrits AVANT l'implémentation (TDD) pour les nouvelles fonctionnalités
+- Couverture minimale : 80% de couverture de code pour le code critique, 60% pour le reste
+- Types de tests requis :
+  - Tests unitaires : chaque fonction/méthode publique testée isolément
+  - Tests d'intégration : pour les interactions entre composants
+  - Tests de contrat : pour les APIs et interfaces publiques
+  - Tests end-to-end : pour les parcours utilisateur critiques
+- Tests maintenables : tests clairs, indépendants, rapides, sans dépendances externes non mockées
+- CI/CD : tous les tests DOIVENT passer avant merge, aucune exception
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale** : Les tests garantissent la fiabilité, permettent le refactoring en toute confiance, et servent de documentation vivante du comportement attendu.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### III. User Experience Consistency
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+L'expérience utilisateur DOIT être cohérente à travers toute l'application :
+- Design system : utilisation cohérente des composants UI, patterns d'interaction, et styles visuels
+- Navigation : parcours utilisateur logiques et prévisibles, pas de surprises
+- Feedback utilisateur : messages d'erreur clairs et actionnables, confirmations pour actions destructives
+- Accessibilité : respect des standards WCAG 2.1 niveau AA minimum
+- Responsive : adaptation cohérente sur tous les appareils et tailles d'écran
+- Performance perçue : indicateurs de chargement, optimisations pour réduire la latence visible
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**Rationale** : Une expérience cohérente réduit la courbe d'apprentissage, augmente la satisfaction utilisateur, et renforce la confiance dans le produit.
+
+### IV. Performance Requirements
+
+Les pré-requis de performance DOIVENT être respectés :
+- Métriques définies : chaque fonctionnalité DOIT avoir des objectifs de performance mesurables (temps de réponse, débit, utilisation mémoire)
+- Benchmarks : tests de performance automatisés dans la CI/CD pour les composants critiques
+- Monitoring : instrumentation pour mesurer les performances en production
+- Optimisation proactive : profilage régulier, identification et correction des goulots d'étranglement
+- Scalabilité : architecture conçue pour supporter la croissance prévue (utilisateurs, données, charge)
+- Limites acceptables : définition claire des seuils de performance (p95, p99) et alertes si dépassement
+
+**Rationale** : Les performances impactent directement l'expérience utilisateur et les coûts opérationnels. Des performances dégradées peuvent compromettre l'adoption du produit.
+
+## Quality Standards
+
+### Code Review Process
+
+- Tous les changements DOIVENT passer par une review par au moins un pair
+- Les reviews DOIVENT vérifier la conformité avec les principes de la constitution
+- Les commentaires de review DOIVENT être adressés avant merge
+- Aucun merge direct sur les branches principales sans review
+
+### Documentation Requirements
+
+- README principal : description du projet, installation, utilisation de base
+- Documentation API : générée automatiquement ou maintenue manuellement pour toutes les APIs publiques
+- Guides de contribution : standards de code, processus de développement, conventions de commit
+- Changelog : historique des changements majeurs, accessible et à jour
+
+### Technical Debt Management
+
+- Dette technique identifiée et documentée (issues, backlog)
+- Priorisation : dette critique traitée dans les 2 sprints suivants
+- Refactoring : intégré régulièrement dans les sprints, pas seulement en "sprint de refactoring"
+- Justification : toute complexité ajoutée DOIT être justifiée dans les PRs
+
+## Development Workflow
+
+### Branching Strategy
+
+- Branches de fonctionnalité : `[###-feature-name]` pour chaque nouvelle fonctionnalité
+- Branches principales protégées : `main` et `develop` (si applicable)
+- Merge via Pull Requests uniquement, avec review obligatoire
+
+### Commit Standards
+
+- Messages de commit clairs et descriptifs
+- Format recommandé : `type(scope): description` (ex: `feat(auth): add OAuth2 support`)
+- Commits atomiques : un commit = une modification logique
+
+### Testing Workflow
+
+1. Écrire les tests (TDD pour nouvelles fonctionnalités)
+2. Vérifier que les tests échouent (si nouveau code)
+3. Implémenter la fonctionnalité
+4. Vérifier que tous les tests passent
+5. Refactoriser si nécessaire
+6. Soumettre pour review
+
+### Release Process
+
+- Versioning : Semantic Versioning (MAJOR.MINOR.PATCH)
+- Changelog : mis à jour avant chaque release
+- Tests : tous les tests DOIVENT passer
+- Documentation : mise à jour si nécessaire
+- Tagging : tags Git pour chaque release
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+Cette constitution est le document de référence suprême pour toutes les décisions techniques et de développement dans le projet RomPilot. Elle prime sur toute autre pratique ou convention.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+### Amendment Process
+
+Les modifications de cette constitution DOIVENT suivre ce processus :
+1. Proposition : documenter la modification proposée avec justification
+2. Review : discussion et validation par l'équipe
+3. Impact analysis : évaluation de l'impact sur le code existant et les templates
+4. Synchronisation : mise à jour de tous les templates et documents dépendants
+5. Versioning : incrément de version selon les règles de semantic versioning
+6. Communication : annonce de la modification à toute l'équipe
+
+### Versioning Policy
+
+- **MAJOR** : Suppression ou modification rétro-incompatible de principes, changements majeurs de gouvernance
+- **MINOR** : Ajout de nouveaux principes ou sections, expansion significative de guidance existante
+- **PATCH** : Clarifications, corrections de typo, refinements non-sémantiques
+
+### Compliance Review
+
+- Toutes les Pull Requests DOIVENT vérifier la conformité avec cette constitution
+- Les violations DOIVENT être documentées et justifiées dans la section "Complexity Tracking" des plans
+- Les reviews de code DOIVENT inclure une vérification de conformité
+- Les violations répétées DOIVENT être escaladées et traitées
+
+### Continuous Improvement
+
+Cette constitution est un document vivant. Elle DOIT être révisée régulièrement pour s'assurer qu'elle reste pertinente et applicable. Les retours d'expérience de l'équipe DOIVENT être intégrés dans les révisions futures.
+
+**Version**: 1.0.0 | **Ratified**: 2025-01-27 | **Last Amended**: 2025-01-27
