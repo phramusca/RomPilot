@@ -43,14 +43,15 @@
 
 **SharpCompress** - ✅ **Sélectionné**
 - Bibliothèque .NET native pour gestion archives
-- Support ZIP et 7Z unifié
-- Permet scan récursif d'archives imbriquées
+- Support ZIP, 7Z, et RAR unifié
+- Permet scan récursif d'archives imbriquées (archives dans archives)
 - Gestion mémoire efficace (streaming)
+- Support récursif à deux niveaux : (1) parcours récursif du système de fichiers, (2) parcours récursif dans les archives
 - Référence : https://github.com/adamhathcock/sharpcompress
 
 **Alternatives rejetées** :
-- `System.IO.Compression.ZipFile` : Support ZIP uniquement, pas de 7Z
-- `SevenZipSharp` : Bibliothèque séparée, nécessite 7z.dll native
+- `System.IO.Compression.ZipFile` : Support ZIP uniquement, pas de 7Z ni RAR
+- `SevenZipSharp` : Bibliothèque séparée, nécessite 7z.dll native, pas de support RAR unifié
 
 ### Checksum Calculation
 
