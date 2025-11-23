@@ -13,12 +13,15 @@ using RomPilot.Core.Archives;
 using RomPilot.Core.Preferences;
 using RomPilot.UI.ViewModels;
 using RomPilot.UI.Views;
+using System;
 
 namespace RomPilot.UI;
 
 public partial class App : Application
 {
     private ServiceProvider? _serviceProvider;
+    
+    public static IServiceProvider? Services { get; private set; }
 
     public override void Initialize()
     {
@@ -31,6 +34,7 @@ public partial class App : Application
         var services = new ServiceCollection();
         ConfigureServices(services);
         _serviceProvider = services.BuildServiceProvider();
+        Services = _serviceProvider;
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -65,9 +69,14 @@ public partial class App : Application
         services.AddScoped<IArchiveScanner, ArchiveScanner>();
         services.AddScoped<IConsoleDetectionService, ConsoleDetectionService>();
         services.AddScoped<IUserPreferencesService, UserPreferencesService>();
+        services.AddScoped<RomPilot.Core.Services.IScanService, RomPilot.Core.Services.ScanService>();
+        services.AddScoped<RomPilot.Core.Services.IGameIdentificationService, RomPilot.Core.Services.GameIdentificationService>();
+        services.AddScoped<RomPilot.Core.Services.IScanProgressReporter, RomPilot.Core.Services.ScanProgressReporter>();
 
         // ViewModels
         services.AddTransient<MainWindowViewModel>();
+        services.AddTransient<ViewModels.ScanViewModel>();
+        services.AddTransient<ViewModels.ScanResultsViewModel>();
     }
 
 }

@@ -102,26 +102,26 @@ description: "Task list template for feature implementation"
 
 ### Implementation for User Story 1
 
-- [ ] T050 [US1] Create scan service interface IScanService in src/RomPilot.Core/Services/IScanService.cs
-- [ ] T051 [US1] Create scan service implementation ScanService in src/RomPilot.Core/Services/ScanService.cs (orchestrates scan workflow)
+- [x] T050 [US1] Create scan service interface IScanService in src/RomPilot.Core/Services/IScanService.cs
+- [x] T051 [US1] Create scan service implementation ScanService in src/RomPilot.Core/Services/ScanService.cs (orchestrates scan workflow)
 - [ ] T052 [P] [US1] Create database provider interface INoIntroProvider in src/RomPilot.Core/DatabaseProviders/INoIntroProvider.cs
 - [ ] T053 [P] [US1] Create database provider interface IRedumpProvider in src/RomPilot.Core/DatabaseProviders/IRedumpProvider.cs
 - [ ] T054 [P] [US1] Create database provider interface IGoodSetProvider in src/RomPilot.Core/DatabaseProviders/IGoodSetProvider.cs
 - [ ] T055 [P] [US1] Create database provider implementation NoIntroProvider in src/RomPilot.Core/DatabaseProviders/NoIntroProvider.cs (parser datfile)
 - [ ] T056 [P] [US1] Create database provider implementation RedumpProvider in src/RomPilot.Core/DatabaseProviders/RedumpProvider.cs (parser datfile)
 - [ ] T057 [P] [US1] Create database provider implementation GoodSetProvider in src/RomPilot.Core/DatabaseProviders/GoodSetProvider.cs (parser datfile)
-- [ ] T058 [US1] Create game identification service interface IGameIdentificationService in src/RomPilot.Core/Services/IGameIdentificationService.cs
-- [ ] T059 [US1] Create game identification service implementation GameIdentificationService in src/RomPilot.Core/Services/GameIdentificationService.cs (matches checksums with database entries)
-- [ ] T060 [US1] Create scan progress reporting interface IScanProgressReporter in src/RomPilot.Core/Services/IScanProgressReporter.cs
-- [ ] T061 [US1] Create scan progress reporting implementation ScanProgressReporter in src/RomPilot.Core/Services/ScanProgressReporter.cs
-- [ ] T062 [US1] Create main window view model MainWindowViewModel in src/RomPilot.UI/ViewModels/MainWindowViewModel.cs
-- [ ] T063 [US1] Create main window view MainWindow in src/RomPilot.UI/Views/MainWindow.axaml
-- [ ] T064 [US1] Create scan view model ScanViewModel in src/RomPilot.UI/ViewModels/ScanViewModel.cs
-- [ ] T065 [US1] Create scan view ScanView in src/RomPilot.UI/Views/ScanView.axaml (directory selection, scan button, progress bar)
-- [ ] T066 [US1] Create scan results view model ScanResultsViewModel in src/RomPilot.UI/ViewModels/ScanResultsViewModel.cs
-- [ ] T067 [US1] Create scan results view ScanResultsView in src/RomPilot.UI/Views/ScanResultsView.axaml (list of detected ROMs with console and game info)
-- [ ] T068 [US1] Integrate scan service with UI in src/RomPilot.UI/ViewModels/ScanViewModel.cs (async scan, progress updates)
-- [ ] T069 [US1] Add error handling and user feedback in src/RomPilot.UI/ViewModels/ScanViewModel.cs (error messages, validation)
+- [x] T058 [US1] Create game identification service interface IGameIdentificationService in src/RomPilot.Core/Services/IGameIdentificationService.cs
+- [x] T059 [US1] Create game identification service implementation GameIdentificationService in src/RomPilot.Core/Services/GameIdentificationService.cs (matches checksums with database entries)
+- [x] T060 [US1] Create scan progress reporting interface IScanProgressReporter in src/RomPilot.Core/Services/IScanProgressReporter.cs
+- [x] T061 [US1] Create scan progress reporting implementation ScanProgressReporter in src/RomPilot.Core/Services/ScanProgressReporter.cs
+- [x] T062 [US1] Create main window view model MainWindowViewModel in src/RomPilot.UI/ViewModels/MainWindowViewModel.cs
+- [x] T063 [US1] Create main window view MainWindow in src/RomPilot.UI/Views/MainWindow.axaml
+- [x] T064 [US1] Create scan view model ScanViewModel in src/RomPilot.UI/ViewModels/ScanViewModel.cs
+- [x] T065 [US1] Create scan view ScanView in src/RomPilot.UI/Views/ScanView.axaml (directory selection, scan button, progress bar)
+- [x] T066 [US1] Create scan results view model ScanResultsViewModel in src/RomPilot.UI/ViewModels/ScanResultsViewModel.cs
+- [x] T067 [US1] Create scan results view ScanResultsView in src/RomPilot.UI/Views/ScanResultsView.axaml (list of detected ROMs with console and game info)
+- [x] T068 [US1] Integrate scan service with UI in src/RomPilot.UI/ViewModels/ScanViewModel.cs (async scan, progress updates)
+- [x] T069 [US1] Add error handling and user feedback in src/RomPilot.UI/ViewModels/ScanViewModel.cs (error messages, validation)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently - users can scan directories and see identified ROMs
 
