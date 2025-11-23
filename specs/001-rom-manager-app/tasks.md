@@ -104,12 +104,12 @@ description: "Task list template for feature implementation"
 
 - [x] T050 [US1] Create scan service interface IScanService in src/RomPilot.Core/Services/IScanService.cs
 - [x] T051 [US1] Create scan service implementation ScanService in src/RomPilot.Core/Services/ScanService.cs (orchestrates scan workflow)
-- [ ] T052 [P] [US1] Create database provider interface INoIntroProvider in src/RomPilot.Core/DatabaseProviders/INoIntroProvider.cs
-- [ ] T053 [P] [US1] Create database provider interface IRedumpProvider in src/RomPilot.Core/DatabaseProviders/IRedumpProvider.cs
-- [ ] T054 [P] [US1] Create database provider interface IGoodSetProvider in src/RomPilot.Core/DatabaseProviders/IGoodSetProvider.cs
-- [ ] T055 [P] [US1] Create database provider implementation NoIntroProvider in src/RomPilot.Core/DatabaseProviders/NoIntroProvider.cs (parser datfile)
-- [ ] T056 [P] [US1] Create database provider implementation RedumpProvider in src/RomPilot.Core/DatabaseProviders/RedumpProvider.cs (parser datfile)
-- [ ] T057 [P] [US1] Create database provider implementation GoodSetProvider in src/RomPilot.Core/DatabaseProviders/GoodSetProvider.cs (parser datfile)
+- [x] T052 [P] [US1] Create database provider interface INoIntroProvider in src/RomPilot.Core/DatabaseProviders/INoIntroProvider.cs
+- [x] T053 [P] [US1] Create database provider interface IRedumpProvider in src/RomPilot.Core/DatabaseProviders/IRedumpProvider.cs
+- [x] T054 [P] [US1] Create database provider interface IGoodSetProvider in src/RomPilot.Core/DatabaseProviders/IGoodSetProvider.cs
+- [x] T055 [P] [US1] Create database provider implementation NoIntroProvider in src/RomPilot.Core/DatabaseProviders/NoIntroProvider.cs (parser datfile)
+- [x] T056 [P] [US1] Create database provider implementation RedumpProvider in src/RomPilot.Core/DatabaseProviders/RedumpProvider.cs (parser datfile)
+- [x] T057 [P] [US1] Create database provider implementation GoodSetProvider in src/RomPilot.Core/DatabaseProviders/GoodSetProvider.cs (parser datfile)
 - [x] T058 [US1] Create game identification service interface IGameIdentificationService in src/RomPilot.Core/Services/IGameIdentificationService.cs
 - [x] T059 [US1] Create game identification service implementation GameIdentificationService in src/RomPilot.Core/Services/GameIdentificationService.cs (matches checksums with database entries)
 - [x] T060 [US1] Create scan progress reporting interface IScanProgressReporter in src/RomPilot.Core/Services/IScanProgressReporter.cs
