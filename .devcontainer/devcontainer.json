@@ -5,6 +5,10 @@
 	"workspaceFolder": "/workspace",
 	"postCreateCommand": "dotnet restore && dotnet build",
 	"remoteUser": "vscode",
+	"mounts": [
+		"source=${localEnv:HOME},target=/host/home,type=bind,consistency=cached,readonly",
+		"source=/media/${localEnv:USER},target=/host/media,type=bind,consistency=cached,readonly"
+	],
 	"customizations": {
 		"vscode": {
 			"extensions": [

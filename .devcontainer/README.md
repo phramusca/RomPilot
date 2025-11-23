@@ -26,6 +26,21 @@ Ce dossier contient la configuration du dev container pour le projet RomPilot.
 - Le container utilise un utilisateur non-root (`vscode`) pour la sécurité
 - Les extensions VS Code recommandées sont installées automatiquement
 - Le workspace est monté dans `/workspace`
+- Les fichiers de l'hôte sont accessibles via `/host/home` et `/host/media` pour accéder aux ROMs
+
+## Accès aux fichiers de l'hôte
+
+Le container monte automatiquement certains répertoires de l'hôte pour permettre l'accès aux fichiers ROMs :
+- `/host/home` : Accès au répertoire home de l'utilisateur (${localEnv:HOME})
+- `/host/media` : Accès au répertoire media de l'utilisateur (/media/${localEnv:USER})
+
+Pour accéder à vos ROMs depuis l'application, utilisez les chemins montés :
+- Exemple : `/host/home/roms` au lieu de `~/roms` ou `/home/votre-utilisateur/roms`
+- Exemple : `/host/media/roms` pour les médias montés
+
+**Note** : Les mounts sont configurés dans `.devcontainer/devcontainer.json` et utilisent les variables d'environnement `${localEnv:HOME}` et `${localEnv:USER}` de votre machine hôte.
+
+Pour ajouter d'autres mounts, modifiez la section `"mounts"` dans `.devcontainer/devcontainer.json`.
 
 ## Dépannage
 
