@@ -23,6 +23,14 @@ Il s'agit de refaire https://github.com/phramusca/RomManager \"from scratch\" en
 
 Je ne veux pas nécessairement du java. C'est pour tourner sur PC (linux, windows, mac)."
 
+## Clarifications
+
+### Session 2025-01-27
+
+- Q: Quels types de checksums/hash doivent être calculés lors du scan ? → A: Tous les types de hash utilisés par Romm, Recalbox, Redump, NoIntro, et autres bases de données (MD5, SHA1, SHA256, CRC32, etc.)
+- Q: Quel est le rôle des checksums dans le processus d'identification ? → A: Les checksums servent à identifier les jeux (versions) en permettant la correspondance avec les entrées des bases de données de référence
+- Q: Comment gérer les jeux qui peuvent être associés à différentes sources de bases de données ? → A: Chaque jeu peut être associé à différentes sources (Redump, GoodSet, NoIntro, etc.) et le système doit sélectionner celle à utiliser selon les critères de préférences utilisateur (région, langue, etc.)
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Scanner et identifier les ROMs (Priority: P1)
@@ -40,7 +48,9 @@ Un utilisateur veut importer sa collection de ROMs depuis un ou plusieurs réper
 3. **Given** un répertoire contenant des archives 7Z avec des ROMs à l'intérieur, **When** l'utilisateur lance un scan, **Then** les ROMs dans les archives 7Z sont détectés et identifiés
 4. **Given** un répertoire contenant des archives ZIP qui contiennent elles-mêmes des archives avec des ROMs, **When** l'utilisateur lance un scan, **Then** les ROMs dans les archives imbriquées sont détectés récursivement
 5. **Given** un répertoire mixte contenant des ROMs de différentes consoles (NES, SNES, Game Boy), **When** l'utilisateur lance un scan, **Then** chaque ROM est correctement associé à sa console d'origine sans pré-classement manuel requis
-6. **Given** un ROM qui correspond à une entrée dans une base de données (NoIntro, Redump, ou GoodSet), **When** l'utilisateur lance un scan, **Then** le ROM est identifié avec le nom du jeu et les métadonnées de la base de données
+6. **Given** un ROM qui correspond à une entrée dans une base de données (NoIntro, Redump, ou GoodSet), **When** l'utilisateur lance un scan, **Then** le ROM est identifié avec le nom du jeu et les métadonnées de la base de données en utilisant les checksums calculés pour faire la correspondance
+7. **Given** un répertoire contenant des ROMs, **When** l'utilisateur lance un scan, **Then** tous les types de checksums/hash requis (MD5, SHA1, SHA256, CRC32, etc.) sont calculés pour chaque ROM et utilisés pour identifier les jeux et versions via correspondance avec les bases de données
+8. **Given** un jeu qui peut être identifié dans plusieurs bases de données (par exemple, présent à la fois dans Redump et GoodSet), **When** le système identifie le jeu, **Then** le jeu est associé à toutes les sources de bases de données pertinentes, et la source à utiliser est sélectionnée selon les préférences utilisateur (région, langue, etc.)
 
 ---
 
@@ -54,7 +64,7 @@ Un utilisateur veut que l'application regroupe automatiquement toutes les versio
 
 **Acceptance Scenarios**:
 
-1. **Given** plusieurs versions du même jeu détectées (USA, EUR, JAP), **When** l'utilisateur configure ses préférences de région (ex: EUR > USA > JAP), **Then** toutes les versions sont regroupées sous un même jeu et la version EUR est marquée comme sélectionnée
+1. **Given** plusieurs versions du même jeu détectées (USA, EUR, JAP), **When** l'utilisateur configure ses préférences de région (ex: EUR > USA > JAP), **Then** toutes les versions sont regroupées sous un même jeu, la source de base de données appropriée est sélectionnée selon les préférences, et la version EUR est marquée comme sélectionnée
 2. **Given** plusieurs versions d'un jeu dont certaines sont marquées "bad dump" dans la base de données, **When** le système applique le filtrage, **Then** les versions "bad dump" sont exclues de la sélection automatique
 3. **Given** un jeu avec plusieurs versions de qualité équivalente mais différentes langues, **When** l'utilisateur configure ses préférences de langue (ex: FR > EN > autres), **Then** la version dans la langue préférée est sélectionnée
 4. **Given** un jeu avec une seule version disponible, **When** le système applique le filtrage, **Then** cette version unique est automatiquement sélectionnée
@@ -117,30 +127,33 @@ Un utilisateur veut synchroniser les métadonnées de jeux entre l'application e
 ### Functional Requirements
 
 - **FR-001**: System MUST scan directories recursively to find ROM files, including files contained within ZIP and 7Z archives, and archives nested within other archives
-- **FR-002**: System MUST automatically identify the console/platform for each detected ROM file without requiring manual pre-classification
-- **FR-003**: System MUST identify games using reference databases (NoIntro, Redump, GoodSet) when available
-- **FR-004**: System MUST group multiple versions of the same game together
-- **FR-005**: System MUST allow users to configure priority preferences for region selection (e.g., EUR > USA > JAP)
-- **FR-006**: System MUST allow users to configure priority preferences for language selection
-- **FR-007**: System MUST automatically exclude ROM versions marked as "bad dump" or with quality issues from automatic selection
-- **FR-008**: System MUST automatically select the best ROM version for each game based on user-configured region and language preferences
-- **FR-009**: System MUST export ROMs to Recalbox following Recalbox folder naming conventions for consoles
-- **FR-010**: System MUST export ROMs to Romm following Romm folder naming conventions for consoles
-- **FR-011**: System MUST respect format requirements for each platform (ZIP vs uncompressed, supported file formats)
-- **FR-012**: System MUST retrieve scrap metadata (descriptions, images, ratings) from Recalbox via gamelist.xml files
-- **FR-013**: System MUST retrieve scrap metadata from Romm via REST API
-- **FR-014**: System MUST synchronize user data (favorites, ratings, play statistics) bidirectionally with Recalbox via gamelist.xml
-- **FR-015**: System MUST synchronize user data bidirectionally with Romm via REST API
-- **FR-016**: System MUST handle conflicts when metadata differs between application and platforms (last modified wins, or user confirmation)
-- **FR-017**: System MUST support scanning from multiple source directories
-- **FR-018**: System MUST preserve file integrity during export operations
-- **FR-019**: System MUST provide progress feedback during long-running operations (scan, export, sync)
-- **FR-020**: System MUST handle errors gracefully and provide meaningful error messages to users
+- **FR-002**: System MUST calculate all checksum/hash types used by Romm, Recalbox, Redump, NoIntro, and other reference databases (MD5, SHA1, SHA256, CRC32, and any other hash types required by these platforms) for each ROM file during scanning
+- **FR-003**: System MUST use checksums/hashes to identify games and versions by matching against entries in reference databases
+- **FR-004**: System MUST automatically identify the console/platform for each detected ROM file without requiring manual pre-classification
+- **FR-005**: System MUST identify games using reference databases (NoIntro, Redump, GoodSet) when available, and MUST support associating each game with multiple database sources
+- **FR-006**: System MUST select which database source to use for each game based on user-configured preferences (region, language, etc.) when multiple sources are available
+- **FR-007**: System MUST group multiple versions of the same game together
+- **FR-008**: System MUST allow users to configure priority preferences for region selection (e.g., EUR > USA > JAP)
+- **FR-009**: System MUST allow users to configure priority preferences for language selection
+- **FR-010**: System MUST automatically exclude ROM versions marked as "bad dump" or with quality issues from automatic selection
+- **FR-011**: System MUST automatically select the best ROM version for each game based on user-configured region and language preferences, including selection of the appropriate database source when multiple sources are available
+- **FR-012**: System MUST export ROMs to Recalbox following Recalbox folder naming conventions for consoles
+- **FR-013**: System MUST export ROMs to Romm following Romm folder naming conventions for consoles
+- **FR-014**: System MUST respect format requirements for each platform (ZIP vs uncompressed, supported file formats)
+- **FR-015**: System MUST retrieve scrap metadata (descriptions, images, ratings) from Recalbox via gamelist.xml files
+- **FR-016**: System MUST retrieve scrap metadata from Romm via REST API
+- **FR-017**: System MUST synchronize user data (favorites, ratings, play statistics) bidirectionally with Recalbox via gamelist.xml
+- **FR-018**: System MUST synchronize user data bidirectionally with Romm via REST API
+- **FR-019**: System MUST handle conflicts when metadata differs between application and platforms (last modified wins, or user confirmation)
+- **FR-020**: System MUST support scanning from multiple source directories
+- **FR-021**: System MUST preserve file integrity during export operations
+- **FR-022**: System MUST provide progress feedback during long-running operations (scan, export, sync)
+- **FR-023**: System MUST handle errors gracefully and provide meaningful error messages to users
 
 ### Key Entities *(include if feature involves data)*
 
-- **ROM File**: Represents a single ROM file found during scanning. Attributes: file path, file size, archive location (if in archive), detected console/platform, game identification (if matched in database), version information (region, language, quality flags), checksum/hash
-- **Game**: Represents a logical game that may have multiple ROM versions. Attributes: game name, console/platform, database source (NoIntro/Redump/GoodSet), grouped ROM versions, selected version (best match), metadata (description, images, ratings)
+- **ROM File**: Represents a single ROM file found during scanning. Attributes: file path, file size, archive location (if in archive), detected console/platform, game identification (if matched in database via checksum matching), version information (region, language, quality flags), checksums/hashes (MD5, SHA1, SHA256, CRC32, and any other hash types required by Romm, Recalbox, Redump, NoIntro, and other reference databases - used for game/version identification)
+- **Game**: Represents a logical game that may have multiple ROM versions. Attributes: game name, console/platform, associated database sources (can be associated with multiple sources: NoIntro, Redump, GoodSet, etc.), selected database source (chosen based on user preferences when multiple sources available), grouped ROM versions, selected version (best match based on preferences), metadata (description, images, ratings)
 - **Console/Platform**: Represents a gaming console or platform. Attributes: platform name, folder naming conventions for Recalbox, folder naming conventions for Romm, supported file formats, export requirements
 - **User Preferences**: Represents user configuration for filtering and selection. Attributes: region priority order, language priority order, quality filters (exclude bad dumps), export settings per platform
 - **Metadata**: Represents game metadata from various sources. Attributes: description, cover images, screenshots, videos, ratings, release date, developer, publisher, genre, user data (favorites, play statistics, save states), source (scraped from Recalbox/Romm or user-entered), last modified timestamp
