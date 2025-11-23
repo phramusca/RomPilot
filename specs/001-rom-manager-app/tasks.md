@@ -94,13 +94,13 @@ description: "Task list template for feature implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T045 [P] [US1] Unit test for ArchiveScanner recursive directory traversal in src/RomPilot.Tests/Unit/Archives/ArchiveScannerRecursiveTests.cs
-- [ ] T046 [P] [US1] Unit test for ArchiveScanner RAR support in src/RomPilot.Tests/Unit/Archives/ArchiveScannerRarTests.cs
-- [ ] T047 [P] [US1] Unit test for ArchiveScanner nested archives (ZIP, 7Z, RAR) in src/RomPilot.Tests/Unit/Archives/ArchiveScannerNestedTests.cs
-- [ ] T048 [P] [US1] Unit test for ChecksumCalculator in src/RomPilot.Tests/Unit/Checksums/ChecksumCalculatorTests.cs
-- [ ] T049 [P] [US1] Unit test for ConsoleDetectionService in src/RomPilot.Tests/Unit/Services/ConsoleDetectionServiceTests.cs
-- [ ] T050 [P] [US1] Unit test for ScanService with detailed progress reporting in src/RomPilot.Tests/Unit/Services/ScanServiceProgressTests.cs
-- [ ] T051 [US1] Integration test for scan workflow with detailed feedback in src/RomPilot.Tests/Integration/ScanServiceIntegrationTests.cs
+- [x] T045 [P] [US1] Unit test for ArchiveScanner recursive directory traversal in src/RomPilot.Tests/Unit/Archives/ArchiveScannerRecursiveTests.cs
+- [x] T046 [P] [US1] Unit test for ArchiveScanner RAR support in src/RomPilot.Tests/Unit/Archives/ArchiveScannerRarTests.cs
+- [x] T047 [P] [US1] Unit test for ArchiveScanner nested archives (ZIP, 7Z, RAR) in src/RomPilot.Tests/Unit/Archives/ArchiveScannerNestedTests.cs
+- [x] T048 [P] [US1] Unit test for ChecksumCalculator in src/RomPilot.Tests/Unit/Checksums/ChecksumCalculatorTests.cs
+- [x] T049 [P] [US1] Unit test for ConsoleDetectionService in src/RomPilot.Tests/Unit/Services/ConsoleDetectionServiceTests.cs
+- [x] T050 [P] [US1] Unit test for ScanService with detailed progress reporting in src/RomPilot.Tests/Unit/Services/ScanServiceProgressTests.cs
+- [x] T051 [US1] Integration test for scan workflow with detailed feedback in src/RomPilot.Tests/Integration/ScanServiceIntegrationTests.cs
 
 ### Implementation for User Story 1
 

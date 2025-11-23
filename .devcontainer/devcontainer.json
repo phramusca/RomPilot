@@ -12,14 +12,11 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-dotnettools.csharp",
-				"ms-dotnettools.csdevkit",
+				"muhammad-sammy.csharp",
 				"ms-dotnettools.vscode-dotnet-runtime",
 				"aaron-bond.better-comments",
-				"formulahendry.dotnet-test-explorer",
-				"jchannon.csharpextensions",
-				"kreativ-software.csharpextensions",
-				"josefpihrt-vscode.roslynator"
+				"josefpihrt-vscode.roslynator",
+				"anysphere.csharp"
 			],
 			"settings": {
 				"omnisharp.enableRoslynAnalyzers": true,
