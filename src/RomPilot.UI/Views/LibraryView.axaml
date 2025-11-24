@@ -11,73 +11,44 @@
         <vm:LibraryViewModel/>
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,Auto,*,*,*" Margin="20">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="20">
+        <!-- Status Message -->
+        <TextBlock Grid.Row="0" Text="{Binding StatusMessage}" FontSize="14" Margin="0,0,0,10"/>
+        
         <!-- Header -->
-        <TextBlock Grid.Row="0" 
+        <TextBlock Grid.Row="1" 
                    FontSize="20" 
                    FontWeight="Bold" 
                    Margin="0,0,0,15">
             <TextBlock.Text>
-                <MultiBinding StringFormat="Found {0} ROM files">
+                <MultiBinding StringFormat="Library: {0} ROM files">
                     <Binding Path="RomFiles.Count"/>
                 </MultiBinding>
             </TextBlock.Text>
         </TextBlock>
 
-        <!-- Processed Files List -->
-        <StackPanel Grid.Row="1" Spacing="5" Margin="0,0,0,10" IsVisible="{Binding ProcessedFiles.Count}">
-            <TextBlock Text="Processed Files:" FontWeight="Bold" FontSize="14"/>
-            <ScrollViewer MaxHeight="150">
-                <ItemsControl ItemsSource="{Binding ProcessedFiles}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="#E8F5E9" Padding="5" Margin="2">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding FilePath}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Status}" FontSize="12" Foreground="#2E7D32"/>
-                                    <TextBlock Text="{Binding Details}" FontSize="11" Foreground="#666" IsVisible="{Binding Details, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </StackPanel>
-        
-        <!-- Failed Files List -->
-        <StackPanel Grid.Row="2" Spacing="5" Margin="0,0,0,10" IsVisible="{Binding FailedFiles.Count}">
-            <TextBlock Text="Failed Files:" FontWeight="Bold" FontSize="14" Foreground="#C62828"/>
-            <ScrollViewer MaxHeight="150">
-                <ItemsControl ItemsSource="{Binding FailedFiles}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="#FFEBEE" Padding="5" Margin="2">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding FilePath}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding FailureReason}" FontSize="12" Foreground="#C62828"/>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </StackPanel>
-
-        <!-- Results List -->
-        <DataGrid Grid.Row="3" 
+        <!-- ROM Files List (takes ALL remaining height) -->
+        <DataGrid Grid.Row="2" 
                   ItemsSource="{Binding RomFiles}"
                   SelectedItem="{Binding SelectedRomFile}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
-                  GridLinesVisibility="All">
+                  GridLinesVisibility="All"
+                  VerticalAlignment="Stretch"
+                  HorizontalScrollBarVisibility="Auto">
             <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
                 <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
-                <DataGridTextColumn Header="Console" Binding="{Binding Console.Name}" Width="150"/>
-                <DataGridTextColumn Header="Size" Binding="{Binding FileSize, StringFormat='{}{0:N0} bytes'}" Width="120"/>
+                <DataGridTextColumn Header="Console" Binding="{Binding Console.Name}" Width="120"/>
+                <DataGridTextColumn Header="Size" Binding="{Binding FileSize, StringFormat='{}{0:N0} bytes'}" Width="100"/>
                 <DataGridTextColumn Header="Path" Binding="{Binding FilePath}" Width="2*"/>
                 <DataGridTextColumn Header="Archive" Binding="{Binding ArchivePath}" Width="*"/>
+                <DataGridTextColumn Header="Archive Depth" Binding="{Binding ArchiveDepth}" Width="80"/>
+                <DataGridTextColumn Header="Detected At" Binding="{Binding DetectedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="140"/>
+                <DataGridTextColumn Header="Last Scanned" Binding="{Binding LastScannedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="140"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding ProcessingStatus}" Width="80"/>
+                <DataGridTextColumn Header="Checksums" Binding="{Binding Checksums.Count, StringFormat='{}{0} checksums'}" Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
 </UserControl>
-
