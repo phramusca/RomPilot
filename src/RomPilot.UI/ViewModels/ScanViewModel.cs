@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,11 +65,13 @@ public partial class ScanViewModel : ViewModelBase
         if (_parentWindow == null)
         {
             StatusMessage = "Parent window not available. Please enter path manually.";
+            System.Console.WriteLine("[ScanViewModel] Parent window is null, cannot open folder picker");
             return;
         }
 
         try
         {
+            System.Console.WriteLine("[ScanViewModel] Opening folder picker...");
             var folder = await _parentWindow.StorageProvider.OpenFolderPickerAsync(
                 new Avalonia.Platform.Storage.FolderPickerOpenOptions
                 {
@@ -76,28 +79,43 @@ public partial class ScanViewModel : ViewModelBase
                     AllowMultiple = false
                 });
 
+            System.Console.WriteLine($"[ScanViewModel] Folder picker returned {folder.Count} folder(s)");
+
             if (folder.Count > 0)
             {
                 var selectedFolder = folder[0];
+                System.Console.WriteLine($"[ScanViewModel] Selected folder: {selectedFolder.Name}");
+                
                 // Get the local path from the storage folder
                 // In Avalonia 11, we need to check if it's a file system path
                 var path = selectedFolder.Path;
+                System.Console.WriteLine($"[ScanViewModel] Folder path: {path}");
+                
                 if (path != null && path.IsAbsoluteUri && path.Scheme == "file")
                 {
                     SelectedDirectory = path.LocalPath;
                     StatusMessage = $"Selected: {path.LocalPath}";
+                    System.Console.WriteLine($"[ScanViewModel] Selected directory set to: {path.LocalPath}");
                 }
                 else
                 {
                     // Fallback: try to get path from name or URI
                     var name = selectedFolder.Name;
-                    StatusMessage = $"Selected folder: {name} (path: {path})";
+                    System.Console.WriteLine($"[ScanViewModel] Could not extract file path, using name: {name}");
+                    StatusMessage = $"Selected folder: {name} (path: {path}). Please enter path manually.";
                 }
+            }
+            else
+            {
+                System.Console.WriteLine("[ScanViewModel] No folder selected by user");
+                StatusMessage = "No folder selected. Please enter path manually or try again.";
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error selecting directory: {ex.Message}";
+            System.Console.WriteLine($"[ScanViewModel] ERROR in SelectDirectoryAsync: {ex.Message}");
+            System.Console.WriteLine($"[ScanViewModel] Stack trace: {ex.StackTrace}");
+            StatusMessage = $"Error selecting directory: {ex.Message}. Please enter path manually.";
         }
     }
 
@@ -117,33 +135,123 @@ public partial class ScanViewModel : ViewModelBase
         ProgressTotal = 0;
         ProgressPercentage = 0;
 
+        System.Console.WriteLine($"[ScanViewModel] Starting scan of: {SelectedDirectory}");
+        System.Console.WriteLine($"[ScanViewModel] Directory exists: {Directory.Exists(SelectedDirectory)}");
+
         try
         {
             _progressReporter = _serviceProvider.GetRequiredService<IScanProgressReporter>();
-            if (_progressReporter is ScanProgressReporter reporter)
+            ScanProgressReporter? reporter = null;
+            if (_progressReporter is ScanProgressReporter scanReporter)
             {
+                reporter = scanReporter;
                 reporter.Reset();
+                System.Console.WriteLine("[ScanViewModel] Progress reporter initialized");
+            }
+            else
+            {
+                System.Console.WriteLine("[ScanViewModel] WARNING: Progress reporter is not ScanProgressReporter");
             }
 
             var directories = new[] { SelectedDirectory };
+            System.Console.WriteLine($"[ScanViewModel] Calling ScanDirectoriesAsync with {directories.Length} directory(ies)");
+            var startTime = DateTime.Now;
+            
+            // Start a task to periodically update progress from reporter
+            var progressUpdateTask = Task.Run(async () =>
+            {
+                if (reporter == null) return;
+                
+                while (IsScanning)
+                {
+                    try
+                    {
+                        // Update progress from reporter on UI thread
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            if (reporter == null) return;
+                            
+                            var messages = reporter.Messages.ToList();
+                            if (messages.Count != ProgressMessages.Count || 
+                                reporter.Current != ProgressCurrent || 
+                                reporter.Total != ProgressTotal)
+                            {
+                                ProgressMessages.Clear();
+                                ProgressMessages.AddRange(messages);
+                                ProgressCurrent = reporter.Current;
+                                ProgressTotal = reporter.Total;
+                                
+                                // Update status message
+                                if (!string.IsNullOrEmpty(reporter.CurrentMessage))
+                                {
+                                    StatusMessage = reporter.CurrentMessage;
+                                }
+                            }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Console.WriteLine($"[ScanViewModel] Error updating progress: {ex.Message}");
+                    }
+                    
+                    await Task.Delay(100); // Update every 100ms
+                }
+            });
+            
             var romFiles = await _scanService.ScanDirectoriesAsync(
                 directories,
                 _progressReporter,
                 CancellationToken.None);
-
-            StatusMessage = $"Scan complete! Found {romFiles.Count()} ROM files.";
             
-            // Navigate to results view
-            var mainViewModel = App.Services?.GetService<MainWindowViewModel>();
-            if (mainViewModel != null)
+            var duration = DateTime.Now - startTime;
+            System.Console.WriteLine($"[ScanViewModel] Scan completed in {duration.TotalSeconds:F2} seconds");
+            System.Console.WriteLine($"[ScanViewModel] Found {romFiles.Count()} ROM files");
+
+            // Final update of progress messages from reporter on UI thread
+            var romFilesList = romFiles.ToList();
+            System.Console.WriteLine($"[ScanViewModel] romFiles.Count() = {romFilesList.Count}");
+            
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var resultsViewModel = App.Services?.GetService<ScanResultsViewModel>();
-                if (resultsViewModel != null)
+                if (reporter != null)
                 {
-                    resultsViewModel.SetRomFiles(romFiles.ToList());
-                    mainViewModel.CurrentViewModel = resultsViewModel;
+                    var messageCount = reporter.Messages.Count();
+                    System.Console.WriteLine($"[ScanViewModel] Progress reporter has {messageCount} messages");
+                    ProgressMessages.Clear();
+                    ProgressMessages.AddRange(reporter.Messages);
+                    ProgressCurrent = reporter.Current;
+                    ProgressTotal = reporter.Total;
+                    System.Console.WriteLine($"[ScanViewModel] Updated UI: {ProgressMessages.Count} messages, {ProgressCurrent}/{ProgressTotal} progress");
                 }
-            }
+                else
+                {
+                    System.Console.WriteLine("[ScanViewModel] WARNING: No progress reporter available");
+                }
+
+                StatusMessage = $"Scan complete! Found {romFilesList.Count} ROM files.";
+                
+                // Navigate to results view
+                var mainViewModel = App.Services?.GetService<MainWindowViewModel>();
+                if (mainViewModel != null)
+                {
+                    var resultsViewModel = App.Services?.GetService<ScanResultsViewModel>();
+                    if (resultsViewModel != null)
+                    {
+                        System.Console.WriteLine($"[ScanViewModel] Setting {romFilesList.Count} ROM files in results view");
+                        resultsViewModel.SetRomFiles(romFilesList);
+                        mainViewModel.CurrentViewModel = resultsViewModel;
+                        System.Console.WriteLine("[ScanViewModel] Navigated to results view");
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("[ScanViewModel] ERROR: ScanResultsViewModel not found in services");
+                    }
+                }
+                else
+                {
+                    System.Console.WriteLine("[ScanViewModel] ERROR: MainWindowViewModel not found in services");
+                }
+            });
         }
         catch (Exception ex)
         {

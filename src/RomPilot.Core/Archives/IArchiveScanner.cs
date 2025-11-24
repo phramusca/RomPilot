@@ -28,8 +28,23 @@ public interface IArchiveScanner
 /// </summary>
 public class ArchiveFileInfo
 {
+    /// <summary>
+    /// Path to the file within the archive (relative path)
+    /// </summary>
     public string FilePath { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Path to the original source archive (the archive that was initially scanned)
+    /// </summary>
     public string? ArchivePath { get; set; }
+    
+    /// <summary>
+    /// Path to the immediate archive containing this file (for extraction purposes).
+    /// For nested archives, this is the archive that directly contains the file.
+    /// For top-level archives, this is the same as ArchivePath.
+    /// </summary>
+    public string? ImmediateArchivePath { get; set; }
+    
     public int ArchiveDepth { get; set; }
     public long FileSize { get; set; }
 }

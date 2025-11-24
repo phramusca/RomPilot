@@ -3,8 +3,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using RomPilot.Core.Database;
 using RomPilot.Core.Repositories;
 using RomPilot.Core.Services;
@@ -41,6 +41,17 @@ public partial class App : Application
             // Line below is needed to remove Avalonia data validation.
             // Without this line you will get duplicate validations from both Avalonia and CT
             BindingPlugins.DataValidators.RemoveAt(0);
+            
+            // Initialize database and seed data
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<RomPilotDbContext>();
+                context.Database.EnsureCreated();
+                
+                var seedService = scope.ServiceProvider.GetRequiredService<SeedDataService>();
+                seedService.SeedAsync().Wait();
+            }
+            
             desktop.MainWindow = new MainWindow
             {
                 DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>(),
@@ -55,6 +66,9 @@ public partial class App : Application
         // Database
         services.AddDbContext<RomPilotDbContext>(options =>
             options.UseSqlite("Data Source=rompilot.db"));
+        
+        // Seed data service
+        services.AddScoped<SeedDataService>();
 
         // Repositories
         services.AddScoped<IRomFileRepository, RomFileRepository>();

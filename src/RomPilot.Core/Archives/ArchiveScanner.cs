@@ -1,6 +1,7 @@
 using SharpCompress.Archives;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Archives.SevenZip;
+using SharpCompress.Archives.Rar;
 using SharpCompress.Common;
 
 namespace RomPilot.Core.Archives;
@@ -38,23 +39,36 @@ public class ArchiveScanner : IArchiveScanner
         CancellationToken cancellationToken)
     {
         if (currentDepth > maxDepth || cancellationToken.IsCancellationRequested)
+        {
+            System.Console.WriteLine($"[ArchiveScanner] Skipping {path} - depth {currentDepth} > maxDepth {maxDepth}");
             return;
+        }
 
         if (!Directory.Exists(path))
+        {
+            System.Console.WriteLine($"[ArchiveScanner] Directory does not exist: {path}");
             return;
+        }
+
+        System.Console.WriteLine($"[ArchiveScanner] Scanning directory: {path} (depth: {currentDepth})");
 
         try
         {
             // Scan direct files
             var files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
+            System.Console.WriteLine($"[ArchiveScanner] Found {files.Length} files in {path}");
+            
             foreach (var file in files)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 
                 var extension = Path.GetExtension(file);
+                var fileName = Path.GetFileName(file);
+                
                 if (_romExtensions.Contains(extension))
                 {
                     var fileInfo = new FileInfo(file);
+                    System.Console.WriteLine($"[ArchiveScanner] Found ROM file: {fileName} ({extension})");
                     results.Add(new ArchiveFileInfo
                     {
                         FilePath = file,
@@ -65,13 +79,22 @@ public class ArchiveScanner : IArchiveScanner
                 }
                 else if (IsArchiveFile(file) && currentDepth < maxDepth)
                 {
-                    // Scan archive contents
-                    await ScanArchiveAsync(file, currentDepth + 1, maxDepth, results, cancellationToken);
+                    System.Console.WriteLine($"[ArchiveScanner] Found archive file: {fileName} ({extension}) - will scan contents");
+                    // Scan archive contents (this is the original archive, so no originalArchivePath needed)
+                    await ScanArchiveAsync(file, currentDepth + 1, maxDepth, results, cancellationToken, null);
+                }
+                else
+                {
+                    if (files.Length <= 10) // Only log if few files to avoid spam
+                    {
+                        System.Console.WriteLine($"[ArchiveScanner] Skipping file: {fileName} ({extension}) - not ROM or archive");
+                    }
                 }
             }
 
             // Scan subdirectories
             var directories = Directory.GetDirectories(path);
+            System.Console.WriteLine($"[ArchiveScanner] Found {directories.Length} subdirectories in {path}");
             foreach (var dir in directories)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -81,7 +104,12 @@ public class ArchiveScanner : IArchiveScanner
         catch (Exception ex)
         {
             // Log error but continue scanning
-            System.Diagnostics.Debug.WriteLine($"Error scanning {path}: {ex.Message}");
+            System.Console.WriteLine($"[ArchiveScanner] ERROR scanning {path}: {ex.Message}");
+            System.Console.WriteLine($"[ArchiveScanner] Exception type: {ex.GetType().Name}");
+            if (ex.StackTrace != null)
+            {
+                System.Console.WriteLine($"[ArchiveScanner] Stack trace: {ex.StackTrace}");
+            }
         }
     }
 
@@ -90,66 +118,159 @@ public class ArchiveScanner : IArchiveScanner
         int currentDepth,
         int maxDepth,
         List<ArchiveFileInfo> results,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? originalArchivePath = null)
     {
+        var archiveName = Path.GetFileName(archivePath);
+        System.Console.WriteLine($"[ArchiveScanner] Opening archive: {archiveName} (depth: {currentDepth})");
+        
         try
         {
             IArchive? archive = null;
             
             if (archivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             {
+                System.Console.WriteLine($"[ArchiveScanner] Opening as ZIP: {archiveName}");
                 archive = ZipArchive.Open(archivePath);
             }
             else if (archivePath.EndsWith(".7z", StringComparison.OrdinalIgnoreCase))
             {
+                System.Console.WriteLine($"[ArchiveScanner] Opening as 7Z: {archiveName}");
                 archive = SevenZipArchive.Open(archivePath);
+            }
+            else if (archivePath.EndsWith(".rar", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Console.WriteLine($"[ArchiveScanner] Opening as RAR: {archiveName}");
+                try
+                {
+                    archive = RarArchive.Open(archivePath);
+                    System.Console.WriteLine($"[ArchiveScanner] RAR archive opened successfully: {archiveName}");
+                }
+                catch (Exception rarEx)
+                {
+                    System.Console.WriteLine($"[ArchiveScanner] ERROR opening RAR {archiveName}: {rarEx.Message}");
+                    System.Console.WriteLine($"[ArchiveScanner] RAR exception type: {rarEx.GetType().Name}");
+                    if (rarEx.StackTrace != null)
+                    {
+                        System.Console.WriteLine($"[ArchiveScanner] RAR stack trace: {rarEx.StackTrace}");
+                    }
+                    throw; // Re-throw to be caught by outer catch
+                }
+            }
+            else
+            {
+                System.Console.WriteLine($"[ArchiveScanner] Unknown archive format: {archiveName}");
             }
 
             if (archive == null)
-                return;
-
-            await Task.Run(() =>
             {
-                foreach (var entry in archive.Entries.Where(e => !e.IsDirectory))
+                System.Console.WriteLine($"[ArchiveScanner] Failed to open archive: {archiveName}");
+                return;
+            }
+
+            System.Console.WriteLine($"[ArchiveScanner] Successfully opened archive: {archiveName}");
+
+            await Task.Run(async () =>
+            {
+                var entries = archive.Entries.Where(e => !e.IsDirectory).ToList();
+                System.Console.WriteLine($"[ArchiveScanner] Archive {archiveName} contains {entries.Count} files");
+                
+                int romCount = 0;
+                int nestedArchiveCount = 0;
+                int skippedCount = 0;
+                
+                foreach (var entry in entries)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     
+                    if (string.IsNullOrEmpty(entry.Key))
+                    {
+                        skippedCount++;
+                        continue;
+                    }
+                        
                     var extension = Path.GetExtension(entry.Key);
+                    var entryName = Path.GetFileName(entry.Key);
+                    
                     if (!string.IsNullOrEmpty(extension) && _romExtensions.Contains(extension))
                     {
+                        romCount++;
+                        if (romCount <= 10) // Log first 10 ROMs
+                        {
+                            System.Console.WriteLine($"[ArchiveScanner] Found ROM in {archiveName}: {entryName} ({extension})");
+                        }
+                        // Use original archive path if available (for nested archives), otherwise use current archive path
+                        var sourceArchivePath = originalArchivePath ?? archivePath;
                         results.Add(new ArchiveFileInfo
                         {
                             FilePath = entry.Key,
-                            ArchivePath = archivePath,
+                            ArchivePath = sourceArchivePath, // Original source archive
+                            ImmediateArchivePath = archivePath, // Immediate archive containing this file
                             ArchiveDepth = currentDepth,
                             FileSize = entry.Size
                         });
                     }
                     else if (!string.IsNullOrEmpty(entry.Key) && IsArchiveFile(entry.Key) && currentDepth < maxDepth)
                     {
+                        nestedArchiveCount++;
+                        System.Console.WriteLine($"[ArchiveScanner] Found nested archive in {archiveName}: {entryName}");
                         // Nested archive - extract and scan recursively
-                        using var entryStream = entry.OpenEntryStream();
                         var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + Path.GetExtension(entry.Key));
                         try
                         {
-                            using var fileStream = File.Create(tempPath);
-                            entryStream.CopyTo(fileStream);
-                            ScanArchiveAsync(tempPath, currentDepth + 1, maxDepth, results, cancellationToken).Wait(cancellationToken);
+                            // Extract to temporary file
+                            using (var entryStream = entry.OpenEntryStream())
+                            using (var fileStream = File.Create(tempPath))
+                            {
+                                entryStream.CopyTo(fileStream);
+                                fileStream.Flush(); // Ensure all data is written
+                            } // Both streams are closed here
+                            
+                            // Small delay to ensure file system has released the file
+                            await Task.Delay(10, cancellationToken).ConfigureAwait(false);
+                            
+                            // Now scan the extracted archive, but keep reference to original archive path
+                            // Use originalArchivePath if available, otherwise use current archivePath (for first level nested archives)
+                            var sourceArchivePath = originalArchivePath ?? archivePath;
+                            await ScanArchiveAsync(tempPath, currentDepth + 1, maxDepth, results, cancellationToken, sourceArchivePath).ConfigureAwait(false);
                         }
-                        finally
+                        catch (Exception nestedEx)
                         {
-                            if (File.Exists(tempPath))
-                                File.Delete(tempPath);
+                            System.Console.WriteLine($"[ArchiveScanner] ERROR processing nested archive {entryName}: {nestedEx.Message}");
+                        }
+                        // NOTE: We do NOT delete the temporary file here because it may be needed later
+                        // for extracting files and calculating checksums. The temporary files will be cleaned up
+                        // after the scan is complete and all checksums are calculated.
+                        // The file will remain in /tmp and will be cleaned up by the system eventually.
+                    }
+                    else
+                    {
+                        skippedCount++;
+                        if (skippedCount <= 5) // Log first 5 skipped files
+                        {
+                            System.Console.WriteLine($"[ArchiveScanner] Skipped file in {archiveName}: {entryName} ({extension})");
                         }
                     }
                 }
+                
+                System.Console.WriteLine($"[ArchiveScanner] Archive {archiveName} summary: {romCount} ROMs, {nestedArchiveCount} nested archives, {skippedCount} skipped files");
             }, cancellationToken);
 
             archive.Dispose();
+            System.Console.WriteLine($"[ArchiveScanner] Finished scanning archive: {archiveName}");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error scanning archive {archivePath}: {ex.Message}");
+            System.Console.WriteLine($"[ArchiveScanner] ERROR scanning archive {archiveName}: {ex.Message}");
+            System.Console.WriteLine($"[ArchiveScanner] Exception type: {ex.GetType().Name}");
+            if (ex.StackTrace != null)
+            {
+                System.Console.WriteLine($"[ArchiveScanner] Stack trace: {ex.StackTrace}");
+            }
+            if (ex.InnerException != null)
+            {
+                System.Console.WriteLine($"[ArchiveScanner] Inner exception: {ex.InnerException.Message}");
+            }
         }
     }
 
@@ -166,6 +287,10 @@ public class ArchiveScanner : IArchiveScanner
             else if (archivePath.EndsWith(".7z", StringComparison.OrdinalIgnoreCase))
             {
                 archive = SevenZipArchive.Open(archivePath);
+            }
+            else if (archivePath.EndsWith(".rar", StringComparison.OrdinalIgnoreCase))
+            {
+                archive = RarArchive.Open(archivePath);
             }
 
             if (archive == null)
@@ -191,7 +316,8 @@ public class ArchiveScanner : IArchiveScanner
     {
         var extension = Path.GetExtension(filePath);
         return extension.Equals(".zip", StringComparison.OrdinalIgnoreCase) ||
-               extension.Equals(".7z", StringComparison.OrdinalIgnoreCase);
+               extension.Equals(".7z", StringComparison.OrdinalIgnoreCase) ||
+               extension.Equals(".rar", StringComparison.OrdinalIgnoreCase);
     }
 }
 

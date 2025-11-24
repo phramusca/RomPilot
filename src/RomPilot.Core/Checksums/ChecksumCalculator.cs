@@ -56,13 +56,37 @@ public class ChecksumCalculator : IChecksumCalculator
     {
         var results = new Dictionary<string, string>();
         
-        // Calculate all checksums in parallel for better performance
+        // Read the stream into memory first to ensure all checksums are calculated
+        // on the exact same data. This prevents race conditions when calculating in parallel.
+        stream.Position = 0;
+        var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer);
+        var data = buffer.ToArray();
+        
+        // Calculate all checksums in parallel, each with its own copy of the data
+        // This ensures thread safety and consistent results
         var tasks = new[]
         {
-            Task.Run(async () => ("MD5", await CalculateMD5Async(stream))),
-            Task.Run(async () => ("SHA1", await CalculateSHA1Async(stream))),
-            Task.Run(async () => ("SHA256", await CalculateSHA256Async(stream))),
-            Task.Run(async () => ("CRC32", await CalculateCRC32Async(stream)))
+            Task.Run(async () =>
+            {
+                using var ms = new MemoryStream(data);
+                return ("MD5", await CalculateMD5Async(ms));
+            }),
+            Task.Run(async () =>
+            {
+                using var ms = new MemoryStream(data);
+                return ("SHA1", await CalculateSHA1Async(ms));
+            }),
+            Task.Run(async () =>
+            {
+                using var ms = new MemoryStream(data);
+                return ("SHA256", await CalculateSHA256Async(ms));
+            }),
+            Task.Run(async () =>
+            {
+                using var ms = new MemoryStream(data);
+                return ("CRC32", await CalculateCRC32Async(ms));
+            })
         };
 
         await Task.WhenAll(tasks);

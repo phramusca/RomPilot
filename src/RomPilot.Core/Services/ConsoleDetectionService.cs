@@ -79,14 +79,25 @@ public class ConsoleDetectionService : IConsoleDetectionService
     {
         // First, try detection by file extension
         var extension = Path.GetExtension(filePath);
+        System.Console.WriteLine($"[ConsoleDetectionService] Detecting console for: {filePath}, extension: '{extension}'");
         if (!string.IsNullOrEmpty(extension) && ExtensionToConsole.TryGetValue(extension, out var consoleShortName))
         {
+            System.Console.WriteLine($"[ConsoleDetectionService] Extension '{extension}' maps to console '{consoleShortName}'");
             // Verify console exists in database
             var console = await _consoleRepository.GetByShortNameAsync(consoleShortName);
             if (console != null)
             {
+                System.Console.WriteLine($"[ConsoleDetectionService] Console '{consoleShortName}' found in database: {console.Name}");
                 return consoleShortName;
             }
+            else
+            {
+                System.Console.WriteLine($"[ConsoleDetectionService] Console '{consoleShortName}' NOT found in database");
+            }
+        }
+        else
+        {
+            System.Console.WriteLine($"[ConsoleDetectionService] Extension '{extension}' not recognized or empty");
         }
 
         // TODO: Add header-based detection for ambiguous cases
