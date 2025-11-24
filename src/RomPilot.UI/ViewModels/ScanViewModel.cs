@@ -43,6 +43,12 @@ public partial class ScanViewModel : ViewModelBase
     [ObservableProperty]
     private List<string> _progressMessages = new();
 
+    [ObservableProperty]
+    private List<FileProcessingResult> _processedFiles = new();
+
+    [ObservableProperty]
+    private List<FileProcessingResult> _failedFiles = new();
+
     private IScanProgressReporter? _progressReporter;
     private Window? _parentWindow;
 
@@ -131,6 +137,8 @@ public partial class ScanViewModel : ViewModelBase
         IsScanning = true;
         StatusMessage = "Scanning...";
         ProgressMessages.Clear();
+        ProcessedFiles.Clear();
+        FailedFiles.Clear();
         ProgressCurrent = 0;
         ProgressTotal = 0;
         ProgressPercentage = 0;
@@ -180,6 +188,47 @@ public partial class ScanViewModel : ViewModelBase
                                 ProgressMessages.AddRange(messages);
                                 ProgressCurrent = reporter.Current;
                                 ProgressTotal = reporter.Total;
+                                
+                                // Parse messages to separate processed and failed files
+                                ProcessedFiles.Clear();
+                                FailedFiles.Clear();
+                                foreach (var msg in messages)
+                                {
+                                    if (msg.StartsWith("✓"))
+                                    {
+                                        // Success message format: "✓ filename: status (details)"
+                                        var parts = msg.Substring(1).Split(new[] { ':' }, 2);
+                                        if (parts.Length == 2)
+                                        {
+                                            var fileName = parts[0].Trim();
+                                            var statusParts = parts[1].Trim().Split(new[] { '(' }, 2);
+                                            var status = statusParts[0].Trim();
+                                            var details = statusParts.Length > 1 ? statusParts[1].TrimEnd(')') : null;
+                                            ProcessedFiles.Add(new FileProcessingResult
+                                            {
+                                                FilePath = fileName,
+                                                Status = status,
+                                                Details = details
+                                            });
+                                        }
+                                    }
+                                    else if (msg.StartsWith("✗"))
+                                    {
+                                        // Failure message format: "✗ filename: FAILED - reason"
+                                        var parts = msg.Substring(1).Split(new[] { ':' }, 2);
+                                        if (parts.Length == 2)
+                                        {
+                                            var fileName = parts[0].Trim();
+                                            var reason = parts[1].Replace("FAILED -", "").Trim();
+                                            FailedFiles.Add(new FileProcessingResult
+                                            {
+                                                FilePath = fileName,
+                                                Status = "failed",
+                                                FailureReason = reason
+                                            });
+                                        }
+                                    }
+                                }
                                 
                                 // Update status message
                                 if (!string.IsNullOrEmpty(reporter.CurrentMessage))
@@ -293,5 +342,16 @@ public partial class ScanViewModel : ViewModelBase
             ProgressPercentage = 0;
         }
     }
+}
+
+/// <summary>
+/// Represents the result of processing a file during scan.
+/// </summary>
+public class FileProcessingResult
+{
+    public string FilePath { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public string? Details { get; set; }
+    public string? FailureReason { get; set; }
 }
 

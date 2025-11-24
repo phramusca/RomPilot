@@ -22,5 +22,20 @@ public interface IScanProgressReporter
     /// Reports that a ROM file was found.
     /// </summary>
     void ReportRomFound(string filePath, string consoleName);
+    
+    /// <summary>
+    /// Reports that a file was processed successfully with status details.
+    /// </summary>
+    /// <param name="filePath">Path to the processed file</param>
+    /// <param name="status">Status: "success", "console_identified", "game_identified", etc.</param>
+    /// <param name="details">Optional details about the processing result</param>
+    void ReportFileSuccess(string filePath, string status, string? details = null);
+    
+    /// <summary>
+    /// Reports that a file failed to process with explicit failure reason.
+    /// </summary>
+    /// <param name="filePath">Path to the failed file</param>
+    /// <param name="failureReason">Explicit reason for failure (e.g., "Console not detected", "Corrupted archive", "Checksum calculation failed")</param>
+    void ReportFileFailure(string filePath, string failureReason);
 }
 

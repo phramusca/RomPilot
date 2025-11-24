@@ -40,6 +40,16 @@ public class RomFile
     public DateTime DetectedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastScannedAt { get; set; }
     
+    /// <summary>
+    /// Processing status: "success" if processed successfully, "failed" if processing failed
+    /// </summary>
+    public string? ProcessingStatus { get; set; }
+    
+    /// <summary>
+    /// Explicit failure reason if processing failed (e.g., "Console not detected", "Corrupted archive", "Checksum calculation failed")
+    /// </summary>
+    public string? FailureReason { get; set; }
+    
     // Navigation properties
     public Console Console { get; set; } = null!;
     public ICollection<Checksum> Checksums { get; set; } = new List<Checksum>();

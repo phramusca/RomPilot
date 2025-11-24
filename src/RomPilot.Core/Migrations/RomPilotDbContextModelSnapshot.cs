@@ -319,6 +319,9 @@ namespace RomPilot.Core.Migrations
                     b.Property<DateTime>("DetectedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FailureReason")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -331,6 +334,12 @@ namespace RomPilot.Core.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("LastScannedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProcessingStatus")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FailureReason")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");

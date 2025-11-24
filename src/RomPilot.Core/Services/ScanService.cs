@@ -99,9 +99,10 @@ public class ScanService : IScanService
                 System.Console.WriteLine($"[ScanService] Console detection result: {(consoleShortName ?? "null")} for {archiveFile.FilePath}");
                 if (string.IsNullOrEmpty(consoleShortName))
                 {
-                    var msg = $"Could not detect console for: {archiveFile.FilePath}";
-                    System.Console.WriteLine($"[ScanService] {msg}");
-                    progressReporter?.ReportProgress(i + 1, totalFiles, msg);
+                    var failureReason = "Console not detected";
+                    System.Console.WriteLine($"[ScanService] {failureReason} for: {archiveFile.FilePath}");
+                    progressReporter?.ReportFileFailure(archiveFile.FilePath, failureReason);
+                    progressReporter?.ReportProgress(i + 1, totalFiles, failureReason);
                     continue;
                 }
 
@@ -110,9 +111,10 @@ public class ScanService : IScanService
                 var console = await _context.Consoles.FirstOrDefaultAsync(c => c.ShortName == consoleShortName);
                 if (console == null)
                 {
-                    var msg = $"Console not found in database: {consoleShortName}";
-                    System.Console.WriteLine($"[ScanService] {msg}");
-                    progressReporter?.ReportProgress(i + 1, totalFiles, msg);
+                    var failureReason = $"Console not found in database: {consoleShortName}";
+                    System.Console.WriteLine($"[ScanService] {failureReason}");
+                    progressReporter?.ReportFileFailure(archiveFile.FilePath, failureReason);
+                    progressReporter?.ReportProgress(i + 1, totalFiles, failureReason);
                     continue;
                 }
                 System.Console.WriteLine($"[ScanService] Found console: {console.Name} (ID: {console.Id})");
@@ -150,15 +152,23 @@ public class ScanService : IScanService
                 // Identify game
                 System.Console.WriteLine($"[ScanService] Identifying game for ROM: {romFile.FilePath}");
                 var gameEntry = await _gameIdentificationService.IdentifyGameAsync(romFile, checksums, cancellationToken);
+                
+                // Update RomFile with processing status
+                romFile.ProcessingStatus = "success";
+                romFile.FailureReason = null;
+                
                 if (gameEntry != null)
                 {
                     // Link game to ROM (this would be done via GameRomVersion in a full implementation)
                     System.Console.WriteLine($"[ScanService] Game identified: {gameEntry.GameName}");
+                    progressReporter?.ReportFileSuccess(archiveFile.FilePath, "game_identified", gameEntry.GameName);
                     progressReporter?.ReportProgress(i + 1, totalFiles, $"Identified: {gameEntry.GameName}");
                 }
                 else
                 {
                     System.Console.WriteLine($"[ScanService] No game identified for ROM: {romFile.FilePath}");
+                    progressReporter?.ReportFileSuccess(archiveFile.FilePath, "console_identified", console.Name);
+                    progressReporter?.ReportProgress(i + 1, totalFiles, $"Console identified: {console.Name}");
                 }
 
                 System.Console.WriteLine($"[ScanService] Adding ROM to results (current count: {results.Count})");
@@ -167,9 +177,28 @@ public class ScanService : IScanService
             }
             catch (Exception ex)
             {
+                var failureReason = $"Error: {ex.Message}";
                 System.Console.WriteLine($"[ScanService] ERROR processing {archiveFile.FilePath}: {ex.Message}");
                 System.Console.WriteLine($"[ScanService] Stack trace: {ex.StackTrace}");
-                progressReporter?.ReportProgress(i + 1, totalFiles, $"Error processing {archiveFile.FilePath}: {ex.Message}");
+                progressReporter?.ReportFileFailure(archiveFile.FilePath, failureReason);
+                progressReporter?.ReportProgress(i + 1, totalFiles, failureReason);
+                
+                // Try to save failure status to database if we have a RomFile
+                try
+                {
+                    var romFile = await _context.RomFiles
+                        .FirstOrDefaultAsync(rf => rf.FilePath == archiveFile.FilePath && rf.ArchivePath == archiveFile.ArchivePath);
+                    if (romFile != null)
+                    {
+                        romFile.ProcessingStatus = "failed";
+                        romFile.FailureReason = failureReason;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                catch (Exception saveEx)
+                {
+                    System.Console.WriteLine($"[ScanService] Failed to save failure status: {saveEx.Message}");
+                }
             }
         }
 

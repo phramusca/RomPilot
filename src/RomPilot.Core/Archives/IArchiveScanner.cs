@@ -1,7 +1,7 @@
 namespace RomPilot.Core.Archives;
 
 /// <summary>
-/// Interface for scanning archives (ZIP, 7Z) recursively to find ROM files.
+/// Interface for scanning archives (ZIP, 7Z, RAR) recursively to find ROM files.
 /// </summary>
 public interface IArchiveScanner
 {

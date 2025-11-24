@@ -127,21 +127,21 @@ description: "Task list template for feature implementation"
 
 ### NEW: Updates Required for Spec Clarifications
 
-- [ ] T072 [US1] Update ArchiveScanner to support RAR format: add RAR detection in IsArchiveFile() method in src/RomPilot.Core/Archives/ArchiveScanner.cs
-- [ ] T073 [US1] Update ArchiveScanner to support RAR format: add RAR archive opening logic in ScanArchiveAsync() method in src/RomPilot.Core/Archives/ArchiveScanner.cs
-- [ ] T074 [US1] Update ArchiveScanner to support RAR format: add RAR extraction logic in ExtractFileAsync() method in src/RomPilot.Core/Archives/ArchiveScanner.cs
-- [ ] T075 [US1] Update IArchiveScanner interface documentation to mention RAR support in src/RomPilot.Core/Archives/IArchiveScanner.cs
-- [ ] T076 [US1] Verify ArchiveScanner recursive directory traversal works correctly (all subdirectories) in src/RomPilot.Core/Archives/ArchiveScanner.cs
-- [ ] T077 [US1] Verify ArchiveScanner recursive archive processing works for all formats (ZIP, 7Z, RAR) in src/RomPilot.Core/Archives/ArchiveScanner.cs
-- [ ] T078 [US1] Add ProcessingStatus property to RomFile model (success, failed) in src/RomPilot.Core/Models/RomFile.cs
-- [ ] T079 [US1] Add FailureReason property to RomFile model (explicit failure reasons) in src/RomPilot.Core/Models/RomFile.cs
-- [ ] T080 [US1] Create EF Core migration for RomFile ProcessingStatus and FailureReason fields in src/RomPilot.Core/Migrations/
-- [ ] T081 [US1] Enhance IScanProgressReporter interface to report per-file status with failure reasons in src/RomPilot.Core/Services/IScanProgressReporter.cs
-- [ ] T082 [US1] Update ScanProgressReporter implementation to support file-level status reporting in src/RomPilot.Core/Services/ScanProgressReporter.cs
-- [ ] T083 [US1] Update ScanService to capture and report failure reasons for each file in src/RomPilot.Core/Services/ScanService.cs
-- [ ] T084 [US1] Update ScanViewModel to display detailed file list (processed/failed with reasons) in src/RomPilot.UI/ViewModels/ScanViewModel.cs
-- [ ] T085 [US1] Update ScanView.axaml to show processed files list with status (success, console identified, game identified) in src/RomPilot.UI/Views/ScanView.axaml
-- [ ] T086 [US1] Update ScanView.axaml to show failed files list with explicit failure reasons in src/RomPilot.UI/Views/ScanView.axaml
+- [x] T072 [US1] Update ArchiveScanner to support RAR format: add RAR detection in IsArchiveFile() method in src/RomPilot.Core/Archives/ArchiveScanner.cs
+- [x] T073 [US1] Update ArchiveScanner to support RAR format: add RAR archive opening logic in ScanArchiveAsync() method in src/RomPilot.Core/Archives/ArchiveScanner.cs
+- [x] T074 [US1] Update ArchiveScanner to support RAR format: add RAR extraction logic in ExtractFileAsync() method in src/RomPilot.Core/Archives/ArchiveScanner.cs
+- [x] T075 [US1] Update IArchiveScanner interface documentation to mention RAR support in src/RomPilot.Core/Archives/IArchiveScanner.cs
+- [x] T076 [US1] Verify ArchiveScanner recursive directory traversal works correctly (all subdirectories) in src/RomPilot.Core/Archives/ArchiveScanner.cs - Verified: ScanDirectoryRecursiveAsync recursively scans all subdirectories
+- [x] T077 [US1] Verify ArchiveScanner recursive archive processing works for all formats (ZIP, 7Z, RAR) in src/RomPilot.Core/Archives/ArchiveScanner.cs - Verified: ScanArchiveAsync handles nested archives recursively for all formats
+- [x] T078 [US1] Add ProcessingStatus property to RomFile model (success, failed) in src/RomPilot.Core/Models/RomFile.cs
+- [x] T079 [US1] Add FailureReason property to RomFile model (explicit failure reasons) in src/RomPilot.Core/Models/RomFile.cs
+- [x] T080 [US1] Create EF Core migration for RomFile ProcessingStatus and FailureReason fields in src/RomPilot.Core/Migrations/
+- [x] T081 [US1] Enhance IScanProgressReporter interface to report per-file status with failure reasons in src/RomPilot.Core/Services/IScanProgressReporter.cs
+- [x] T082 [US1] Update ScanProgressReporter implementation to support file-level status reporting in src/RomPilot.Core/Services/ScanProgressReporter.cs
+- [x] T083 [US1] Update ScanService to capture and report failure reasons for each file in src/RomPilot.Core/Services/ScanService.cs
+- [x] T084 [US1] Update ScanViewModel to display detailed file list (processed/failed with reasons) in src/RomPilot.UI/ViewModels/ScanViewModel.cs
+- [x] T085 [US1] Update ScanView.axaml to show processed files list with status (success, console identified, game identified) in src/RomPilot.UI/Views/ScanView.axaml
+- [x] T086 [US1] Update ScanView.axaml to show failed files list with explicit failure reasons in src/RomPilot.UI/Views/ScanView.axaml
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently - users can scan directories recursively (including subdirectories and nested archives in ZIP/7Z/RAR), see identified ROMs, and view detailed feedback with processed/failed files and failure reasons
 

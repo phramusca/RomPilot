@@ -39,6 +39,21 @@ public class ScanProgressReporter : IScanProgressReporter
         _messages.Enqueue($"Found ROM: {Path.GetFileName(filePath)} ({consoleName})");
     }
 
+    public void ReportFileSuccess(string filePath, string status, string? details = null)
+    {
+        var message = $"✓ {Path.GetFileName(filePath)}: {status}";
+        if (!string.IsNullOrEmpty(details))
+        {
+            message += $" ({details})";
+        }
+        _messages.Enqueue(message);
+    }
+
+    public void ReportFileFailure(string filePath, string failureReason)
+    {
+        _messages.Enqueue($"✗ {Path.GetFileName(filePath)}: FAILED - {failureReason}");
+    }
+
     public void Reset()
     {
         _current = 0;
