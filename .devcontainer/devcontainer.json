@@ -16,7 +16,8 @@
 				"ms-dotnettools.vscode-dotnet-runtime",
 				"aaron-bond.better-comments",
 				"josefpihrt-vscode.roslynator",
-				"anysphere.csharp"
+				"anysphere.csharp",
+				"ms-azuretools.vscode-docker"
 			],
 			"settings": {
 				"omnisharp.enableRoslynAnalyzers": true,
