@@ -32,7 +32,7 @@ public class ArchiveScannerRarTests : IDisposable
         await File.WriteAllBytesAsync(rarFile, new byte[] { 0x52, 0x61, 0x72, 0x21 }); // RAR signature
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
         // Assert
         // The scanner should recognize .rar files as archives
@@ -49,7 +49,7 @@ public class ArchiveScannerRarTests : IDisposable
 
         // Act
         // We need to test the IsArchiveFile method indirectly through scanning
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
         // Assert
         // The scanner should process .rar files
@@ -70,7 +70,7 @@ public class ArchiveScannerRarTests : IDisposable
         await File.WriteAllBytesAsync(rarFile, new byte[] { 0x52, 0x61, 0x72, 0x21 });
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
         // Assert
         // This test verifies that RAR files are recognized

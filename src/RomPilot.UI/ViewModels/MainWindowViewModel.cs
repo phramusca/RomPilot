@@ -17,28 +17,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // Keep references to ViewModels to preserve their state
     private ScanViewModel? _scanViewModel;
-    private ScanResultsViewModel? _scanResultsViewModel;
+    private LibraryViewModel? _libraryViewModel;
 
     public MainWindowViewModel()
     {
         // Initialize ViewModels once and keep references
         _scanViewModel = App.Services?.GetService<ScanViewModel>();
-        _scanResultsViewModel = App.Services?.GetService<ScanResultsViewModel>();
+        _libraryViewModel = App.Services?.GetService<LibraryViewModel>();
         
         // Start with scan view
         NavigateToScan();
     }
 
     /// <summary>
-    /// Gets the ScanResultsViewModel instance (for setting ROM files after scan).
+    /// Gets the LibraryViewModel instance (for future functionality).
     /// </summary>
-    public ScanResultsViewModel? GetScanResultsViewModel()
+    public LibraryViewModel? GetLibraryViewModel()
     {
-        if (_scanResultsViewModel == null)
+        if (_libraryViewModel == null)
         {
-            _scanResultsViewModel = App.Services?.GetService<ScanResultsViewModel>();
+            _libraryViewModel = App.Services?.GetService<LibraryViewModel>();
         }
-        return _scanResultsViewModel;
+        return _libraryViewModel;
     }
 
     [RelayCommand]
@@ -53,13 +53,13 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void NavigateToResults()
+    private void NavigateToLibrary()
     {
         // Reuse existing instance or create new one if null
-        if (_scanResultsViewModel == null)
+        if (_libraryViewModel == null)
         {
-            _scanResultsViewModel = App.Services?.GetService<ScanResultsViewModel>();
+            _libraryViewModel = App.Services?.GetService<LibraryViewModel>();
         }
-        CurrentViewModel = _scanResultsViewModel;
+        CurrentViewModel = _libraryViewModel;
     }
 }

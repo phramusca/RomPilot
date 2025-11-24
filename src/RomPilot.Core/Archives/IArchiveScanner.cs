@@ -1,3 +1,5 @@
+using RomPilot.Core.Services;
+
 namespace RomPilot.Core.Archives;
 
 /// <summary>
@@ -10,11 +12,13 @@ public interface IArchiveScanner
     /// </summary>
     /// <param name="directoryPath">Path to scan</param>
     /// <param name="maxDepth">Maximum depth for nested archives (default: 5)</param>
+    /// <param name="progressReporter">Optional progress reporter for scanning progress</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of found ROM file paths with their archive locations</returns>
     Task<IEnumerable<ArchiveFileInfo>> ScanDirectoryAsync(
         string directoryPath, 
-        int maxDepth = 5, 
+        int maxDepth = 5,
+        IScanProgressReporter? progressReporter = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>

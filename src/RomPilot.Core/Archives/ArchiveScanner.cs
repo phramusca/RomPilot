@@ -3,6 +3,7 @@ using SharpCompress.Archives.Zip;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Common;
+using RomPilot.Core.Services;
 
 namespace RomPilot.Core.Archives;
 
@@ -24,10 +25,11 @@ public class ArchiveScanner : IArchiveScanner
     public async Task<IEnumerable<ArchiveFileInfo>> ScanDirectoryAsync(
         string directoryPath,
         int maxDepth = 5,
+        IScanProgressReporter? progressReporter = null,
         CancellationToken cancellationToken = default)
     {
         var results = new List<ArchiveFileInfo>();
-        await ScanDirectoryRecursiveAsync(directoryPath, maxDepth, 0, results, cancellationToken);
+        await ScanDirectoryRecursiveAsync(directoryPath, maxDepth, 0, results, cancellationToken, progressReporter);
         return results;
     }
 
@@ -36,7 +38,8 @@ public class ArchiveScanner : IArchiveScanner
         int maxDepth,
         int currentDepth,
         List<ArchiveFileInfo> results,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IScanProgressReporter? progressReporter = null)
     {
         if (currentDepth > maxDepth || cancellationToken.IsCancellationRequested)
         {
@@ -51,12 +54,14 @@ public class ArchiveScanner : IArchiveScanner
         }
 
         System.Console.WriteLine($"[ArchiveScanner] Scanning directory: {path} (depth: {currentDepth})");
+        progressReporter?.ReportProgress(0, 0, $"Scanning directory: {Path.GetFileName(path)}");
 
         try
         {
             // Scan direct files
             var files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
             System.Console.WriteLine($"[ArchiveScanner] Found {files.Length} files in {path}");
+            progressReporter?.ReportProgress(0, 0, $"Found {files.Length} files in {Path.GetFileName(path)}");
             
             foreach (var file in files)
             {
@@ -69,6 +74,7 @@ public class ArchiveScanner : IArchiveScanner
                 {
                     var fileInfo = new FileInfo(file);
                     System.Console.WriteLine($"[ArchiveScanner] Found ROM file: {fileName} ({extension})");
+                    progressReporter?.ReportProgress(0, 0, $"Found ROM: {fileName}");
                     results.Add(new ArchiveFileInfo
                     {
                         FilePath = file,
@@ -80,8 +86,9 @@ public class ArchiveScanner : IArchiveScanner
                 else if (IsArchiveFile(file) && currentDepth < maxDepth)
                 {
                     System.Console.WriteLine($"[ArchiveScanner] Found archive file: {fileName} ({extension}) - will scan contents");
+                    progressReporter?.ReportProgress(0, 0, $"Scanning archive: {fileName}");
                     // Scan archive contents (this is the original archive, so no originalArchivePath needed)
-                    await ScanArchiveAsync(file, currentDepth + 1, maxDepth, results, cancellationToken, null);
+                    await ScanArchiveAsync(file, currentDepth + 1, maxDepth, results, cancellationToken, null, progressReporter);
                 }
                 else
                 {
@@ -98,7 +105,7 @@ public class ArchiveScanner : IArchiveScanner
             foreach (var dir in directories)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await ScanDirectoryRecursiveAsync(dir, maxDepth, currentDepth, results, cancellationToken);
+                await ScanDirectoryRecursiveAsync(dir, maxDepth, currentDepth, results, cancellationToken, progressReporter);
             }
         }
         catch (Exception ex)
@@ -119,10 +126,12 @@ public class ArchiveScanner : IArchiveScanner
         int maxDepth,
         List<ArchiveFileInfo> results,
         CancellationToken cancellationToken,
-        string? originalArchivePath = null)
+        string? originalArchivePath = null,
+        IScanProgressReporter? progressReporter = null)
     {
         var archiveName = Path.GetFileName(archivePath);
         System.Console.WriteLine($"[ArchiveScanner] Opening archive: {archiveName} (depth: {currentDepth})");
+        progressReporter?.ReportProgress(0, 0, $"Opening archive: {archiveName}");
         
         try
         {
@@ -174,10 +183,12 @@ public class ArchiveScanner : IArchiveScanner
             {
                 var entries = archive.Entries.Where(e => !e.IsDirectory).ToList();
                 System.Console.WriteLine($"[ArchiveScanner] Archive {archiveName} contains {entries.Count} files");
+                progressReporter?.ReportProgress(0, entries.Count, $"Scanning archive: {archiveName} ({entries.Count} files)");
                 
                 int romCount = 0;
                 int nestedArchiveCount = 0;
                 int skippedCount = 0;
+                int processedCount = 0;
                 
                 foreach (var entry in entries)
                 {
@@ -192,6 +203,9 @@ public class ArchiveScanner : IArchiveScanner
                     var extension = Path.GetExtension(entry.Key);
                     var entryName = Path.GetFileName(entry.Key);
                     
+                    processedCount++;
+                    progressReporter?.ReportProgress(processedCount, entries.Count, $"Scanning {archiveName}: {entryName}");
+                    
                     if (!string.IsNullOrEmpty(extension) && _romExtensions.Contains(extension))
                     {
                         romCount++;
@@ -199,6 +213,7 @@ public class ArchiveScanner : IArchiveScanner
                         {
                             System.Console.WriteLine($"[ArchiveScanner] Found ROM in {archiveName}: {entryName} ({extension})");
                         }
+                        progressReporter?.ReportProgress(processedCount, entries.Count, $"Found ROM in {archiveName}: {entryName}");
                         // Use original archive path if available (for nested archives), otherwise use current archive path
                         var sourceArchivePath = originalArchivePath ?? archivePath;
                         results.Add(new ArchiveFileInfo
@@ -214,6 +229,7 @@ public class ArchiveScanner : IArchiveScanner
                     {
                         nestedArchiveCount++;
                         System.Console.WriteLine($"[ArchiveScanner] Found nested archive in {archiveName}: {entryName}");
+                        progressReporter?.ReportProgress(processedCount, entries.Count, $"Found nested archive: {entryName}");
                         // Nested archive - extract and scan recursively
                         var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + Path.GetExtension(entry.Key));
                         try
@@ -232,7 +248,7 @@ public class ArchiveScanner : IArchiveScanner
                             // Now scan the extracted archive, but keep reference to original archive path
                             // Use originalArchivePath if available, otherwise use current archivePath (for first level nested archives)
                             var sourceArchivePath = originalArchivePath ?? archivePath;
-                            await ScanArchiveAsync(tempPath, currentDepth + 1, maxDepth, results, cancellationToken, sourceArchivePath).ConfigureAwait(false);
+                            await ScanArchiveAsync(tempPath, currentDepth + 1, maxDepth, results, cancellationToken, sourceArchivePath, progressReporter).ConfigureAwait(false);
                         }
                         catch (Exception nestedEx)
                         {

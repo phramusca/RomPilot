@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace RomPilot.UI.Views;
 
-public partial class ScanResultsView : UserControl
+public partial class LibraryView : UserControl
 {
-    public ScanResultsView()
+    public LibraryView()
     {
         InitializeComponent();
     }

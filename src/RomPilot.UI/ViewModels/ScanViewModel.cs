@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using RomPilot.Core.Models;
+using RomPilot.Core.Preferences;
 using RomPilot.Core.Services;
 using System;
 using System.Collections.Generic;
@@ -21,12 +22,19 @@ public partial class ScanViewModel : ViewModelBase
 {
     private readonly IScanService _scanService;
     private readonly IServiceProvider _serviceProvider;
+    private readonly IUserPreferencesService? _preferencesService;
 
     [ObservableProperty]
     private string _selectedDirectory = string.Empty;
 
     [ObservableProperty]
+    private List<RomFile> _romFiles = new();
+
+    [ObservableProperty]
     private bool _isScanning;
+    
+    [ObservableProperty]
+    private bool _hasResults;
 
     [ObservableProperty]
     private string _statusMessage = "Ready to scan";
@@ -58,6 +66,39 @@ public partial class ScanViewModel : ViewModelBase
     {
         _scanService = scanService;
         _serviceProvider = serviceProvider;
+        
+        // Try to get preferences service (may not be available in all contexts)
+        try
+        {
+            _preferencesService = serviceProvider.GetService<IUserPreferencesService>();
+        }
+        catch
+        {
+            _preferencesService = null;
+        }
+        
+        // Load last scanned directory
+        _ = LoadLastScannedDirectoryAsync();
+    }
+
+    private async Task LoadLastScannedDirectoryAsync()
+    {
+        if (_preferencesService != null)
+        {
+            try
+            {
+                var lastDirectory = await _preferencesService.GetPreferenceAsync("last_scanned_directory");
+                if (!string.IsNullOrEmpty(lastDirectory) && Directory.Exists(lastDirectory))
+                {
+                    SelectedDirectory = lastDirectory;
+                    System.Console.WriteLine($"[ScanViewModel] Loaded last scanned directory: {lastDirectory}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"[ScanViewModel] Error loading last directory: {ex.Message}");
+            }
+        }
     }
 
     public void SetParentWindow(Window window)
@@ -139,6 +180,8 @@ public partial class ScanViewModel : ViewModelBase
         ProgressMessages.Clear();
         ProcessedFiles.Clear();
         FailedFiles.Clear();
+        RomFiles.Clear(); // Clear previous results
+        HasResults = false;
         ProgressCurrent = 0;
         ProgressTotal = 0;
         ProgressPercentage = 0;
@@ -260,7 +303,7 @@ public partial class ScanViewModel : ViewModelBase
             var romFilesList = romFiles.ToList();
             System.Console.WriteLine($"[ScanViewModel] romFiles.Count() = {romFilesList.Count}");
             
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            await Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 if (reporter != null)
                 {
@@ -279,30 +322,23 @@ public partial class ScanViewModel : ViewModelBase
 
                 StatusMessage = $"Scan complete! Found {romFilesList.Count} ROM files.";
                 
-                // Navigate to results view
-                // Use the static reference to ensure we get the same MainWindowViewModel instance
-                var mainViewModel = App.MainViewModel;
-                if (mainViewModel != null)
+                // Store ROM files in this view model (results shown in same view)
+                RomFiles = romFilesList;
+                HasResults = romFilesList.Count > 0;
+                System.Console.WriteLine($"[ScanViewModel] Stored {romFilesList.Count} ROM files in view model, HasResults={HasResults}");
+                
+                // Save last scanned directory
+                if (_preferencesService != null && !string.IsNullOrEmpty(SelectedDirectory))
                 {
-                    // Get the results view model from MainWindowViewModel (it keeps a reference)
-                    var resultsViewModel = mainViewModel.GetScanResultsViewModel();
-                    if (resultsViewModel != null)
+                    try
                     {
-                        System.Console.WriteLine($"[ScanViewModel] Setting {romFilesList.Count} ROM files in results view");
-                        resultsViewModel.SetRomFiles(romFilesList);
-                        
-                        // Navigate to results view (this will reuse the same instance)
-                        mainViewModel.NavigateToResultsCommand.Execute(null);
-                        System.Console.WriteLine("[ScanViewModel] Navigated to results view and set ROM files");
+                        await _preferencesService.SetPreferenceAsync("last_scanned_directory", SelectedDirectory);
+                        System.Console.WriteLine($"[ScanViewModel] Saved last scanned directory: {SelectedDirectory}");
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        System.Console.WriteLine("[ScanViewModel] ERROR: ScanResultsViewModel not found");
+                        System.Console.WriteLine($"[ScanViewModel] Error saving last directory: {ex.Message}");
                     }
-                }
-                else
-                {
-                    System.Console.WriteLine("[ScanViewModel] ERROR: MainWindowViewModel not found");
                 }
             });
         }

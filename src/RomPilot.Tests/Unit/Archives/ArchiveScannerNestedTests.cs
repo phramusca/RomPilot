@@ -47,7 +47,7 @@ public class ArchiveScannerNestedTests : IDisposable
         File.Delete(innerZipPath); // Remove inner ZIP from filesystem
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory, maxDepth: 5);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, maxDepth: 5, progressReporter: null);
 
         // Assert
         // Note: The current implementation may not fully support nested archives
@@ -75,7 +75,7 @@ public class ArchiveScannerNestedTests : IDisposable
         }
 
         // Act with maxDepth = 1 (should not process nested archives)
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory, maxDepth: 1);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, maxDepth: 1, progressReporter: null);
 
         // Assert
         // With maxDepth=1, nested archives should not be processed
@@ -99,7 +99,7 @@ public class ArchiveScannerNestedTests : IDisposable
         }
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory, maxDepth: 5);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, maxDepth: 5, progressReporter: null);
 
         // Assert
         results.Should().Contain(r => r.FilePath.Contains("game.nes"));
@@ -113,7 +113,7 @@ public class ArchiveScannerNestedTests : IDisposable
         await File.WriteAllBytesAsync(corruptedZip, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF });
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
         // Assert
         // Should not throw, but may not find ROMs in corrupted archive

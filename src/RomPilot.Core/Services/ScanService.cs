@@ -66,7 +66,7 @@ public class ScanService : IScanService
             
             System.Console.WriteLine($"[ScanService] Calling ArchiveScanner.ScanDirectoryAsync...");
             var startTime = DateTime.Now;
-            var archiveFiles = await _archiveScanner.ScanDirectoryAsync(directoryPath, 5, cancellationToken);
+            var archiveFiles = await _archiveScanner.ScanDirectoryAsync(directoryPath, 5, progressReporter, cancellationToken);
             var duration = DateTime.Now - startTime;
             var fileList = archiveFiles.ToList();
             System.Console.WriteLine($"[ScanService] ArchiveScanner returned {fileList.Count} files from {directoryPath} in {duration.TotalSeconds:F2} seconds");

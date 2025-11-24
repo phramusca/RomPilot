@@ -80,7 +80,7 @@ public class ScanServiceProgressTests : IDisposable
                 FileSize = 40960
             };
 
-            _archiveScannerMock.Setup(s => s.ScanDirectoryAsync(tempDir, 5, It.IsAny<CancellationToken>()))
+            _archiveScannerMock.Setup(s => s.ScanDirectoryAsync(tempDir, 5, It.IsAny<IScanProgressReporter>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { archiveFile });
 
             _consoleDetectionServiceMock.Setup(s => s.DetectConsoleAsync("game.nes", 40960, null))
@@ -134,7 +134,7 @@ public class ScanServiceProgressTests : IDisposable
             FileSize = 1024
         };
 
-        _archiveScannerMock.Setup(s => s.ScanDirectoryAsync(directoryPath, 5, It.IsAny<CancellationToken>()))
+        _archiveScannerMock.Setup(s => s.ScanDirectoryAsync(directoryPath, 5, It.IsAny<IScanProgressReporter>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { archiveFile });
 
         _consoleDetectionServiceMock.Setup(s => s.DetectConsoleAsync("unknown.rom", 1024, null))
@@ -169,7 +169,7 @@ public class ScanServiceProgressTests : IDisposable
             FileSize = 1024
         };
 
-        _archiveScannerMock.Setup(s => s.ScanDirectoryAsync(directoryPath, 5, It.IsAny<CancellationToken>()))
+        _archiveScannerMock.Setup(s => s.ScanDirectoryAsync(directoryPath, 5, It.IsAny<IScanProgressReporter>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { archiveFile });
 
         _consoleDetectionServiceMock.Setup(s => s.DetectConsoleAsync("corrupted.zip", 1024, null))
@@ -196,7 +196,7 @@ public class ScanServiceProgressTests : IDisposable
             FileSize = 40960
         };
 
-        _archiveScannerMock.Setup(s => s.ScanDirectoryAsync(directoryPath, 5, It.IsAny<CancellationToken>()))
+        _archiveScannerMock.Setup(s => s.ScanDirectoryAsync(directoryPath, 5, It.IsAny<IScanProgressReporter>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { archiveFile });
 
         _consoleDetectionServiceMock.Setup(s => s.DetectConsoleAsync("game.nes", 40960, null))

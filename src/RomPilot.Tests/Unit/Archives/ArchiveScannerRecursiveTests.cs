@@ -29,7 +29,7 @@ public class ArchiveScannerRecursiveTests : IDisposable
         await File.WriteAllTextAsync(romFile, "fake rom content");
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
         // Assert
         results.Should().HaveCount(1);
@@ -53,7 +53,7 @@ public class ArchiveScannerRecursiveTests : IDisposable
         await File.WriteAllTextAsync(rom2, "fake rom 2");
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
         // Assert
         results.Should().HaveCount(2);
@@ -80,7 +80,7 @@ public class ArchiveScannerRecursiveTests : IDisposable
         }
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
         // Assert
         results.Should().HaveCount(5);
@@ -103,7 +103,7 @@ public class ArchiveScannerRecursiveTests : IDisposable
         await File.WriteAllTextAsync(imageFile, "fake image");
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
         // Assert
         results.Should().HaveCount(1);
@@ -118,7 +118,7 @@ public class ArchiveScannerRecursiveTests : IDisposable
         Directory.CreateDirectory(subDir);
 
         // Act
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
         // Assert
         results.Should().BeEmpty();
@@ -136,7 +136,7 @@ public class ArchiveScannerRecursiveTests : IDisposable
         cts.CancelAfter(10);
 
         // Act - should handle cancellation gracefully
-        var results = await _scanner.ScanDirectoryAsync(_testDirectory, cancellationToken: cts.Token);
+        var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null, cts.Token);
 
         // Assert - may return partial results or empty if cancelled early
         results.Should().NotBeNull();

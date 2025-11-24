@@ -94,7 +94,7 @@ namespace RomPilot.UI;
         // MainWindowViewModel should be singleton to maintain state across navigation
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient<ViewModels.ScanViewModel>();
-        services.AddTransient<ViewModels.ScanResultsViewModel>();
+        services.AddTransient<ViewModels.LibraryViewModel>();
     }
 
 }
