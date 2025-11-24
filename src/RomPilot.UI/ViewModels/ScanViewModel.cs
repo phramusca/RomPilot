@@ -280,25 +280,29 @@ public partial class ScanViewModel : ViewModelBase
                 StatusMessage = $"Scan complete! Found {romFilesList.Count} ROM files.";
                 
                 // Navigate to results view
-                var mainViewModel = App.Services?.GetService<MainWindowViewModel>();
+                // Use the static reference to ensure we get the same MainWindowViewModel instance
+                var mainViewModel = App.MainViewModel;
                 if (mainViewModel != null)
                 {
-                    var resultsViewModel = App.Services?.GetService<ScanResultsViewModel>();
+                    // Get the results view model from MainWindowViewModel (it keeps a reference)
+                    var resultsViewModel = mainViewModel.GetScanResultsViewModel();
                     if (resultsViewModel != null)
                     {
                         System.Console.WriteLine($"[ScanViewModel] Setting {romFilesList.Count} ROM files in results view");
                         resultsViewModel.SetRomFiles(romFilesList);
-                        mainViewModel.CurrentViewModel = resultsViewModel;
-                        System.Console.WriteLine("[ScanViewModel] Navigated to results view");
+                        
+                        // Navigate to results view (this will reuse the same instance)
+                        mainViewModel.NavigateToResultsCommand.Execute(null);
+                        System.Console.WriteLine("[ScanViewModel] Navigated to results view and set ROM files");
                     }
                     else
                     {
-                        System.Console.WriteLine("[ScanViewModel] ERROR: ScanResultsViewModel not found in services");
+                        System.Console.WriteLine("[ScanViewModel] ERROR: ScanResultsViewModel not found");
                     }
                 }
                 else
                 {
-                    System.Console.WriteLine("[ScanViewModel] ERROR: MainWindowViewModel not found in services");
+                    System.Console.WriteLine("[ScanViewModel] ERROR: MainWindowViewModel not found");
                 }
             });
         }

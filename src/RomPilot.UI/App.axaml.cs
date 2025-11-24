@@ -17,11 +17,12 @@ using System;
 
 namespace RomPilot.UI;
 
-public partial class App : Application
-{
-    private ServiceProvider? _serviceProvider;
-    
-    public static IServiceProvider? Services { get; private set; }
+    public partial class App : Application
+    {
+        private ServiceProvider? _serviceProvider;
+        
+        public static IServiceProvider? Services { get; private set; }
+        public static MainWindowViewModel? MainViewModel { get; private set; }
 
     public override void Initialize()
     {
@@ -52,9 +53,11 @@ public partial class App : Application
                 seedService.SeedAsync().Wait();
             }
             
+            var mainViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
+            MainViewModel = mainViewModel; // Store reference for access from other ViewModels
             desktop.MainWindow = new MainWindow
             {
-                DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>(),
+                DataContext = mainViewModel,
             };
         }
 
@@ -88,7 +91,8 @@ public partial class App : Application
         services.AddScoped<RomPilot.Core.Services.IScanProgressReporter, RomPilot.Core.Services.ScanProgressReporter>();
 
         // ViewModels
-        services.AddTransient<MainWindowViewModel>();
+        // MainWindowViewModel should be singleton to maintain state across navigation
+        services.AddSingleton<MainWindowViewModel>();
         services.AddTransient<ViewModels.ScanViewModel>();
         services.AddTransient<ViewModels.ScanResultsViewModel>();
     }
