@@ -1,237 +1,516 @@
-# Implementation Plan: ROM Manager Application
+# Plan d'Implémentation: ROM Manager Application
 
-**Branch**: `001-rom-manager-app` | **Date**: 2025-01-27 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/specs/001-rom-manager-app/spec.md`
+**Branche**: `001-rom-manager-app` | **Date**: 2025-12-12 | **Spec**: [spec.md](./spec.md)
+**Input**: Spécification de fonctionnalité depuis `/specs/001-rom-manager-app/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**Note** : Ce plan a été mis à jour suite aux clarifications du 2025-12-12. Une implémentation partielle de la US1 existe mais doit être adaptée aux nouvelles spécifications (notamment : pas de présupposition sur ce qui est une ROM, filtres d'exclusion configurables, scans incrémentaux).
 
-## Summary
+## Résumé
 
-RomPilot is a desktop application for managing ROM collections. The application allows users to scan directories recursively (including all subdirectories) to find ROM files, including those contained within ZIP, 7Z, and RAR archives, with recursive processing of nested archives (archives within archives at any depth). For each ROM file found, the application automatically identifies the console/platform and the game using reference databases (NoIntro, Redump, GoodSet) via checksum matching. The application provides detailed progress feedback during scanning, showing all processed files (with status) and all failed files with explicit failure reasons.
+Application desktop multi-plateforme (Windows, Linux, macOS) pour gérer des collections de ROMs de jeux rétro. L'application scanne récursivement des répertoires et archives (ZIP, 7Z, RAR) sans présupposer quels fichiers sont des ROMs, calcule les checksums, identifie les jeux via bases de données de référence (NoIntro, Redump, GoodSet), groupe les versions, sélectionne automatiquement la meilleure version selon préférences utilisateur, et exporte vers Recalbox et Romm avec synchronisation des métadonnées.
 
-**Technical Approach**: 
-- **GUI Framework**: Avalonia UI (C#) for cross-platform desktop application
-- **Database**: SQLite with Entity Framework Core for local data storage
-- **Archive Handling**: SharpCompress library supporting ZIP, 7Z, and RAR formats
-- **Architecture**: MVVM pattern with service layer and repository pattern
-- **Platforms**: Linux, Windows, macOS (.NET 7.0)
+## Contexte Technique
 
-## Technical Context
+**Langage/Version**: C# 12 / .NET 8.0  
+**Framework GUI**: Avalonia UI 11.x (framework desktop multi-plateforme)  
+**Dépendances Principales**: 
+- Entity Framework Core 8.0 (accès données)
+- Microsoft.Data.Sqlite (provider SQLite)
+- SharpCompress (gestion archives ZIP/7Z/RAR)
+- SSH.NET (export SFTP)
+- System.Text.Json (parsing JSON/API)
+- System.Xml.Linq (parsing XML gamelist.xml)
 
-**Language/Version**: C# / .NET 7.0  
-**Primary Dependencies**: 
-- Avalonia UI (cross-platform GUI framework)
-- Entity Framework Core 7.0.20 (database ORM)
-- SharpCompress 0.41.0 (archive handling - ZIP, 7Z, RAR)
-- System.Security.Cryptography (checksum calculation - MD5, SHA1, SHA256, CRC32)
+**Stockage**: SQLite (base de données locale embarquée)  
+**Tests**: xUnit + Moq + FluentAssertions  
+**Target Platform**: Desktop (Windows 10+, Linux, macOS 11+)  
+**Type de Projet**: Application desktop avec architecture MVVM  
+**Objectifs de Performance**:
+- Scan 1000+ fichiers en < 5 minutes (SC-001)
+- Identification 95%+ ROMs sans intervention (SC-002)
+- Export 500 jeux en < 2 minutes (SC-005)
+- Recherche temps réel < 100ms pour 10K jeux (SC-013)
 
-**Storage**: SQLite (embedded database file)  
-**Testing**: xUnit + Moq (unit tests), integration tests with SQLite in-memory  
-**Target Platform**: Desktop (Linux, Windows, macOS)  
-**Project Type**: Single desktop application with MVVM architecture  
-**Performance Goals**: 
-- Scan 1000+ ROM files (including archives) within 5 minutes on standard desktop
-- Identify console/platform for 95%+ of ROM files automatically
-- Export 500 games to Recalbox/Romm in under 2 minutes
+**Contraintes**:
+- Sans présupposition : Ne pas filtrer fichiers par extension avant scan
+- Exclusions configurables : Liste par défaut + personnalisations utilisateur
+- Multi-plateforme : Support Windows, Linux, macOS avec fonctionnalité identique
+- Offline-capable : Fonctionnement sans connexion sauf téléchargement bases de données et sync
 
-**Constraints**: 
-- Handle archives nested up to 5 levels deep without performance degradation
-- Memory-efficient processing (streaming for large archives)
-- Cross-platform compatibility (Linux priority)
+**Échelle/Portée**:
+- Collections 10 000+ fichiers ROMs
+- 35+ consoles supportées
+- 3 providers bases de données (NoIntro, Redump, GoodSet)
+- 6 User Stories (scan, bases données, filtrage, export, sync, bibliothèque)
 
-**Scale/Scope**: 
-- Support 35+ gaming consoles/platforms
-- Handle collections with thousands of ROM files
-- Support multiple database sources (NoIntro, Redump, GoodSet)
+## Vérification Constitution
 
-## Constitution Check
+*GATE : Doit passer avant Phase 0 recherche. Revérifier après Phase 1 design.*
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+Vérification conformité avec les principes de la Constitution RomPilot :
 
-Verify compliance with RomPilot Constitution principles:
+- ✅ **Qualité du Code** : 
+  - Code suivra conventions C#/.NET (StyleCop, EditorConfig)
+  - Linter automatique (Roslyn analyzers) + formatter (dotnet format)
+  - Documentation XML pour APIs publiques
+  - Pas de code review humaine obligatoire (specs : linter/formatter uniquement)
 
-- **Code Quality**: ✅ Code follows C# conventions, XML documentation for public APIs, code reviews planned via PRs
-- **Testing Standards**: ✅ TDD approach for new features, xUnit + Moq framework, target 80% coverage for critical code, 60% for rest, CI/CD tests configured
-- **User Experience Consistency**: ✅ Avalonia UI design system, consistent navigation patterns, clear error messages with actionable feedback (detailed failure reasons per file)
-- **Performance Requirements**: ✅ Performance goals defined (scan time, identification accuracy), benchmarks planned, progress reporting for long operations
+- ✅ **Standards de Tests** :
+  - TDD pour nouvelles fonctionnalités (specs : QA-001)
+  - Couverture 80%+ tests unitaires (specs : QA-002, SC-014)
+  - Tests d'intégration pour US critiques (specs : QA-003, SC-015)
+  - CI/CD avec tests automatisés (specs : QA-006)
+  - Types de tests : unitaires (xUnit), intégration (SQLite in-memory), contrats (API mocks)
 
-**Compliance Status**: ✅ All principles satisfied. No violations requiring justification.
+- ✅ **Cohérence Expérience Utilisateur** :
+  - Design system Avalonia (Material Design ou Fluent)
+  - Navigation logique entre vues (Scan → Bases données → Bibliothèque → Export → Sync)
+  - Messages d'erreur clairs et actionnables (specs : FR-023)
+  - Feedback progression détaillé (specs : FR-022)
+  - Responsive sur tous environnements desktop
 
-## Project Structure
+- ✅ **Exigences de Performance** :
+  - Objectifs mesurables définis (SC-001 à SC-013)
+  - Benchmarks dans specs (5 min scan, 2 min export, 100ms recherche)
+  - Monitoring via logging structuré (Serilog)
+  - Optimisations : parallélisation scan, streaming archives, index BD
 
-### Documentation (this feature)
+**Aucune violation** : Toutes les exigences de la Constitution sont respectées.
+
+## Structure Projet
+
+### Documentation (cette fonctionnalité)
 
 ```text
 specs/001-rom-manager-app/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+├── plan.md              # Ce fichier (mis à jour)
+├── research.md          # Recherche technologique (existant)
+├── data-model.md        # Modèle de données (à mettre à jour)
+├── quickstart.md        # Guide démarrage rapide (à mettre à jour)
+├── contracts/           # Contrats API
+│   └── romm-api.md      # API Romm (existant)
+└── tasks.md             # Tâches détaillées (Phase 2 - pas encore créé)
 ```
 
-### Source Code (repository root)
+### Code Source (racine repository)
 
 ```text
 src/
-├── RomPilot.Core/              # Core business logic
-│   ├── Archives/
-│   │   ├── ArchiveScanner.cs   # Recursive directory + archive scanning (ZIP, 7Z, RAR)
-│   │   └── IArchiveScanner.cs
-│   ├── Checksums/
-│   │   ├── ChecksumCalculator.cs
-│   │   └── IChecksumCalculator.cs
-│   ├── Database/
-│   │   ├── RomPilotDbContext.cs
-│   │   └── Migrations/
-│   ├── DatabaseProviders/
-│   │   ├── NoIntroProvider.cs
-│   │   ├── RedumpProvider.cs
-│   │   └── GoodSetProvider.cs
-│   ├── Models/                 # Entity models
-│   ├── Repositories/           # Data access layer
-│   ├── Services/
-│   │   ├── ScanService.cs      # Orchestrates scan workflow with detailed progress reporting
-│   │   ├── ScanProgressReporter.cs  # Progress feedback with file-level status
-│   │   ├── ConsoleDetectionService.cs
-│   │   └── GameIdentificationService.cs
-│   └── RomPilot.Core.csproj
-├── RomPilot.UI/                # Avalonia UI application
-│   ├── ViewModels/            # MVVM ViewModels
+├── RomPilot.Core/                    # Logique métier
+│   ├── Models/                       # Entités de domaine
+│   │   ├── ScannedFile.cs           # Fichier scanné (ROM ou non)
+│   │   ├── Game.cs                   # Jeu logique
+│   │   ├── Console.cs                # Console/Plateforme
+│   │   ├── Checksum.cs               # Checksums calculés
+│   │   ├── GameEntry.cs              # Entrée base de données
+│   │   ├── ReferenceDatabase.cs      # Base données de référence
+│   │   └── ...
+│   ├── Services/                     # Services métier
+│   │   ├── ScanService.cs            # Service scan fichiers
+│   │   ├── ChecksumService.cs        # Calcul checksums
+│   │   ├── IdentificationService.cs  # Identification ROMs
+│   │   ├── DatabaseManagerService.cs # Gestion bases données
+│   │   ├── FilterService.cs          # Gestion filtres exclusion
+│   │   ├── VersionSelectionService.cs # Sélection meilleures versions
+│   │   ├── ExportService.cs          # Export Recalbox/Romm
+│   │   ├── SyncService.cs            # Synchronisation métadonnées
+│   │   └── ...
+│   ├── Repositories/                 # Accès données
+│   │   ├── IScannedFileRepository.cs
+│   │   ├── IGameRepository.cs
+│   │   ├── IChecksumRepository.cs
+│   │   └── ...
+│   └── Interfaces/                   # Interfaces services
+│       └── ...
+│
+├── RomPilot.Infrastructure/          # Implémentation infrastructure
+│   ├── Data/                         # Accès données
+│   │   ├── RomPilotDbContext.cs      # Context Entity Framework
+│   │   ├── Migrations/               # Migrations EF Core
+│   │   └── Repositories/             # Implémentations repositories
+│   ├── Archives/                     # Gestion archives
+│   │   └── ArchiveScanner.cs         # Scanner archives (SharpCompress)
+│   ├── FileSystem/                   # Gestion système fichiers
+│   │   └── FileSystemScanner.cs
+│   ├── Crypto/                       # Checksums
+│   │   └── ChecksumCalculator.cs
+│   ├── Export/                       # Export vers plateformes
+│   │   ├── RecalboxExporter.cs
+│   │   ├── RommExporter.cs
+│   │   └── SftpExporter.cs           # Export SSH/SFTP
+│   └── Sync/                         # Synchronisation
+│       ├── RecalboxSyncProvider.cs
+│       └── RommSyncProvider.cs
+│
+├── RomPilot.UI/                      # Interface utilisateur Avalonia
+│   ├── ViewModels/                   # ViewModels MVVM
 │   │   ├── MainWindowViewModel.cs
-│   │   ├── ScanViewModel.cs    # Scan UI with detailed progress display
-│   │   └── ScanResultsViewModel.cs
-│   ├── Views/                  # Avalonia XAML views
+│   │   ├── ScanViewModel.cs          # US1 : Scan et identification
+│   │   ├── DatabaseManagerViewModel.cs # US2 : Gestion bases données
+│   │   ├── FilterConfigViewModel.cs  # Configuration filtres exclusion
+│   │   ├── LibraryViewModel.cs       # US6 : Interface bibliothèque
+│   │   ├── GameDetailsViewModel.cs   # Détails jeu + versions
+│   │   ├── ExportViewModel.cs        # US4 : Export
+│   │   ├── SyncViewModel.cs          # US5 : Synchronisation
+│   │   ├── PreferencesViewModel.cs   # Préférences utilisateur
+│   │   └── ...
+│   ├── Views/                        # Vues XAML
 │   │   ├── MainWindow.axaml
-│   │   ├── ScanView.axaml      # Shows processed/failed files with reasons
-│   │   └── ScanResultsView.axaml
-│   └── RomPilot.UI.csproj
-└── RomPilot.Tests/            # Test projects
-    ├── Unit/                   # Unit tests
-    ├── Integration/            # Integration tests
-    └── RomPilot.Tests.csproj
+│   │   ├── ScanView.axaml
+│   │   ├── DatabaseManagerView.axaml
+│   │   ├── LibraryView.axaml
+│   │   ├── GameDetailsView.axaml
+│   │   ├── ExportView.axaml
+│   │   └── ...
+│   ├── Controls/                     # Contrôles réutilisables
+│   │   ├── GameCardControl.axaml     # Carte jeu (vue grille)
+│   │   ├── GameListItemControl.axaml # Item jeu (vue liste)
+│   │   └── ProgressIndicator.axaml
+│   ├── Converters/                   # Convertisseurs XAML
+│   └── Resources/                    # Ressources (styles, images)
+│
+└── RomPilot.CLI/                     # Interface ligne de commande (optionnelle)
+    └── Program.cs
+
+tests/
+├── RomPilot.Core.Tests/              # Tests unitaires Core
+│   ├── Services/
+│   ├── Models/
+│   └── ...
+├── RomPilot.Infrastructure.Tests/    # Tests unitaires Infrastructure
+│   ├── Data/
+│   ├── Archives/
+│   └── ...
+├── RomPilot.Integration.Tests/       # Tests d'intégration
+│   ├── ScanWorkflowTests.cs          # US1 end-to-end
+│   ├── DatabaseManagerTests.cs       # US2 end-to-end
+│   ├── ExportWorkflowTests.cs        # US4 end-to-end
+│   └── ...
+└── RomPilot.UI.Tests/                # Tests UI (si faisable)
+    └── ViewModelTests/
+
+docs/
+├── README.md                         # Documentation principale
+├── ARCHITECTURE.md                   # Architecture application
+└── CONTRIBUTING.md                   # Guide contribution
 ```
 
-**Structure Decision**: Single solution with three projects: Core (business logic), UI (Avalonia desktop app), and Tests. This structure separates concerns while keeping the codebase manageable for a desktop application.
+**Décision de Structure** : Architecture en couches (Core, Infrastructure, UI) suivant principes Clean Architecture. Séparation claire logique métier (Core) et détails implémentation (Infrastructure, UI). Permet testabilité et changement technologie si nécessaire.
 
-## Key Implementation Updates from Spec Clarifications
+## Suivi Complexité
 
-### 1. Archive Format Support: RAR Addition
-**Requirement**: Support ZIP, 7Z, and RAR formats (FR-001 updated)
+> **À remplir UNIQUEMENT si Vérification Constitution a des violations à justifier**
 
-**Current State**: ArchiveScanner currently supports only ZIP and 7Z via SharpCompress.
+Aucune violation constatée - pas de complexité injustifiée.
 
-**Action Required**: 
-- Update `ArchiveScanner.cs` to detect and process `.rar` files
-- Verify SharpCompress RAR support (may require additional configuration or library)
-- Update `IsArchiveFile()` method to include `.rar` extension
-- Add RAR archive opening logic in `ScanArchiveAsync()` and `ExtractFileAsync()`
-- Update interface documentation in `IArchiveScanner.cs`
+---
 
-**Impact**: Medium - requires code changes but SharpCompress should support RAR natively.
+## Changements par rapport à l'Implémentation Partielle US1
 
-### 2. Detailed Progress Feedback
-**Requirement**: Show detailed list of processed files (with status) and failed files with explicit reasons (FR-022, FR-023)
+### Modifications Nécessaires dans le Code Existant
 
-**Current State**: `IScanProgressReporter` exists but may not capture file-level details with failure reasons.
+1. **Renommage Entité "RomFile" → "ScannedFile"**
+   - Tous les fichiers scannés, pas seulement ceux identifiés comme ROMs
+   - Ajout champ `IdentificationStatus` (enum: Identified/Unidentified/Excluded/Failed)
+   - Ajout champ `ExclusionReason` (si exclu : filtre par défaut ou personnalisé)
+   - Ajout champs `LastModifiedTimestamp`, `ScanType` (quick/full)
 
-**Action Required**:
-- Enhance `IScanProgressReporter` to report per-file status:
-  - Success with console identified, game identified
-  - Failure with explicit reason ("Console not detected", "Corrupted archive", "Unreadable file", "Checksum error", "Archive extraction failed")
-- Update `ScanService` to capture and report failure reasons for each file
-- Update `ScanViewModel` to display detailed file list in UI
-- Update `ScanView.axaml` to show processed/failed files with reasons
+2. **Nouveau Service : FilterService**
+   - Gestion liste exclusions par défaut (.jpg, .png, .txt, .exe, etc.)
+   - Gestion filtres personnalisés utilisateur (extensions, tailles, patterns)
+   - Configuration modifiable depuis UI
 
-**Impact**: Medium - requires UI updates and enhanced progress reporting.
+3. **Scans Incrémentaux**
+   - Ajout choix "scan rapide" vs "scan complet" dans UI
+   - Stockage timestamp + taille fichier pour détection changements
+   - Réutilisation checksums si fichier inchangé (scan rapide)
 
-### 3. Recursive Scanning Clarification
-**Requirement**: Two-level recursion - (1) recursive directory traversal (all subdirectories), (2) recursive archive processing (nested archives at any depth) (FR-001 updated)
+4. **Table ReferenceDatabases**
+   - Nouvelle table pour stocker bases de données téléchargées
+   - Champs : provider, console, version, release_date, file_path, is_default
 
-**Current State**: `ArchiveScanner` already implements recursive directory scanning and nested archive processing, but needs verification for RAR support.
+5. **Préférences Format Vidéo**
+   - Ajout champ `VideoFormat` dans GameEntries (PAL/NTSC/NTSC-J)
+   - Séparé des préférences de région
+   - Ordre de priorité configurable
 
-**Action Required**:
-- Verify recursive directory traversal works correctly (already implemented via `ScanDirectoryRecursiveAsync`)
-- Verify recursive archive processing works for all formats (ZIP, 7Z, RAR)
-- Update documentation to explicitly state both recursion levels
-- Test with deeply nested structures (5+ levels)
+6. **Export Configuration SSH/SFTP**
+   - Ajout configuration connexion SSH/SFTP dans table ExportConfiguration
+   - Champs : host, port, username, auth_method, key_path, remote_directory
+   - Implémentation SftpExporter avec SSH.NET
 
-**Impact**: Low - mostly verification and documentation, implementation already exists.
+### Nouvelles Fonctionnalités à Implémenter
 
-## Complexity Tracking
+1. **US2 : Gestionnaire de Bases de Données** (nouveau)
+   - Interface dédiée téléchargement/gestion bases de données
+   - Vue tableau bases téléchargées avec filtres
+   - Sélection version par défaut par console
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
+2. **US6 : Interface Bibliothèque** (nouveau)
+   - Vue grille avec cover art
+   - Vue liste avec colonnes triables
+   - Filtres avancés combinables
+   - Recherche temps réel
+   - Détails jeu avec toutes versions
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| N/A | No violations | All constitution principles satisfied |
+3. **Linter/Formatter Automatique**
+   - Configuration Roslyn analyzers
+   - Configuration dotnet format
+   - Pre-commit hooks ou CI/CD
 
-## Phase 0: Research Status
+---
 
-**Status**: ✅ Complete (see [research.md](./research.md))
+## Phase 0 : Recherche et Architecture ✅ TERMINÉ
 
-**Key Decisions**:
-- Avalonia UI selected for cross-platform GUI
-- SQLite for local database
-- SharpCompress for archive handling (ZIP, 7Z, RAR)
-- Entity Framework Core for ORM
-- MVVM pattern for UI architecture
+**Output** : `research.md` - Décisions technologiques documentées
 
-**Open Questions Resolved**:
-- Archive library supports RAR (SharpCompress)
-- Performance targets defined (5 min for 1000+ ROMs)
-- Database schema designed for multi-source game identification
+### Décisions Technologiques Confirmées
 
-## Phase 1: Design Status
+- ✅ **GUI Framework** : Avalonia UI 11.x (C#/.NET 8.0)
+- ✅ **Base de données** : SQLite avec Entity Framework Core
+- ✅ **Gestion archives** : SharpCompress (ZIP, 7Z, RAR)
+- ✅ **Checksums** : System.Security.Cryptography (MD5, SHA1, SHA256, CRC32)
+- ✅ **Architecture** : MVVM + Clean Architecture (Core/Infrastructure/UI)
 
-**Status**: ✅ Complete (see [data-model.md](./data-model.md))
+### Nouvelles Recherches Nécessaires (Mises à Jour Specs)
 
-**Key Artifacts**:
-- Database schema with all entities (Consoles, RomFiles, Checksums, Games, etc.)
-- Repository interfaces defined
-- Service layer architecture (ScanService, GameIdentificationService, etc.)
-- Entity relationships documented
+- ✅ **Export SSH/SFTP** : SSH.NET (bibliothèque .NET pour SFTP)
+- ✅ **Filtres Configurables** : Implémentation via table configuration + UI settings
+- ✅ **Scans Incrémentaux** : Comparaison timestamp + file size (File.GetLastWriteTimeUtc, FileInfo.Length)
 
-**Updates Needed**:
-- Add `ProcessingStatus` and `FailureReason` fields to RomFile model (for detailed feedback)
-- Update ArchiveScanner interface documentation for RAR support
-- Enhance ScanProgressReporter interface for file-level status reporting
+---
 
-## Next Steps
+## Phase 1 : Design et Contrats
 
-1. **Update ArchiveScanner for RAR Support**:
-   - Add RAR detection in `IsArchiveFile()`
-   - Add RAR archive opening in `ScanArchiveAsync()` using SharpCompress RarArchive
-   - Update `ExtractFileAsync()` for RAR support
-   - Add unit tests for RAR scanning
+**Prérequis** : `research.md` complet
 
-2. **Enhance Progress Reporting**:
-   - Update `IScanProgressReporter` interface to include file-level status reporting
-   - Modify `ScanService` to capture failure reasons for each file
-   - Update `RomFile` model to include `ProcessingStatus` and `FailureReason` properties
-   - Enhance UI to display detailed file list with status and reasons
+### 1.1 Mise à Jour Modèle de Données ⚠️ À METTRE À JOUR
 
-3. **Verify Recursive Scanning**:
-   - Test recursive directory traversal with nested subdirectories
-   - Test recursive archive processing with deeply nested archives (ZIP, 7Z, RAR)
-   - Verify performance with 5+ levels of nesting
+**Output** : `data-model.md` (mise à jour)
 
-4. **Update Tests**:
-   - Add tests for RAR archive scanning
-   - Add tests for detailed progress reporting
-   - Add tests for failure reason capture
+#### Changements Requis dans `data-model.md`
 
-## Dependencies
+1. **Renommer table `RomFiles` → `ScannedFiles`**
+   ```sql
+   CREATE TABLE ScannedFiles (
+       Id INTEGER PRIMARY KEY AUTOINCREMENT,
+       FilePath TEXT NOT NULL,
+       FileName TEXT NOT NULL,
+       FileSize BIGINT NOT NULL,
+       LastModifiedTimestamp INTEGER NOT NULL,  -- Nouveau : Unix timestamp
+       ArchivePath TEXT,
+       ArchiveDepth INTEGER DEFAULT 0,
+       IdentificationStatus TEXT NOT NULL,      -- Nouveau : "Identified", "Unidentified", "Excluded", "Failed"
+       ExclusionReason TEXT,                     -- Nouveau : raison exclusion si applicable
+       ConsoleId INTEGER,                        -- Nullable (NULL si non identifié)
+       GameEntryId INTEGER,                      -- Nullable (NULL si non identifié)
+       LastScannedAt DATETIME,
+       ScanType TEXT,                            -- Nouveau : "Quick" ou "Full"
+       FailureReason TEXT,                       -- Raison échec si Status = Failed
+       FOREIGN KEY (ConsoleId) REFERENCES Consoles(Id),
+       FOREIGN KEY (GameEntryId) REFERENCES GameEntries(Id)
+   );
+   ```
 
-- **SharpCompress 0.41.0**: Verify RAR support (may need to check documentation or test)
-- **Avalonia UI**: For detailed progress UI components
-- **Entity Framework Core**: For RomFile model updates
+2. **Nouvelle table `ExclusionFilters`**
+   ```sql
+   CREATE TABLE ExclusionFilters (
+       Id INTEGER PRIMARY KEY AUTOINCREMENT,
+       FilterType TEXT NOT NULL,  -- "Extension", "SizeRange", "Pattern"
+       FilterValue TEXT NOT NULL, -- Ex: ".jpg", "0-1KB", "*.tmp"
+       IsDefault BOOLEAN NOT NULL DEFAULT 0,
+       IsActive BOOLEAN NOT NULL DEFAULT 1,
+       CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );
+   
+   -- Données par défaut (extensions)
+   INSERT INTO ExclusionFilters (FilterType, FilterValue, IsDefault, IsActive)
+   VALUES 
+       ('Extension', '.jpg', 1, 1),
+       ('Extension', '.jpeg', 1, 1),
+       ('Extension', '.png', 1, 1),
+       -- ... (toutes les extensions par défaut)
+   ```
 
-## Risk Assessment
+3. **Nouvelle table `ReferenceDatabases`** (distincte de `DatabaseSources`)
+   ```sql
+   CREATE TABLE ReferenceDatabases (
+       Id INTEGER PRIMARY KEY AUTOINCREMENT,
+       Provider TEXT NOT NULL,         -- "NoIntro", "Redump", "GoodSet"
+       Console TEXT NOT NULL,
+       Version TEXT NOT NULL,
+       ReleaseDate TEXT,
+       FileSize BIGINT,
+       DownloadStatus TEXT NOT NULL,   -- "Available", "Downloading", "Downloaded", "Error"
+       FilePath TEXT,
+       IsDefault BOOLEAN NOT NULL DEFAULT 0,  -- Version par défaut pour cette console
+       DownloadedAt DATETIME,
+       LastCheckedAt DATETIME,
+       UNIQUE(Provider, Console, Version)
+   );
+   
+   CREATE INDEX IX_ReferenceDatabases_Provider_Console ON ReferenceDatabases(Provider, Console);
+   ```
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| SharpCompress RAR support incomplete | Low | Medium | Verify RAR support, consider alternative library if needed |
-| Performance degradation with detailed progress reporting | Medium | Low | Use efficient data structures, batch UI updates |
-| Deeply nested archives causing memory issues | Low | High | Already mitigated with depth limit (5 levels) and streaming |
+4. **Ajout champ `VideoFormat` dans `GameEntries`**
+   ```sql
+   ALTER TABLE GameEntries ADD COLUMN VideoFormat TEXT; -- "PAL", "NTSC", "NTSC-J"
+   ```
+
+5. **Mise à jour `UserPreferences` avec nouvelles préférences**
+   ```sql
+   -- Nouvelles clés préférences :
+   -- "video_format_priority" : JSON array ["PAL", "NTSC", "NTSC-J"]
+   -- "scan_mode_default" : "Quick" ou "Full"
+   -- "sftp_host" : "192.168.1.100"
+   -- "sftp_port" : "22"
+   -- "sftp_username" : "user"
+   -- "sftp_key_path" : "/path/to/key"
+   ```
+
+6. **Mise à jour `ExportConfiguration`**
+   ```sql
+   ALTER TABLE ExportConfiguration ADD COLUMN ExportType TEXT NOT NULL DEFAULT 'Local';  -- "Local" ou "Remote"
+   ALTER TABLE ExportConfiguration ADD COLUMN SftpHost TEXT;
+   ALTER TABLE ExportConfiguration ADD COLUMN SftpPort INTEGER;
+   ALTER TABLE ExportConfiguration ADD COLUMN SftpUsername TEXT;
+   ALTER TABLE ExportConfiguration ADD COLUMN SftpAuthMethod TEXT;  -- "Password" ou "Key"
+   ALTER TABLE ExportConfiguration ADD COLUMN SftpKeyPath TEXT;
+   ALTER TABLE ExportConfiguration ADD COLUMN RemoteDirectory TEXT;
+   ```
+
+### 1.2 Contrats API ✅ EXISTANT (Romm)
+
+**Output** : `/contracts/romm-api.md` (existant - à vérifier)
+
+#### Contrat À Créer : Recalbox gamelist.xml
+
+**Nouveau fichier** : `/contracts/recalbox-gamelist.md`
+
+```xml
+<!-- Format gamelist.xml Recalbox -->
+<?xml version="1.0"?>
+<gameList>
+    <game>
+        <path>./game.zip</path>
+        <name>Game Name</name>
+        <desc>Game description</desc>
+        <rating>0.85</rating>
+        <releasedate>19900101T000000</releasedate>
+        <developer>Developer</developer>
+        <publisher>Publisher</publisher>
+        <genre>Genre</genre>
+        <players>1-2</players>
+        <image>./images/game-image.png</image>
+        <thumbnail>./images/game-thumb.png</thumbnail>
+        <video>./videos/game-video.mp4</video>
+        <playcount>5</playcount>
+        <lastplayed>20240115T120000</lastplayed>
+        <favorite>true</favorite>
+    </game>
+</gameList>
+```
+
+### 1.3 Guide Démarrage Rapide ⚠️ À METTRE À JOUR
+
+**Output** : `quickstart.md` (mise à jour)
+
+**Contenu** :
+1. Prérequis : .NET 8.0 SDK
+2. Clone repository
+3. Build : `dotnet build`
+4. Run : `dotnet run --project src/RomPilot.UI`
+5. Tests : `dotnet test`
+6. Premier scan : créer dossier test avec quelques fichiers
+7. Configuration filtres exclusion
+8. Téléchargement bases de données
+9. Scan et identification
+10. Export vers Recalbox/Romm
+
+### 1.4 Mise à Jour Contexte Agent
+
+**Action** : Exécuter `.specify/scripts/bash/update-agent-context.sh cursor-agent`
+
+Technologies à ajouter au contexte :
+- Avalonia UI 11.x (MVVM, XAML)
+- Entity Framework Core 8.0 (SQLite)
+- SharpCompress (archives)
+- SSH.NET (SFTP)
+- xUnit + Moq (tests)
+
+---
+
+## Phase 2 : Tâches Détaillées
+
+**Note** : Phase 2 (`/speckit.tasks`) sera exécutée séparément après ce plan.
+
+**Output prévu** : `tasks.md` avec décomposition complète des User Stories en tâches implémentables.
+
+### Priorisation des User Stories
+
+1. **P1 : US1 - Scanner et identifier** (partiellement implémenté - à adapter)
+2. **P1.5 : US2 - Gérer bases de données** (nouveau - requis pour US1)
+3. **P2 : US3 - Grouper et filtrer** (dépend de US1)
+4. **P3 : US4 - Exporter** (dépend de US3)
+5. **P3 : US6 - Interface Bibliothèque** (parallèle à US4)
+6. **P4 : US5 - Synchroniser métadonnées** (final)
+
+### Ordre Implémentation Recommandé
+
+#### Itération 1 : Fondations (US2 + US1 mise à jour)
+1. Mettre à jour modèle données (ScannedFiles, ExclusionFilters, ReferenceDatabases)
+2. Implémenter US2 : Gestionnaire bases de données
+3. Adapter US1 : Scan sans présupposition + filtres configurables + scans incrémentaux
+
+#### Itération 2 : Filtrage et Sélection (US3)
+4. Implémenter US3 : Regroupement versions + sélection automatique (région + format vidéo)
+
+#### Itération 3 : Export et Visualisation (US4 + US6)
+5. Implémenter US4 : Export local et SSH/SFTP vers Recalbox/Romm
+6. Implémenter US6 : Interface Bibliothèque (vue grille/liste, filtres)
+
+#### Itération 4 : Synchronisation (US5)
+7. Implémenter US5 : Synchronisation métadonnées bidirectionnelle
+
+---
+
+## Revérification Constitution Post-Design
+
+### Code Quality ✅
+- Architecture Clean définie
+- Linter Roslyn configuré
+- Documentation XML pour APIs publiques
+
+### Testing Standards ✅
+- Strategy TDD définie
+- 80% couverture cible
+- Tests unitaires + intégration + contrats
+- xUnit + Moq configurés
+
+### User Experience Consistency ✅
+- Design MVVM cohérent
+- Navigation logique définie
+- Feedback utilisateur détaillé (progression, erreurs)
+- Messages actionnables
+
+### Performance Requirements ✅
+- Objectifs mesurables (SC-001 à SC-013)
+- Optimisations identifiées (parallélisation, streaming, index)
+- Monitoring via logging
+
+**Résultat** : ✅ Tous les principes de la Constitution respectés.
+
+---
+
+## Artefacts Générés
+
+- ✅ `plan.md` - Ce fichier (mis à jour)
+- ✅ `research.md` - Recherche technologique (existant)
+- ⚠️ `data-model.md` - **À METTRE À JOUR** avec nouvelles tables et champs
+- ⚠️ `quickstart.md` - **À METTRE À JOUR** avec nouveaux workflows
+- 📝 `/contracts/recalbox-gamelist.md` - **À CRÉER**
+- 📝 `tasks.md` - À créer via `/speckit.tasks`
+
+## Prochaine Étape
+
+Exécuter `/speckit.tasks` pour décomposer les User Stories en tâches d'implémentation détaillées.
