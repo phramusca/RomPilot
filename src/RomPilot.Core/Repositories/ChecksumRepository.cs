@@ -16,17 +16,17 @@ public class ChecksumRepository : IChecksumRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Checksum>> GetByRomFileIdAsync(int romFileId)
+    public async Task<IEnumerable<Checksum>> GetByScannedFileIdAsync(int scannedFileId)
     {
         return await _context.Checksums
-            .Where(c => c.RomFileId == romFileId)
+            .Where(c => c.ScannedFileId == scannedFileId)
             .ToListAsync();
     }
 
     public async Task<Checksum?> GetByHashAsync(string hashType, string hashValue)
     {
         return await _context.Checksums
-            .Include(c => c.RomFile)
+            .Include(c => c.ScannedFile)
             .FirstOrDefaultAsync(c => c.HashType == hashType && c.HashValue == hashValue);
     }
 

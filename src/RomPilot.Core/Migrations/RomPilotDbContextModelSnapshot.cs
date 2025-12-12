@@ -34,14 +34,14 @@ namespace RomPilot.Core.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("RomFileId")
+                    b.Property<int>("ScannedFileId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasAlternateKey("RomFileId", "HashType");
+                    b.HasAlternateKey("ScannedFileId", "HashType");
 
-                    b.HasIndex("RomFileId");
+                    b.HasIndex("ScannedFileId");
 
                     b.HasIndex("HashType", "HashValue");
 
@@ -125,6 +125,121 @@ namespace RomPilot.Core.Migrations
                     b.ToTable("DatabaseSources");
                 });
 
+            modelBuilder.Entity("RomPilot.Core.Models.ExclusionFilter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FilterType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FilterValue")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("FilterType", "FilterValue");
+
+                    b.ToTable("ExclusionFilters");
+                });
+
+            modelBuilder.Entity("RomPilot.Core.Models.ExportConfiguration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ConflictResolution")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConnectionTestError")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConnectionTestStatus")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ExportType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FormatRequirement")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("LastConnectionTest")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LocalPath")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RemoteDirectory")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SftpAuthMethod")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SftpHost")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SftpKeyPath")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SftpPasswordEncrypted")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SftpPort")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SftpUsername")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ExportConfigurations");
+                });
+
             modelBuilder.Entity("RomPilot.Core.Models.Game", b =>
                 {
                     b.Property<int>("Id")
@@ -144,7 +259,7 @@ namespace RomPilot.Core.Migrations
                     b.Property<int?>("SelectedDatabaseSourceId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("SelectedRomFileId")
+                    b.Property<int?>("SelectedScannedFileId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -156,7 +271,7 @@ namespace RomPilot.Core.Migrations
 
                     b.HasIndex("SelectedDatabaseSourceId");
 
-                    b.HasIndex("SelectedRomFileId");
+                    b.HasIndex("SelectedScannedFileId");
 
                     b.ToTable("Games");
                 });
@@ -170,7 +285,7 @@ namespace RomPilot.Core.Migrations
                     b.Property<int>("ConsoleId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DatabaseSourceId")
+                    b.Property<int?>("DatabaseSourceId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("GameName")
@@ -194,6 +309,9 @@ namespace RomPilot.Core.Migrations
                     b.Property<string>("QualityFlags")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("ReferenceDatabaseId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Region")
                         .HasColumnType("TEXT");
 
@@ -203,11 +321,16 @@ namespace RomPilot.Core.Migrations
                     b.Property<string>("Version")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("VideoFormat")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ConsoleId");
 
                     b.HasIndex("DatabaseSourceId");
+
+                    b.HasIndex("ReferenceDatabaseId");
 
                     b.HasIndex("HashType", "HashValue");
 
@@ -229,7 +352,7 @@ namespace RomPilot.Core.Migrations
                     b.Property<bool>("IsSelected")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RomFileId")
+                    b.Property<int>("ScannedFileId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("SelectionScore")
@@ -237,13 +360,13 @@ namespace RomPilot.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasAlternateKey("GameId", "RomFileId");
+                    b.HasAlternateKey("GameId", "ScannedFileId");
 
                     b.HasIndex("GameEntryId");
 
                     b.HasIndex("GameId");
 
-                    b.HasIndex("RomFileId");
+                    b.HasIndex("ScannedFileId");
 
                     b.ToTable("GameRomVersions");
                 });
@@ -301,7 +424,66 @@ namespace RomPilot.Core.Migrations
                     b.ToTable("Metadata");
                 });
 
-            modelBuilder.Entity("RomPilot.Core.Models.RomFile", b =>
+            modelBuilder.Entity("RomPilot.Core.Models.ReferenceDatabase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Console")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DownloadStatus")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DownloadedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FilePath")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("FileSize")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("LastCheckedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReleaseDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DownloadStatus");
+
+                    b.HasIndex("Provider", "Console", "Version")
+                        .IsUnique();
+
+                    b.ToTable("ReferenceDatabases");
+                });
+
+            modelBuilder.Entity("RomPilot.Core.Models.ScannedFile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -313,10 +495,13 @@ namespace RomPilot.Core.Migrations
                     b.Property<string>("ArchivePath")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ConsoleId")
+                    b.Property<int?>("ConsoleId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("DetectedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ExclusionReason")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FailureReason")
@@ -333,20 +518,33 @@ namespace RomPilot.Core.Migrations
                     b.Property<long>("FileSize")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("GameEntryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("IdentificationStatus")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("LastModifiedTimestamp")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime?>("LastScannedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ProcessingStatus")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FailureReason")
+                    b.Property<string>("ScanType")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ConsoleId");
 
-                    b.ToTable("RomFiles");
+                    b.HasIndex("GameEntryId");
+
+                    b.HasIndex("IdentificationStatus");
+
+                    b.HasIndex("FilePath", "LastModifiedTimestamp");
+
+                    b.ToTable("ScannedFiles");
                 });
 
             modelBuilder.Entity("RomPilot.Core.Models.UserData", b =>
@@ -419,13 +617,13 @@ namespace RomPilot.Core.Migrations
 
             modelBuilder.Entity("RomPilot.Core.Models.Checksum", b =>
                 {
-                    b.HasOne("RomPilot.Core.Models.RomFile", "RomFile")
+                    b.HasOne("RomPilot.Core.Models.ScannedFile", "ScannedFile")
                         .WithMany("Checksums")
-                        .HasForeignKey("RomFileId")
+                        .HasForeignKey("ScannedFileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("RomFile");
+                    b.Navigation("ScannedFile");
                 });
 
             modelBuilder.Entity("RomPilot.Core.Models.Game", b =>
@@ -441,16 +639,16 @@ namespace RomPilot.Core.Migrations
                         .HasForeignKey("SelectedDatabaseSourceId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("RomPilot.Core.Models.RomFile", "SelectedRomFile")
+                    b.HasOne("RomPilot.Core.Models.ScannedFile", "SelectedScannedFile")
                         .WithMany()
-                        .HasForeignKey("SelectedRomFileId")
+                        .HasForeignKey("SelectedScannedFileId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Console");
 
                     b.Navigation("SelectedDatabaseSource");
 
-                    b.Navigation("SelectedRomFile");
+                    b.Navigation("SelectedScannedFile");
                 });
 
             modelBuilder.Entity("RomPilot.Core.Models.GameEntry", b =>
@@ -461,15 +659,19 @@ namespace RomPilot.Core.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("RomPilot.Core.Models.DatabaseSource", "DatabaseSource")
+                    b.HasOne("RomPilot.Core.Models.DatabaseSource", null)
                         .WithMany("GameEntries")
-                        .HasForeignKey("DatabaseSourceId")
+                        .HasForeignKey("DatabaseSourceId");
+
+                    b.HasOne("RomPilot.Core.Models.ReferenceDatabase", "ReferenceDatabase")
+                        .WithMany("GameEntries")
+                        .HasForeignKey("ReferenceDatabaseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Console");
 
-                    b.Navigation("DatabaseSource");
+                    b.Navigation("ReferenceDatabase");
                 });
 
             modelBuilder.Entity("RomPilot.Core.Models.GameRomVersion", b =>
@@ -485,9 +687,9 @@ namespace RomPilot.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RomPilot.Core.Models.RomFile", "RomFile")
+                    b.HasOne("RomPilot.Core.Models.ScannedFile", "ScannedFile")
                         .WithMany("GameRomVersions")
-                        .HasForeignKey("RomFileId")
+                        .HasForeignKey("ScannedFileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -495,7 +697,7 @@ namespace RomPilot.Core.Migrations
 
                     b.Navigation("GameEntry");
 
-                    b.Navigation("RomFile");
+                    b.Navigation("ScannedFile");
                 });
 
             modelBuilder.Entity("RomPilot.Core.Models.Metadata", b =>
@@ -509,15 +711,21 @@ namespace RomPilot.Core.Migrations
                     b.Navigation("Game");
                 });
 
-            modelBuilder.Entity("RomPilot.Core.Models.RomFile", b =>
+            modelBuilder.Entity("RomPilot.Core.Models.ScannedFile", b =>
                 {
                     b.HasOne("RomPilot.Core.Models.Console", "Console")
-                        .WithMany("RomFiles")
+                        .WithMany("ScannedFiles")
                         .HasForeignKey("ConsoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("RomPilot.Core.Models.GameEntry", "GameEntry")
+                        .WithMany()
+                        .HasForeignKey("GameEntryId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Console");
+
+                    b.Navigation("GameEntry");
                 });
 
             modelBuilder.Entity("RomPilot.Core.Models.UserData", b =>
@@ -537,7 +745,7 @@ namespace RomPilot.Core.Migrations
 
                     b.Navigation("Games");
 
-                    b.Navigation("RomFiles");
+                    b.Navigation("ScannedFiles");
                 });
 
             modelBuilder.Entity("RomPilot.Core.Models.DatabaseSource", b =>
@@ -559,7 +767,12 @@ namespace RomPilot.Core.Migrations
                     b.Navigation("GameRomVersions");
                 });
 
-            modelBuilder.Entity("RomPilot.Core.Models.RomFile", b =>
+            modelBuilder.Entity("RomPilot.Core.Models.ReferenceDatabase", b =>
+                {
+                    b.Navigation("GameEntries");
+                });
+
+            modelBuilder.Entity("RomPilot.Core.Models.ScannedFile", b =>
                 {
                     b.Navigation("Checksums");
 

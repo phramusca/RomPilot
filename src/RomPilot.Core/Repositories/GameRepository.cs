@@ -21,8 +21,8 @@ public class GameRepository : IGameRepository
         return await _context.Games
             .Include(g => g.Console)
             .Include(g => g.GameRomVersions)
-                .ThenInclude(grv => grv.RomFile)
-            .Include(g => g.SelectedRomFile)
+                .ThenInclude(grv => grv.ScannedFile)
+            .Include(g => g.SelectedScannedFile)
             .Include(g => g.SelectedDatabaseSource)
             .FirstOrDefaultAsync(g => g.Id == id);
     }
@@ -32,7 +32,7 @@ public class GameRepository : IGameRepository
         return await _context.Games
             .Where(g => g.ConsoleId == consoleId)
             .Include(g => g.GameRomVersions)
-                .ThenInclude(grv => grv.RomFile)
+                .ThenInclude(grv => grv.ScannedFile)
             .ToListAsync();
     }
 
@@ -41,7 +41,7 @@ public class GameRepository : IGameRepository
         return await _context.Games
             .Where(g => g.Name == name && g.ConsoleId == consoleId)
             .Include(g => g.GameRomVersions)
-                .ThenInclude(grv => grv.RomFile)
+                .ThenInclude(grv => grv.ScannedFile)
             .FirstOrDefaultAsync();
     }
 

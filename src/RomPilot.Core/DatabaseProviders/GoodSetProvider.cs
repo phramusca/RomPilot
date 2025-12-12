@@ -75,7 +75,7 @@ public class GoodSetProvider : IGoodSetProvider
                     {
                         var entry = new GameEntry
                         {
-                            DatabaseSourceId = databaseSourceId,
+                            ReferenceDatabaseId = databaseSourceId,
                             GameName = gameName,
                             HashType = "MD5",
                             HashValue = md5,
@@ -86,7 +86,7 @@ public class GoodSetProvider : IGoodSetProvider
                     {
                         var entry = new GameEntry
                         {
-                            DatabaseSourceId = databaseSourceId,
+                            ReferenceDatabaseId = databaseSourceId,
                             GameName = gameName,
                             HashType = "CRC32",
                             HashValue = crc,

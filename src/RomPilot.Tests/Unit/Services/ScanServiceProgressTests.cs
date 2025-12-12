@@ -50,7 +50,7 @@ public class ScanServiceProgressTests : IDisposable
         _gameIdentificationServiceMock = new Mock<IGameIdentificationService>();
         _progressReporter = new ScanProgressReporter();
 
-        var romFileRepository = new RomFileRepository(_context);
+        var romFileRepository = new ScannedFileRepository(_context);
         var checksumRepository = new ChecksumRepository(_context);
 
         _service = new ScanService(
@@ -95,7 +95,7 @@ public class ScanServiceProgressTests : IDisposable
                     { "CRC32", "testcrc32" }
                 });
 
-            _gameIdentificationServiceMock.Setup(g => g.IdentifyGameAsync(It.IsAny<Models.RomFile>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
+            _gameIdentificationServiceMock.Setup(g => g.IdentifyGameAsync(It.IsAny<Models.ScannedFile>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((GameEntry?)null);
 
             // Act
@@ -211,7 +211,7 @@ public class ScanServiceProgressTests : IDisposable
                 { "CRC32", "testcrc32" }
             });
 
-        _gameIdentificationServiceMock.Setup(g => g.IdentifyGameAsync(It.IsAny<Models.RomFile>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
+        _gameIdentificationServiceMock.Setup(g => g.IdentifyGameAsync(It.IsAny<Models.ScannedFile>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((GameEntry?)null);
 
         // Act

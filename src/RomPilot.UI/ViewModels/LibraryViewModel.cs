@@ -13,20 +13,20 @@ namespace RomPilot.UI.ViewModels;
 /// </summary>
 public partial class LibraryViewModel : ViewModelBase
 {
-    private readonly IRomFileRepository _romFileRepository;
+    private readonly IScannedFileRepository _scannedFileRepository;
 
     [ObservableProperty]
-    private List<RomFile> _romFiles = new List<RomFile>();
+    private List<ScannedFile> _scannedFiles = new List<ScannedFile>();
 
     [ObservableProperty]
-    private RomFile? _selectedRomFile;
+    private ScannedFile? _selectedScannedFile;
 
     [ObservableProperty]
     private string _statusMessage = "Loading library...";
 
-    public LibraryViewModel(IRomFileRepository romFileRepository)
+    public LibraryViewModel(IScannedFileRepository scannedFileRepository)
     {
-        _romFileRepository = romFileRepository;
+        _scannedFileRepository = scannedFileRepository;
         _ = LoadLibraryAsync();
     }
 
@@ -34,16 +34,16 @@ public partial class LibraryViewModel : ViewModelBase
     {
         try
         {
-            StatusMessage = "Loading ROM files from database...";
-            var romFiles = await _romFileRepository.GetAllAsync();
-            var romFilesList = romFiles.ToList();
-            RomFiles = romFilesList;
-            StatusMessage = $"Loaded {RomFiles.Count} ROM files";
-            System.Console.WriteLine($"[LibraryViewModel] Loaded {RomFiles.Count} ROM files from database");
-            if (RomFiles.Count > 0)
+            StatusMessage = "Loading scanned files from database...";
+            var scannedFiles = await _scannedFileRepository.GetAllAsync();
+            var scannedFilesList = scannedFiles.ToList();
+            ScannedFiles = scannedFilesList;
+            StatusMessage = $"Loaded {ScannedFiles.Count} scanned files";
+            System.Console.WriteLine($"[LibraryViewModel] Loaded {ScannedFiles.Count} scanned files from database");
+            if (ScannedFiles.Count > 0)
             {
-                var firstRom = RomFiles[0];
-                System.Console.WriteLine($"[LibraryViewModel] Sample ROM: Console={(firstRom.Console?.Name ?? "null")}, Checksums={firstRom.Checksums?.Count ?? 0}");
+                var firstFile = ScannedFiles[0];
+                System.Console.WriteLine($"[LibraryViewModel] Sample file: Console={(firstFile.Console?.Name ?? "null")}, Checksums={firstFile.Checksums?.Count ?? 0}");
             }
         }
         catch (Exception ex)
@@ -53,9 +53,9 @@ public partial class LibraryViewModel : ViewModelBase
         }
     }
 
-    public void SetRomFiles(IEnumerable<RomFile> romFiles)
+    public void SetScannedFiles(IEnumerable<ScannedFile> scannedFiles)
     {
-        RomFiles = romFiles.ToList();
+        ScannedFiles = scannedFiles.ToList();
     }
 
     public void SetProcessingResults(IEnumerable<FileProcessingResult> processedFiles, IEnumerable<FileProcessingResult> failedFiles)

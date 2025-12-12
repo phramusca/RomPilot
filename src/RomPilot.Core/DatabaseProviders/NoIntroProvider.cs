@@ -78,7 +78,7 @@ public class NoIntroProvider : INoIntroProvider
                     {
                         var entry = new GameEntry
                         {
-                            DatabaseSourceId = databaseSourceId,
+                            ReferenceDatabaseId = databaseSourceId,
                             GameName = gameName,
                             HashType = "MD5",
                             HashValue = md5,
@@ -90,7 +90,7 @@ public class NoIntroProvider : INoIntroProvider
                     {
                         var entry = new GameEntry
                         {
-                            DatabaseSourceId = databaseSourceId,
+                            ReferenceDatabaseId = databaseSourceId,
                             GameName = gameName,
                             HashType = "SHA1",
                             HashValue = sha1,
@@ -101,7 +101,7 @@ public class NoIntroProvider : INoIntroProvider
                     {
                         var entry = new GameEntry
                         {
-                            DatabaseSourceId = databaseSourceId,
+                            ReferenceDatabaseId = databaseSourceId,
                             GameName = gameName,
                             HashType = "CRC32",
                             HashValue = crc,

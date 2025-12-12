@@ -64,7 +64,7 @@
                        Margin="0,0,0,10">
                 <TextBlock.Text>
                     <MultiBinding StringFormat="Found {0} ROM files">
-                        <Binding Path="RomFiles.Count"/>
+                        <Binding Path="ScannedFiles.Count"/>
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>
@@ -122,7 +122,7 @@
 
             <!-- ROM Files List (takes ALL remaining height) -->
             <DataGrid Grid.Row="3" 
-                      ItemsSource="{Binding RomFiles}"
+                      ItemsSource="{Binding ScannedFiles}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       GridLinesVisibility="All"

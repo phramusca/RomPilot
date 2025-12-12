@@ -17,7 +17,7 @@ public class GameIdentificationService : IGameIdentificationService
     }
 
     public async Task<GameEntry?> IdentifyGameAsync(
-        RomFile romFile,
+        ScannedFile scannedFile,
         Dictionary<string, string> checksums,
         CancellationToken cancellationToken = default)
     {
@@ -25,7 +25,7 @@ public class GameIdentificationService : IGameIdentificationService
         foreach (var (hashType, hashValue) in checksums)
         {
             var gameEntry = await _context.GameEntries
-                .Include(ge => ge.DatabaseSource)
+                .Include(ge => ge.ReferenceDatabase)
                 .Include(ge => ge.Console)
                 .FirstOrDefaultAsync(
                     ge => ge.HashType == hashType && ge.HashValue == hashValue,

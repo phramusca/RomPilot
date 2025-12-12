@@ -14,9 +14,12 @@ public class RomPilotDbContext : DbContext
     }
 
     public DbSet<Models.Console> Consoles { get; set; } = null!;
-    public DbSet<RomFile> RomFiles { get; set; } = null!;
+    public DbSet<ScannedFile> ScannedFiles { get; set; } = null!;
     public DbSet<Checksum> Checksums { get; set; } = null!;
     public DbSet<DatabaseSource> DatabaseSources { get; set; } = null!;
+    public DbSet<ReferenceDatabase> ReferenceDatabases { get; set; } = null!;
+    public DbSet<ExclusionFilter> ExclusionFilters { get; set; } = null!;
+    public DbSet<ExportConfiguration> ExportConfigurations { get; set; } = null!;
     public DbSet<GameEntry> GameEntries { get; set; } = null!;
     public DbSet<Game> Games { get; set; } = null!;
     public DbSet<GameRomVersion> GameRomVersions { get; set; } = null!;
@@ -39,17 +42,57 @@ public class RomPilotDbContext : DbContext
             entity.Property(e => e.RecalboxFolderName).IsRequired();
         });
 
-        // RomFile configuration
-        modelBuilder.Entity<RomFile>(entity =>
+        // ScannedFile configuration (renommé de RomFile)
+        modelBuilder.Entity<ScannedFile>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.ConsoleId);
+            entity.HasIndex(e => e.IdentificationStatus);
+            entity.HasIndex(e => new { e.FilePath, e.LastModifiedTimestamp });
             entity.Property(e => e.FilePath).IsRequired();
             entity.Property(e => e.FileName).IsRequired();
+            entity.Property(e => e.IdentificationStatus).IsRequired();
             entity.HasOne(e => e.Console)
-                .WithMany(c => c.RomFiles)
+                .WithMany(c => c.ScannedFiles)
                 .HasForeignKey(e => e.ConsoleId)
                 .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.GameEntry)
+                .WithMany()
+                .HasForeignKey(e => e.GameEntryId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // ExclusionFilter configuration
+        modelBuilder.Entity<ExclusionFilter>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.FilterType, e.FilterValue });
+            entity.HasIndex(e => e.IsActive);
+            entity.Property(e => e.FilterType).IsRequired();
+            entity.Property(e => e.FilterValue).IsRequired();
+        });
+        
+        // ReferenceDatabase configuration
+        modelBuilder.Entity<ReferenceDatabase>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.Provider, e.Console, e.Version }).IsUnique();
+            entity.HasIndex(e => e.DownloadStatus);
+            entity.Property(e => e.Provider).IsRequired();
+            entity.Property(e => e.Console).IsRequired();
+            entity.Property(e => e.Version).IsRequired();
+            entity.Property(e => e.DownloadStatus).IsRequired();
+        });
+        
+        // ExportConfiguration configuration
+        modelBuilder.Entity<ExportConfiguration>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => e.IsActive);
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.Platform).IsRequired();
+            entity.Property(e => e.ExportType).IsRequired();
         });
 
         // Checksum configuration
@@ -57,14 +100,14 @@ public class RomPilotDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.HashType, e.HashValue });
-            entity.HasIndex(e => e.RomFileId);
+            entity.HasIndex(e => e.ScannedFileId);
             entity.Property(e => e.HashType).IsRequired();
             entity.Property(e => e.HashValue).IsRequired();
-            entity.HasOne(e => e.RomFile)
+            entity.HasOne(e => e.ScannedFile)
                 .WithMany(r => r.Checksums)
-                .HasForeignKey(e => e.RomFileId)
+                .HasForeignKey(e => e.ScannedFileId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasAlternateKey(e => new { e.RomFileId, e.HashType });
+            entity.HasAlternateKey(e => new { e.ScannedFileId, e.HashType });
         });
 
         // DatabaseSource configuration
@@ -80,14 +123,14 @@ public class RomPilotDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.HashType, e.HashValue });
-            entity.HasIndex(e => e.DatabaseSourceId);
+            entity.HasIndex(e => e.ReferenceDatabaseId);
             entity.HasIndex(e => e.ConsoleId);
             entity.Property(e => e.GameName).IsRequired();
             entity.Property(e => e.HashType).IsRequired();
             entity.Property(e => e.HashValue).IsRequired();
-            entity.HasOne(e => e.DatabaseSource)
+            entity.HasOne(e => e.ReferenceDatabase)
                 .WithMany(d => d.GameEntries)
-                .HasForeignKey(e => e.DatabaseSourceId)
+                .HasForeignKey(e => e.ReferenceDatabaseId)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Console)
                 .WithMany(c => c.GameEntries)
@@ -109,9 +152,9 @@ public class RomPilotDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.SelectedDatabaseSourceId)
                 .OnDelete(DeleteBehavior.SetNull);
-            entity.HasOne(e => e.SelectedRomFile)
+            entity.HasOne(e => e.SelectedScannedFile)
                 .WithMany()
-                .HasForeignKey(e => e.SelectedRomFileId)
+                .HasForeignKey(e => e.SelectedScannedFileId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -120,20 +163,20 @@ public class RomPilotDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.GameId);
-            entity.HasIndex(e => e.RomFileId);
+            entity.HasIndex(e => e.ScannedFileId);
             entity.HasOne(e => e.Game)
                 .WithMany(g => g.GameRomVersions)
                 .HasForeignKey(e => e.GameId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(e => e.RomFile)
+            entity.HasOne(e => e.ScannedFile)
                 .WithMany(r => r.GameRomVersions)
-                .HasForeignKey(e => e.RomFileId)
+                .HasForeignKey(e => e.ScannedFileId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(e => e.GameEntry)
                 .WithMany(ge => ge.GameRomVersions)
                 .HasForeignKey(e => e.GameEntryId)
                 .OnDelete(DeleteBehavior.SetNull);
-            entity.HasAlternateKey(e => new { e.GameId, e.RomFileId });
+            entity.HasAlternateKey(e => new { e.GameId, e.ScannedFileId });
         });
 
         // Metadata configuration

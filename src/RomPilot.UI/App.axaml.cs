@@ -74,7 +74,10 @@ namespace RomPilot.UI;
         services.AddScoped<SeedDataService>();
 
         // Repositories
-        services.AddScoped<IRomFileRepository, RomFileRepository>();
+        services.AddScoped<IScannedFileRepository, ScannedFileRepository>();
+        services.AddScoped<IExclusionFilterRepository, ExclusionFilterRepository>();
+        services.AddScoped<IReferenceDatabaseRepository, ReferenceDatabaseRepository>();
+        services.AddScoped<IExportConfigurationRepository, ExportConfigurationRepository>();
         services.AddScoped<IGameRepository, GameRepository>();
         services.AddScoped<IChecksumRepository, ChecksumRepository>();
         services.AddScoped<IConsoleRepository, ConsoleRepository>();
@@ -88,6 +91,8 @@ namespace RomPilot.UI;
         services.AddScoped<IUserPreferencesService, UserPreferencesService>();
         services.AddScoped<RomPilot.Core.Services.IScanService, RomPilot.Core.Services.ScanService>();
         services.AddScoped<RomPilot.Core.Services.IGameIdentificationService, RomPilot.Core.Services.GameIdentificationService>();
+        services.AddScoped<RomPilot.Core.Services.IFilterService, RomPilot.Core.Services.FilterService>();
+        services.AddScoped<RomPilot.Core.Services.IDatabaseManagerService, RomPilot.Core.Services.DatabaseManagerService>();
         services.AddScoped<RomPilot.Core.Services.IScanProgressReporter, RomPilot.Core.Services.ScanProgressReporter>();
 
         // ViewModels

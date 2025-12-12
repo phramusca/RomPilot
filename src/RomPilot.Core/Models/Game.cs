@@ -23,9 +23,9 @@ public class Game
     public int? SelectedDatabaseSourceId { get; set; }
     
     /// <summary>
-    /// Selected ROM file version ID
+    /// Selected ScannedFile ID (renommé de SelectedRomFileId)
     /// </summary>
-    public int? SelectedRomFileId { get; set; }
+    public int? SelectedScannedFileId { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -33,7 +33,7 @@ public class Game
     // Navigation properties
     public Console Console { get; set; } = null!;
     public DatabaseSource? SelectedDatabaseSource { get; set; }
-    public RomFile? SelectedRomFile { get; set; }
+    public ScannedFile? SelectedScannedFile { get; set; }
     public ICollection<GameRomVersion> GameRomVersions { get; set; } = new List<GameRomVersion>();
     public ICollection<Metadata> Metadata { get; set; } = new List<Metadata>();
     public UserData? UserData { get; set; }

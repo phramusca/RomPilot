@@ -75,7 +75,7 @@ public class RedumpProvider : IRedumpProvider
                     {
                         var entry = new GameEntry
                         {
-                            DatabaseSourceId = databaseSourceId,
+                            ReferenceDatabaseId = databaseSourceId,
                             GameName = gameName,
                             HashType = "MD5",
                             HashValue = md5,
@@ -86,7 +86,7 @@ public class RedumpProvider : IRedumpProvider
                     {
                         var entry = new GameEntry
                         {
-                            DatabaseSourceId = databaseSourceId,
+                            ReferenceDatabaseId = databaseSourceId,
                             GameName = gameName,
                             HashType = "SHA1",
                             HashValue = sha1,

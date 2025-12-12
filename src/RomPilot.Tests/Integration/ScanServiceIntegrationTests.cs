@@ -44,7 +44,7 @@ public class ScanServiceIntegrationTests : IDisposable
         var consoleRepository = new ConsoleRepository(_context);
         var consoleDetectionService = new ConsoleDetectionService(consoleRepository);
         var gameIdentificationService = new GameIdentificationService(_context);
-        var romFileRepository = new RomFileRepository(_context);
+        var romFileRepository = new ScannedFileRepository(_context);
         var checksumRepository = new ChecksumRepository(_context);
         
         // Note: ScanService constructor may need adjustment based on actual implementation

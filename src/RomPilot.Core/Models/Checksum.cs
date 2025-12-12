@@ -8,9 +8,9 @@ public class Checksum
     public int Id { get; set; }
     
     /// <summary>
-    /// Foreign key to RomFile
+    /// Foreign key to ScannedFile (renommé de RomFileId)
     /// </summary>
-    public int RomFileId { get; set; }
+    public int ScannedFileId { get; set; }
     
     /// <summary>
     /// Hash type: "MD5", "SHA1", "SHA256", "CRC32"
@@ -25,6 +25,6 @@ public class Checksum
     public DateTime CalculatedAt { get; set; } = DateTime.UtcNow;
     
     // Navigation property
-    public RomFile RomFile { get; set; } = null!;
+    public ScannedFile ScannedFile { get; set; } = null!;
 }
 

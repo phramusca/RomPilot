@@ -7,7 +7,7 @@ namespace RomPilot.Core.Repositories;
 /// </summary>
 public interface IChecksumRepository
 {
-    Task<IEnumerable<Checksum>> GetByRomFileIdAsync(int romFileId);
+    Task<IEnumerable<Checksum>> GetByScannedFileIdAsync(int scannedFileId);
     Task<Checksum?> GetByHashAsync(string hashType, string hashValue);
     Task<Checksum> AddAsync(Checksum checksum);
     Task UpdateAsync(Checksum checksum);

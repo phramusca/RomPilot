@@ -13,9 +13,9 @@ public class GameRomVersion
     public int GameId { get; set; }
     
     /// <summary>
-    /// Foreign key to RomFile
+    /// Foreign key to ScannedFile (renommé de RomFileId)
     /// </summary>
-    public int RomFileId { get; set; }
+    public int ScannedFileId { get; set; }
     
     /// <summary>
     /// Foreign key to GameEntry (if identified in database)
@@ -34,7 +34,7 @@ public class GameRomVersion
     
     // Navigation properties
     public Game Game { get; set; } = null!;
-    public RomFile RomFile { get; set; } = null!;
+    public ScannedFile ScannedFile { get; set; } = null!;
     public GameEntry? GameEntry { get; set; }
 }
 

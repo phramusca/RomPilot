@@ -8,9 +8,9 @@ public class GameEntry
     public int Id { get; set; }
     
     /// <summary>
-    /// Foreign key to DatabaseSource
+    /// Foreign key to ReferenceDatabase (changé de DatabaseSourceId)
     /// </summary>
-    public int DatabaseSourceId { get; set; }
+    public int ReferenceDatabaseId { get; set; }
     
     /// <summary>
     /// Name of the game
@@ -38,6 +38,11 @@ public class GameEntry
     public string? Region { get; set; }
     
     /// <summary>
+    /// Video format: "PAL", "NTSC", "NTSC-J" (NOUVEAU - séparé de région)
+    /// </summary>
+    public string? VideoFormat { get; set; }
+    
+    /// <summary>
     /// Language (e.g., "FR", "EN", "JP")
     /// </summary>
     public string? Language { get; set; }
@@ -63,7 +68,7 @@ public class GameEntry
     public string? Metadata { get; set; }
     
     // Navigation properties
-    public DatabaseSource DatabaseSource { get; set; } = null!;
+    public ReferenceDatabase ReferenceDatabase { get; set; } = null!;
     public Console Console { get; set; } = null!;
     public ICollection<GameRomVersion> GameRomVersions { get; set; } = new List<GameRomVersion>();
 }

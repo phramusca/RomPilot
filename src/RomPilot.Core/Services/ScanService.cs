@@ -18,7 +18,7 @@ public class ScanService : IScanService
     private readonly IChecksumCalculator _checksumCalculator;
     private readonly IConsoleDetectionService _consoleDetectionService;
     private readonly IGameIdentificationService _gameIdentificationService;
-    private readonly IRomFileRepository _romFileRepository;
+    private readonly IScannedFileRepository _scannedFileRepository;
     private readonly IChecksumRepository _checksumRepository;
 
     public ScanService(
@@ -27,7 +27,7 @@ public class ScanService : IScanService
         IChecksumCalculator checksumCalculator,
         IConsoleDetectionService consoleDetectionService,
         IGameIdentificationService gameIdentificationService,
-        IRomFileRepository romFileRepository,
+        IScannedFileRepository scannedFileRepository,
         IChecksumRepository checksumRepository)
     {
         _context = context;
@@ -35,16 +35,16 @@ public class ScanService : IScanService
         _checksumCalculator = checksumCalculator;
         _consoleDetectionService = consoleDetectionService;
         _gameIdentificationService = gameIdentificationService;
-        _romFileRepository = romFileRepository;
+        _scannedFileRepository = scannedFileRepository;
         _checksumRepository = checksumRepository;
     }
 
-    public async Task<IEnumerable<RomFile>> ScanDirectoriesAsync(
+    public async Task<IEnumerable<ScannedFile>> ScanDirectoriesAsync(
         IEnumerable<string> directoryPaths,
         IScanProgressReporter? progressReporter = null,
         CancellationToken cancellationToken = default)
     {
-        var results = new List<RomFile>();
+        var results = new List<ScannedFile>();
         var allArchiveFiles = new List<ArchiveFileInfo>();
 
         // Step 1: Scan all directories for ROM files
@@ -121,21 +121,21 @@ public class ScanService : IScanService
 
                 progressReporter?.ReportRomFound(archiveFile.FilePath, console.Name);
 
-                // Get or create RomFile
-                System.Console.WriteLine($"[ScanService] Getting or creating RomFile for: {archiveFile.FilePath}");
-                var romFile = await GetOrCreateRomFileAsync(archiveFile, console.Id);
-                System.Console.WriteLine($"[ScanService] RomFile created/retrieved: ID={romFile.Id}, FilePath={romFile.FilePath}");
+                // Get or create ScannedFile
+                System.Console.WriteLine($"[ScanService] Getting or creating ScannedFile for: {archiveFile.FilePath}");
+                var scannedFile = await GetOrCreateScannedFileAsync(archiveFile, console.Id);
+                System.Console.WriteLine($"[ScanService] ScannedFile created/retrieved: ID={scannedFile.Id}, FilePath={scannedFile.FilePath}");
 
                 // Get or calculate checksums
                 Dictionary<string, string> checksums;
-                var needsRecalculation = await ShouldRecalculateChecksumsAsync(romFile);
+                var needsRecalculation = await ShouldRecalculateChecksumsAsync(scannedFile);
                 if (needsRecalculation)
                 {
                     // Calculate checksums
                     System.Console.WriteLine($"[ScanService] Calculating checksums for: {archiveFile.FilePath}");
                     checksums = await CalculateChecksumsAsync(archiveFile, cancellationToken);
                     System.Console.WriteLine($"[ScanService] Calculated {checksums.Count} checksums");
-                    await SaveChecksumsAsync(romFile, checksums);
+                    await SaveChecksumsAsync(scannedFile, checksums);
                     System.Console.WriteLine($"[ScanService] Checksums saved");
                 }
                 else
@@ -143,19 +143,19 @@ public class ScanService : IScanService
                     // Load existing checksums from database
                     System.Console.WriteLine($"[ScanService] Checksums already exist for: {archiveFile.FilePath}, loading from database");
                     var existingChecksums = await _context.Checksums
-                        .Where(c => c.RomFileId == romFile.Id)
+                        .Where(c => c.ScannedFileId == scannedFile.Id)
                         .ToListAsync();
                     checksums = existingChecksums.ToDictionary(c => c.HashType, c => c.HashValue);
                     System.Console.WriteLine($"[ScanService] Loaded {checksums.Count} checksums from database");
                 }
 
                 // Identify game
-                System.Console.WriteLine($"[ScanService] Identifying game for ROM: {romFile.FilePath}");
-                var gameEntry = await _gameIdentificationService.IdentifyGameAsync(romFile, checksums, cancellationToken);
+                System.Console.WriteLine($"[ScanService] Identifying game for ROM: {scannedFile.FilePath}");
+                var gameEntry = await _gameIdentificationService.IdentifyGameAsync(scannedFile, checksums, cancellationToken);
                 
-                // Update RomFile with processing status
-                romFile.ProcessingStatus = "success";
-                romFile.FailureReason = null;
+                // Update ScannedFile with processing status
+                scannedFile.IdentificationStatus = gameEntry != null ? "Identified" : "Unidentified";
+                scannedFile.FailureReason = null;
                 
                 if (gameEntry != null)
                 {
@@ -166,14 +166,14 @@ public class ScanService : IScanService
                 }
                 else
                 {
-                    System.Console.WriteLine($"[ScanService] No game identified for ROM: {romFile.FilePath}");
+                    System.Console.WriteLine($"[ScanService] No game identified for ROM: {scannedFile.FilePath}");
                     progressReporter?.ReportFileSuccess(archiveFile.FilePath, "console_identified", console.Name);
                     progressReporter?.ReportProgress(i + 1, totalFiles, $"Console identified: {console.Name}");
                 }
 
-                System.Console.WriteLine($"[ScanService] Adding ROM to results (current count: {results.Count})");
-                results.Add(romFile);
-                System.Console.WriteLine($"[ScanService] ROM added to results (new count: {results.Count})");
+                System.Console.WriteLine($"[ScanService] Adding file to results (current count: {results.Count})");
+                results.Add(scannedFile);
+                System.Console.WriteLine($"[ScanService] File added to results (new count: {results.Count})");
             }
             catch (Exception ex)
             {
@@ -183,15 +183,15 @@ public class ScanService : IScanService
                 progressReporter?.ReportFileFailure(archiveFile.FilePath, failureReason);
                 progressReporter?.ReportProgress(i + 1, totalFiles, failureReason);
                 
-                // Try to save failure status to database if we have a RomFile
+                // Try to save failure status to database if we have a ScannedFile
                 try
                 {
-                    var romFile = await _context.RomFiles
+                    var existingFile = await _context.ScannedFiles
                         .FirstOrDefaultAsync(rf => rf.FilePath == archiveFile.FilePath && rf.ArchivePath == archiveFile.ArchivePath);
-                    if (romFile != null)
+                    if (existingFile != null)
                     {
-                        romFile.ProcessingStatus = "failed";
-                        romFile.FailureReason = failureReason;
+                        existingFile.IdentificationStatus = "Failed";
+                        existingFile.FailureReason = failureReason;
                         await _context.SaveChangesAsync();
                     }
                 }
@@ -211,7 +211,7 @@ public class ScanService : IScanService
         return results;
     }
 
-    private async Task<RomFile> GetOrCreateRomFileAsync(ArchiveFileInfo archiveFile, int consoleId)
+    private async Task<ScannedFile> GetOrCreateScannedFileAsync(ArchiveFileInfo archiveFile, int consoleId)
     {
         try
         {
@@ -219,7 +219,7 @@ public class ScanService : IScanService
             System.Console.WriteLine($"[ScanService] Checking if ROM file exists: FilePath={archiveFile.FilePath}, ArchivePath={archiveFile.ArchivePath}");
             
             // First check if it's already tracked
-            var tracked = _context.RomFiles.Local.FirstOrDefault(rf => rf.FilePath == archiveFile.FilePath && rf.ArchivePath == archiveFile.ArchivePath);
+            var tracked = _context.ScannedFiles.Local.FirstOrDefault(rf => rf.FilePath == archiveFile.FilePath && rf.ArchivePath == archiveFile.ArchivePath);
             if (tracked != null)
             {
                 System.Console.WriteLine($"[ScanService] ROM file already tracked (ID={tracked.Id}), will update LastScannedAt after checksums");
@@ -228,7 +228,7 @@ public class ScanService : IScanService
             }
             
             // If not tracked, query from database
-            var existing = await _context.RomFiles
+            var existing = await _context.ScannedFiles
                 .FirstOrDefaultAsync(rf => rf.FilePath == archiveFile.FilePath && rf.ArchivePath == archiveFile.ArchivePath);
 
             if (existing != null)
@@ -238,27 +238,29 @@ public class ScanService : IScanService
                 return existing;
             }
 
-            // Create new RomFile
-            System.Console.WriteLine($"[ScanService] Creating new RomFile: FilePath={archiveFile.FilePath}, ArchivePath={archiveFile.ArchivePath}");
-            var romFile = new RomFile
+            // Create new ScannedFile
+            System.Console.WriteLine($"[ScanService] Creating new ScannedFile: FilePath={archiveFile.FilePath}, ArchivePath={archiveFile.ArchivePath}");
+            var scannedFile = new ScannedFile
             {
                 FilePath = archiveFile.FilePath,
                 FileName = Path.GetFileName(archiveFile.FilePath),
                 FileSize = archiveFile.FileSize,
+                LastModifiedTimestamp = archiveFile.LastModifiedTimestamp,
                 ArchivePath = archiveFile.ArchivePath,
                 ArchiveDepth = archiveFile.ArchiveDepth,
                 ConsoleId = consoleId,
+                IdentificationStatus = "Unidentified",
                 DetectedAt = DateTime.UtcNow,
                 LastScannedAt = DateTime.UtcNow
             };
 
-            var result = await _romFileRepository.AddAsync(romFile);
-            System.Console.WriteLine($"[ScanService] RomFile created successfully (ID={result.Id})");
+            var result = await _scannedFileRepository.AddAsync(scannedFile);
+            System.Console.WriteLine($"[ScanService] ScannedFile created successfully (ID={result.Id})");
             return result;
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"[ScanService] ERROR in GetOrCreateRomFileAsync: {ex.Message}");
+            System.Console.WriteLine($"[ScanService] ERROR in GetOrCreateScannedFileAsync: {ex.Message}");
             if (ex.InnerException != null)
             {
                 System.Console.WriteLine($"[ScanService] Inner exception: {ex.InnerException.Message}");
@@ -336,34 +338,34 @@ public class ScanService : IScanService
         }
     }
 
-    private async Task<bool> ShouldRecalculateChecksumsAsync(RomFile romFile)
+    private async Task<bool> ShouldRecalculateChecksumsAsync(ScannedFile scannedFile)
     {
-        // Check if checksums exist for this ROM file
+        // Check if checksums exist for this scanned file
         var existingChecksums = await _context.Checksums
-            .Where(c => c.RomFileId == romFile.Id)
+            .Where(c => c.ScannedFileId == scannedFile.Id)
             .ToListAsync();
         
         // If no checksums exist, we need to calculate them
         if (existingChecksums.Count == 0)
         {
-            System.Console.WriteLine($"[ScanService] No checksums found for {romFile.FilePath}, will calculate");
+            System.Console.WriteLine($"[ScanService] No checksums found for {scannedFile.FilePath}, will calculate");
             return true;
         }
         
         // If checksums exist, we'll recalculate to check for changes
         // (This could be optimized further by comparing file size/timestamp, but for now we recalculate)
-        System.Console.WriteLine($"[ScanService] Checksums exist for {romFile.FilePath}, will recalculate to check for changes");
+        System.Console.WriteLine($"[ScanService] Checksums exist for {scannedFile.FilePath}, will recalculate to check for changes");
         return true;
     }
 
-    private async Task SaveChecksumsAsync(RomFile romFile, Dictionary<string, string> checksums)
+    private async Task SaveChecksumsAsync(ScannedFile scannedFile, Dictionary<string, string> checksums)
     {
         bool hasChanges = false;
         bool checksumChanged = false;
         
-        // Get existing checksums for this ROM file
+        // Get existing checksums for this scanned file
         var existingChecksums = await _context.Checksums
-            .Where(c => c.RomFileId == romFile.Id)
+            .Where(c => c.ScannedFileId == scannedFile.Id)
             .ToDictionaryAsync(c => c.HashType, c => c.HashValue);
         
         foreach (var (hashType, hashValue) in checksums)
@@ -375,9 +377,9 @@ public class ScanService : IScanService
                 if (existingHashValue != hashValue)
                 {
                     // Checksum has changed - update it
-                    System.Console.WriteLine($"[ScanService] Checksum changed for {romFile.FilePath} ({hashType}): {existingHashValue} -> {hashValue}");
+                    System.Console.WriteLine($"[ScanService] Checksum changed for {scannedFile.FilePath} ({hashType}): {existingHashValue} -> {hashValue}");
                     var existing = await _context.Checksums
-                        .FirstOrDefaultAsync(c => c.RomFileId == romFile.Id && c.HashType == hashType);
+                        .FirstOrDefaultAsync(c => c.ScannedFileId == scannedFile.Id && c.HashType == hashType);
                     if (existing != null)
                     {
                         existing.HashValue = hashValue;
@@ -389,7 +391,7 @@ public class ScanService : IScanService
                 else
                 {
                     // Checksum unchanged - skip
-                    System.Console.WriteLine($"[ScanService] Checksum unchanged for {romFile.FilePath} ({hashType}), skipping");
+                    System.Console.WriteLine($"[ScanService] Checksum unchanged for {scannedFile.FilePath} ({hashType}), skipping");
                 }
             }
             else
@@ -398,10 +400,10 @@ public class ScanService : IScanService
                 var existingByHash = await _checksumRepository.GetByHashAsync(hashType, hashValue);
                 if (existingByHash == null)
                 {
-                    System.Console.WriteLine($"[ScanService] Adding new checksum for {romFile.FilePath} ({hashType})");
+                    System.Console.WriteLine($"[ScanService] Adding new checksum for {scannedFile.FilePath} ({hashType})");
                     var checksum = new Checksum
                     {
-                        RomFileId = romFile.Id,
+                        ScannedFileId = scannedFile.Id,
                         HashType = hashType,
                         HashValue = hashValue,
                         CalculatedAt = DateTime.UtcNow
@@ -421,8 +423,8 @@ public class ScanService : IScanService
         {
             if (checksumChanged)
             {
-                System.Console.WriteLine($"[ScanService] Checksum changes detected for {romFile.FilePath}");
-                // TODO: Store checksum change information (could add a ChecksumHistory table or flag on RomFile)
+                System.Console.WriteLine($"[ScanService] Checksum changes detected for {scannedFile.FilePath}");
+                // TODO: Store checksum change information (could add a ChecksumHistory table or flag on ScannedFile)
             }
             
             // Save all changes (including LastScannedAt update and checksum changes) in one transaction

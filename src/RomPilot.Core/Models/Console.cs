@@ -41,7 +41,7 @@ public class Console
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
     // Navigation properties
-    public ICollection<RomFile> RomFiles { get; set; } = new List<RomFile>();
+    public ICollection<ScannedFile> ScannedFiles { get; set; } = new List<ScannedFile>();
     public ICollection<Game> Games { get; set; } = new List<Game>();
     public ICollection<GameEntry> GameEntries { get; set; } = new List<GameEntry>();
 }

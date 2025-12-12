@@ -28,7 +28,7 @@ public partial class ScanViewModel : ViewModelBase
     private string _selectedDirectory = string.Empty;
 
     [ObservableProperty]
-    private List<RomFile> _romFiles = new();
+    private List<ScannedFile> _scannedFiles = new();
 
     [ObservableProperty]
     private bool _isScanning;
@@ -180,7 +180,7 @@ public partial class ScanViewModel : ViewModelBase
         ProgressMessages.Clear();
         ProcessedFiles.Clear();
         FailedFiles.Clear();
-        RomFiles.Clear(); // Clear previous results
+        ScannedFiles.Clear(); // Clear previous results
         HasResults = false;
         ProgressCurrent = 0;
         ProgressTotal = 0;
@@ -322,8 +322,8 @@ public partial class ScanViewModel : ViewModelBase
 
                 StatusMessage = $"Scan complete! Found {romFilesList.Count} ROM files.";
                 
-                // Store ROM files in this view model (results shown in same view)
-                RomFiles = romFilesList;
+                // Store scanned files in this view model (results shown in same view)
+                ScannedFiles = romFilesList;
                 HasResults = romFilesList.Count > 0;
                 System.Console.WriteLine($"[ScanViewModel] Stored {romFilesList.Count} ROM files in view model, HasResults={HasResults}");
                 

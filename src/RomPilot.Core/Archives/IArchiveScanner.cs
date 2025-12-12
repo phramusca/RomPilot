@@ -51,5 +51,10 @@ public class ArchiveFileInfo
     
     public int ArchiveDepth { get; set; }
     public long FileSize { get; set; }
+    
+    /// <summary>
+    /// Last modified timestamp (Unix timestamp)
+    /// </summary>
+    public long LastModifiedTimestamp { get; set; }
 }
 
