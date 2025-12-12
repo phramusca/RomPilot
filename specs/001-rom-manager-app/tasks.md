@@ -1,363 +1,690 @@
----
-description: "Task list template for feature implementation"
----
-
 # Tasks: ROM Manager Application
 
-**Input**: Design documents from `/specs/001-rom-manager-app/`
-**Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
+**Feature Branch**: `001-rom-manager-app`  
+**Date**: 2025-12-12 (Mis à jour)  
+**Spec**: [spec.md](./spec.md) | **Plan**: [plan.md](./plan.md)
 
-**Tests**: Tests are OPTIONAL - following TDD principles from constitution, tests should be written before implementation. Tests are included below but marked as optional.
+**Note** : Tâches mises à jour suite aux clarifications du 2025-12-12. Une implémentation partielle de la US1 existe et doit être adaptée aux nouvelles spécifications.
 
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+## Vue d'Ensemble
 
-## Format: `[ID] [P?] [Story] Description`
+Total User Stories : **6** (P1 à P4)
+- ✅ US1 : Scanner et identifier (P1) - Partiellement implémenté, à adapter
+- 🆕 US2 : Gérer bases de données (P1.5) - Nouvelle fonctionnalité
+- US3 : Grouper et filtrer (P2)
+- US4 : Exporter (P3)
+- US6 : Interface Bibliothèque (P3)
+- US5 : Synchroniser métadonnées (P4)
 
-- **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3, US4)
-- Include exact file paths in descriptions
+**MVP Suggéré** : US1 + US2 (fondation pour tout le reste)
 
-## Path Conventions
+## Stratégie d'Implémentation
 
-- **Project structure**: `src/RomPilot.Core/`, `src/RomPilot.UI/`, `src/RomPilot.Tests/`
-- Paths follow the modular structure from plan.md
+### Approche TDD
+- ✅ Tests écrits AVANT l'implémentation (QA-001)
+- ✅ Couverture minimale 80% (QA-002, SC-014)
+- ✅ Tests d'intégration pour US critiques (QA-003, SC-015)
 
-## Phase 1: Setup (Shared Infrastructure)
+### Ordre de Livraison
+1. **Itération 1** : Fondations + US2 + US1 adapté (scan complet, bases de données)
+2. **Itération 2** : US3 (filtrage et sélection automatique)
+3. **Itération 3** : US4 + US6 (export et visualisation)
+4. **Itération 4** : US5 (synchronisation)
 
-**Purpose**: Project initialization and basic structure
-
-- [x] T001 Create solution file RomPilot.sln in repository root
-- [x] T002 [P] Create RomPilot.Core class library project in src/RomPilot.Core/RomPilot.Core.csproj
-- [x] T003 [P] Create RomPilot.UI Avalonia MVVM project in src/RomPilot.UI/RomPilot.UI.csproj
-- [x] T004 [P] Create RomPilot.Tests xUnit project in src/RomPilot.Tests/RomPilot.Tests.csproj
-- [x] T005 Add project references: UI references Core, Tests references Core
-- [x] T006 [P] Install NuGet packages in RomPilot.Core: Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design, SharpCompress
-- [x] T007 [P] Install NuGet packages in RomPilot.UI: CommunityToolkit.Mvvm
-- [x] T008 [P] Install NuGet packages in RomPilot.Tests: Moq, FluentAssertions, Microsoft.EntityFrameworkCore.InMemory
-- [x] T009 Configure .gitignore for .NET projects (bin/, obj/, *.db, etc.) in .gitignore
-
----
-
-## Phase 2: Foundational (Blocking Prerequisites)
-
-**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
-
-**⚠️ CRITICAL**: No user story work can begin until this phase is complete
-
-- [x] T010 Create database context class in src/RomPilot.Core/Database/RomPilotDbContext.cs
-- [x] T011 [P] Create Console entity model in src/RomPilot.Core/Models/Console.cs
-- [x] T012 [P] Create RomFile entity model in src/RomPilot.Core/Models/RomFile.cs
-- [x] T013 [P] Create Checksum entity model in src/RomPilot.Core/Models/Checksum.cs
-- [x] T014 [P] Create DatabaseSource entity model in src/RomPilot.Core/Models/DatabaseSource.cs
-- [x] T015 [P] Create GameEntry entity model in src/RomPilot.Core/Models/GameEntry.cs
-- [x] T016 [P] Create Game entity model in src/RomPilot.Core/Models/Game.cs
-- [x] T017 [P] Create GameRomVersion entity model in src/RomPilot.Core/Models/GameRomVersion.cs
-- [x] T018 [P] Create Metadata entity model in src/RomPilot.Core/Models/Metadata.cs
-- [x] T019 [P] Create UserData entity model in src/RomPilot.Core/Models/UserData.cs
-- [x] T020 [P] Create UserPreferences entity model in src/RomPilot.Core/Models/UserPreferences.cs
-- [x] T021 Configure Entity Framework Core DbContext with all entity relationships and indexes in src/RomPilot.Core/Database/RomPilotDbContext.cs
-- [x] T022 Create initial EF Core migration InitialCreate in src/RomPilot.Core/Database/Migrations/
-- [x] T023 [P] Create repository interface IRomFileRepository in src/RomPilot.Core/Repositories/IRomFileRepository.cs
-- [x] T024 [P] Create repository interface IGameRepository in src/RomPilot.Core/Repositories/IGameRepository.cs
-- [x] T025 [P] Create repository interface IChecksumRepository in src/RomPilot.Core/Repositories/IChecksumRepository.cs
-- [x] T026 [P] Create repository interface IConsoleRepository in src/RomPilot.Core/Repositories/IConsoleRepository.cs
-- [x] T027 [P] Create repository interface IDatabaseSourceRepository in src/RomPilot.Core/Repositories/IDatabaseSourceRepository.cs
-- [x] T028 [P] Create repository interface IMetadataRepository in src/RomPilot.Core/Repositories/IMetadataRepository.cs
-- [x] T029 [P] Create repository implementation RomFileRepository in src/RomPilot.Core/Repositories/RomFileRepository.cs
-- [x] T030 [P] Create repository implementation GameRepository in src/RomPilot.Core/Repositories/GameRepository.cs
-- [x] T031 [P] Create repository implementation ChecksumRepository in src/RomPilot.Core/Repositories/ChecksumRepository.cs
-- [x] T032 [P] Create repository implementation ConsoleRepository in src/RomPilot.Core/Repositories/ConsoleRepository.cs
-- [x] T033 [P] Create repository implementation DatabaseSourceRepository in src/RomPilot.Core/Repositories/DatabaseSourceRepository.cs
-- [x] T034 [P] Create repository implementation MetadataRepository in src/RomPilot.Core/Repositories/MetadataRepository.cs
-- [x] T035 Create checksum calculator interface IChecksumCalculator in src/RomPilot.Core/Checksums/IChecksumCalculator.cs
-- [x] T036 Create checksum calculator implementation ChecksumCalculator in src/RomPilot.Core/Checksums/ChecksumCalculator.cs (MD5, SHA1, SHA256, CRC32)
-- [x] T037 Create archive scanner interface IArchiveScanner in src/RomPilot.Core/Archives/IArchiveScanner.cs
-- [x] T038 Create archive scanner implementation ArchiveScanner in src/RomPilot.Core/Archives/ArchiveScanner.cs (ZIP, 7Z, recursive up to 5 levels)
-- [x] T039 Create console detection service interface IConsoleDetectionService in src/RomPilot.Core/Services/IConsoleDetectionService.cs
-- [x] T040 Create console detection service implementation ConsoleDetectionService in src/RomPilot.Core/Services/ConsoleDetectionService.cs
-- [x] T041 Create database seed data service SeedDataService in src/RomPilot.Core/Database/SeedDataService.cs (35+ consoles, database sources)
-- [x] T042 Create user preferences service interface IUserPreferencesService in src/RomPilot.Core/Preferences/IUserPreferencesService.cs
-- [x] T043 Create user preferences service implementation UserPreferencesService in src/RomPilot.Core/Preferences/UserPreferencesService.cs
-- [x] T044 Configure dependency injection container in src/RomPilot.UI/App.axaml.cs (register all services and repositories)
-
-**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
+### Opportunités de Parallélisme
+- Setup tasks : Peuvent être exécutés en parallèle (marqués [P])
+- Tâches au sein d'une US : Modèles, services et UI peuvent être en parallèle si fichiers différents
+- US indépendantes : US4 et US6 peuvent être développées en parallèle
 
 ---
 
-## Phase 3: User Story 1 - Scanner et identifier les ROMs (Priority: P1) 🎯 MVP
+## Phase 1 : Setup et Configuration (Prérequis)
 
-**Goal**: Scanner récursivement des répertoires (tous les sous-dossiers) pour trouver des ROMs (y compris dans archives ZIP/7Z/RAR avec archives imbriquées), calculer checksums, identifier console et jeu via bases de données, afficher feedback détaillé avec liste des fichiers traités/échoués et raisons d'échec
+**Objectif** : Préparer l'environnement de développement et la structure du projet
 
-**Independent Test**: Fournir un répertoire de test avec ROMs dans différents formats (fichiers directs dans sous-dossiers, ZIP, 7Z, RAR, archives imbriquées). Vérifier que tous les ROMs sont détectés récursivement, consoles identifiées, jeux reconnus via bases de données, checksums calculés, et que la liste des fichiers traités/échoués est visible avec raisons d'échec.
+### 1.1 Initialisation Projet
 
-### Tests for User Story 1 (OPTIONAL - TDD approach) ⚠️
+- [ ] T001 Vérifier installation .NET 8.0 SDK et outils requis
+- [ ] T002 [P] Créer structure solution RomPilot.sln avec projets Core, Infrastructure, UI
+- [ ] T003 [P] Configurer EditorConfig et conventions style C# (.editorconfig)
+- [ ] T004 [P] Configurer Roslyn analyzers pour linting automatique (.editorconfig, Directory.Build.props)
+- [ ] T005 [P] Configurer dotnet format pour formatting automatique
+- [ ] T006 [P] Installer packages NuGet Core : EF Core SQLite, SharpCompress, SSH.NET
+- [ ] T007 [P] Installer packages NuGet UI : Avalonia UI, CommunityToolkit.Mvvm
+- [ ] T008 [P] Installer packages NuGet Tests : xUnit, Moq, FluentAssertions, EF Core InMemory
+- [ ] T009 Configurer projet tests avec références appropriées
 
-> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+### 1.2 Infrastructure Base de Données
 
-- [x] T045 [P] [US1] Unit test for ArchiveScanner recursive directory traversal in src/RomPilot.Tests/Unit/Archives/ArchiveScannerRecursiveTests.cs
-- [x] T046 [P] [US1] Unit test for ArchiveScanner RAR support in src/RomPilot.Tests/Unit/Archives/ArchiveScannerRarTests.cs
-- [x] T047 [P] [US1] Unit test for ArchiveScanner nested archives (ZIP, 7Z, RAR) in src/RomPilot.Tests/Unit/Archives/ArchiveScannerNestedTests.cs
-- [x] T048 [P] [US1] Unit test for ChecksumCalculator in src/RomPilot.Tests/Unit/Checksums/ChecksumCalculatorTests.cs
-- [x] T049 [P] [US1] Unit test for ConsoleDetectionService in src/RomPilot.Tests/Unit/Services/ConsoleDetectionServiceTests.cs
-- [x] T050 [P] [US1] Unit test for ScanService with detailed progress reporting in src/RomPilot.Tests/Unit/Services/ScanServiceProgressTests.cs
-- [x] T051 [US1] Integration test for scan workflow with detailed feedback in src/RomPilot.Tests/Integration/ScanServiceIntegrationTests.cs
+- [ ] T010 Créer RomPilotDbContext dans src/RomPilot.Infrastructure/Data/RomPilotDbContext.cs
+- [ ] T011 Configurer SQLite connection string et options dans RomPilotDbContext
+- [ ] T012 Créer migration initiale EF Core avec toutes les tables (voir data-model.md)
+- [ ] T013 Créer script seed data pour consoles supportées (35+ consoles)
+- [ ] T014 Créer script seed data pour ExclusionFilters par défaut (14 extensions)
+- [ ] T015 Tester migration et seed sur base SQLite vide
 
-### Implementation for User Story 1
+### 1.3 Configuration CI/CD
 
-- [x] T052 [US1] Create scan service interface IScanService in src/RomPilot.Core/Services/IScanService.cs
-- [x] T053 [US1] Create scan service implementation ScanService in src/RomPilot.Core/Services/ScanService.cs (orchestrates scan workflow)
-- [x] T054 [P] [US1] Create database provider interface INoIntroProvider in src/RomPilot.Core/DatabaseProviders/INoIntroProvider.cs
-- [x] T055 [P] [US1] Create database provider interface IRedumpProvider in src/RomPilot.Core/DatabaseProviders/IRedumpProvider.cs
-- [x] T056 [P] [US1] Create database provider interface IGoodSetProvider in src/RomPilot.Core/DatabaseProviders/IGoodSetProvider.cs
-- [x] T057 [P] [US1] Create database provider implementation NoIntroProvider in src/RomPilot.Core/DatabaseProviders/NoIntroProvider.cs (parser datfile)
-- [x] T058 [P] [US1] Create database provider implementation RedumpProvider in src/RomPilot.Core/DatabaseProviders/RedumpProvider.cs (parser datfile)
-- [x] T059 [P] [US1] Create database provider implementation GoodSetProvider in src/RomPilot.Core/DatabaseProviders/GoodSetProvider.cs (parser datfile)
-- [x] T060 [US1] Create game identification service interface IGameIdentificationService in src/RomPilot.Core/Services/IGameIdentificationService.cs
-- [x] T061 [US1] Create game identification service implementation GameIdentificationService in src/RomPilot.Core/Services/GameIdentificationService.cs (matches checksums with database entries)
-- [x] T062 [US1] Create scan progress reporting interface IScanProgressReporter in src/RomPilot.Core/Services/IScanProgressReporter.cs
-- [x] T063 [US1] Create scan progress reporting implementation ScanProgressReporter in src/RomPilot.Core/Services/ScanProgressReporter.cs
-- [x] T064 [US1] Create main window view model MainWindowViewModel in src/RomPilot.UI/ViewModels/MainWindowViewModel.cs
-- [x] T065 [US1] Create main window view MainWindow in src/RomPilot.UI/Views/MainWindow.axaml
-- [x] T066 [US1] Create scan view model ScanViewModel in src/RomPilot.UI/ViewModels/ScanViewModel.cs
-- [x] T067 [US1] Create scan view ScanView in src/RomPilot.UI/Views/ScanView.axaml (directory selection, scan button, progress bar)
-- [x] T068 [US1] Create scan results view model ScanResultsViewModel in src/RomPilot.UI/ViewModels/ScanResultsViewModel.cs
-- [x] T069 [US1] Create scan results view ScanResultsView in src/RomPilot.UI/Views/ScanResultsView.axaml (list of detected ROMs with console and game info)
-- [x] T070 [US1] Integrate scan service with UI in src/RomPilot.UI/ViewModels/ScanViewModel.cs (async scan, progress updates)
-- [x] T071 [US1] Add error handling and user feedback in src/RomPilot.UI/ViewModels/ScanViewModel.cs (error messages, validation)
-
-### NEW: Updates Required for Spec Clarifications
-
-- [x] T072 [US1] Update ArchiveScanner to support RAR format: add RAR detection in IsArchiveFile() method in src/RomPilot.Core/Archives/ArchiveScanner.cs
-- [x] T073 [US1] Update ArchiveScanner to support RAR format: add RAR archive opening logic in ScanArchiveAsync() method in src/RomPilot.Core/Archives/ArchiveScanner.cs
-- [x] T074 [US1] Update ArchiveScanner to support RAR format: add RAR extraction logic in ExtractFileAsync() method in src/RomPilot.Core/Archives/ArchiveScanner.cs
-- [x] T075 [US1] Update IArchiveScanner interface documentation to mention RAR support in src/RomPilot.Core/Archives/IArchiveScanner.cs
-- [x] T076 [US1] Verify ArchiveScanner recursive directory traversal works correctly (all subdirectories) in src/RomPilot.Core/Archives/ArchiveScanner.cs - Verified: ScanDirectoryRecursiveAsync recursively scans all subdirectories
-- [x] T077 [US1] Verify ArchiveScanner recursive archive processing works for all formats (ZIP, 7Z, RAR) in src/RomPilot.Core/Archives/ArchiveScanner.cs - Verified: ScanArchiveAsync handles nested archives recursively for all formats
-- [x] T078 [US1] Add ProcessingStatus property to RomFile model (success, failed) in src/RomPilot.Core/Models/RomFile.cs
-- [x] T079 [US1] Add FailureReason property to RomFile model (explicit failure reasons) in src/RomPilot.Core/Models/RomFile.cs
-- [x] T080 [US1] Create EF Core migration for RomFile ProcessingStatus and FailureReason fields in src/RomPilot.Core/Migrations/
-- [x] T081 [US1] Enhance IScanProgressReporter interface to report per-file status with failure reasons in src/RomPilot.Core/Services/IScanProgressReporter.cs
-- [x] T082 [US1] Update ScanProgressReporter implementation to support file-level status reporting in src/RomPilot.Core/Services/ScanProgressReporter.cs
-- [x] T083 [US1] Update ScanService to capture and report failure reasons for each file in src/RomPilot.Core/Services/ScanService.cs
-- [x] T084 [US1] Update ScanViewModel to display detailed file list (processed/failed with reasons) in src/RomPilot.UI/ViewModels/ScanViewModel.cs
-- [x] T085 [US1] Update ScanView.axaml to show processed files list with status (success, console identified, game identified) in src/RomPilot.UI/Views/ScanView.axaml
-- [x] T086 [US1] Update ScanView.axaml to show failed files list with explicit failure reasons in src/RomPilot.UI/Views/ScanView.axaml
-
-**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently - users can scan directories recursively (including subdirectories and nested archives in ZIP/7Z/RAR), see identified ROMs, and view detailed feedback with processed/failed files and failure reasons
+- [ ] T016 [P] Créer workflow GitHub Actions pour build (.github/workflows/build.yml)
+- [ ] T017 [P] Configurer exécution tests automatiques dans CI
+- [ ] T018 [P] Configurer vérification linter dans CI (dotnet format --verify-no-changes)
+- [ ] T019 [P] Configurer calcul couverture tests (coverlet) dans CI
 
 ---
 
-## Phase 4: User Story 2 - Grouper et filtrer les ROMs par version (Priority: P2)
+## Phase 2 : Fondations (Bloquant pour toutes les US)
 
-**Goal**: Regrouper automatiquement toutes les versions d'un même jeu, puis sélectionner automatiquement la meilleure version selon préférences utilisateur (région, langue, qualité)
+**Objectif** : Créer les composants fondamentaux utilisés par toutes les user stories
 
-**Independent Test**: Fournir une collection contenant plusieurs versions du même jeu (USA, EUR, JAP). Configurer préférences région/langue. Vérifier que versions sont regroupées et version préférée est sélectionnée.
+### 2.1 Modèles Entités Core
 
-### Tests for User Story 2 (OPTIONAL - TDD approach) ⚠️
+- [ ] T020 [P] Créer entité Console dans src/RomPilot.Core/Models/Console.cs
+- [ ] T021 [P] Créer entité ScannedFile dans src/RomPilot.Core/Models/ScannedFile.cs (anciennement RomFile)
+- [ ] T022 [P] Créer entité Checksum dans src/RomPilot.Core/Models/Checksum.cs
+- [ ] T023 [P] Créer entité GameEntry dans src/RomPilot.Core/Models/GameEntry.cs
+- [ ] T024 [P] Créer entité Game dans src/RomPilot.Core/Models/Game.cs
+- [ ] T025 [P] Créer entité ReferenceDatabase dans src/RomPilot.Core/Models/ReferenceDatabase.cs
+- [ ] T026 [P] Créer entité ExclusionFilter dans src/RomPilot.Core/Models/ExclusionFilter.cs
+- [ ] T027 [P] Créer entité UserPreferences dans src/RomPilot.Core/Models/UserPreferences.cs
+- [ ] T028 [P] Créer entité Metadata dans src/RomPilot.Core/Models/Metadata.cs
+- [ ] T029 [P] Créer entité UserData dans src/RomPilot.Core/Models/UserData.cs
+- [ ] T030 [P] Créer entité ExportConfiguration dans src/RomPilot.Core/Models/ExportConfiguration.cs
 
-- [ ] T087 [P] [US2] Unit test for GameGroupingService in src/RomPilot.Tests/Unit/Services/GameGroupingServiceTests.cs
-- [ ] T088 [P] [US2] Unit test for VersionSelectionService in src/RomPilot.Tests/Unit/Services/VersionSelectionServiceTests.cs
-- [ ] T089 [US2] Integration test for filtering workflow in src/RomPilot.Tests/Integration/FilteringIntegrationTests.cs
+### 2.2 Repositories Interfaces et Implémentations
 
-### Implementation for User Story 2
+- [ ] T031 [P] Créer IScannedFileRepository dans src/RomPilot.Core/Repositories/IScannedFileRepository.cs
+- [ ] T032 [P] Créer IGameRepository dans src/RomPilot.Core/Repositories/IGameRepository.cs
+- [ ] T033 [P] Créer IChecksumRepository dans src/RomPilot.Core/Repositories/IChecksumRepository.cs
+- [ ] T034 [P] Créer IReferenceDatabaseRepository dans src/RomPilot.Core/Repositories/IReferenceDatabaseRepository.cs
+- [ ] T035 [P] Créer IExclusionFilterRepository dans src/RomPilot.Core/Repositories/IExclusionFilterRepository.cs
+- [ ] T036 [P] Créer IExportConfigurationRepository dans src/RomPilot.Core/Repositories/IExportConfigurationRepository.cs
+- [ ] T037 [P] Implémenter ScannedFileRepository dans src/RomPilot.Infrastructure/Data/Repositories/ScannedFileRepository.cs
+- [ ] T038 [P] Implémenter GameRepository dans src/RomPilot.Infrastructure/Data/Repositories/GameRepository.cs
+- [ ] T039 [P] Implémenter ChecksumRepository dans src/RomPilot.Infrastructure/Data/Repositories/ChecksumRepository.cs
+- [ ] T040 [P] Implémenter ReferenceDatabaseRepository dans src/RomPilot.Infrastructure/Data/Repositories/ReferenceDatabaseRepository.cs
+- [ ] T041 [P] Implémenter ExclusionFilterRepository dans src/RomPilot.Infrastructure/Data/Repositories/ExclusionFilterRepository.cs
+- [ ] T042 [P] Implémenter ExportConfigurationRepository dans src/RomPilot.Infrastructure/Data/Repositories/ExportConfigurationRepository.cs
 
-- [ ] T090 [US2] Create game grouping service interface IGameGroupingService in src/RomPilot.Core/Services/IGameGroupingService.cs
-- [ ] T091 [US2] Create game grouping service implementation GameGroupingService in src/RomPilot.Core/Services/GameGroupingService.cs (groups ROMs by game)
-- [ ] T092 [US2] Create version selection service interface IVersionSelectionService in src/RomPilot.Core/Services/IVersionSelectionService.cs
-- [ ] T093 [US2] Create version selection service implementation VersionSelectionService in src/RomPilot.Core/Services/VersionSelectionService.cs (selects best version based on preferences)
-- [ ] T094 [US2] Create preference configuration view model PreferencesViewModel in src/RomPilot.UI/ViewModels/PreferencesViewModel.cs
-- [ ] T095 [US2] Create preference configuration view PreferencesView in src/RomPilot.UI/Views/PreferencesView.axaml (region priority, language priority, exclude bad dumps)
-- [ ] T096 [US2] Create game list view model GameListViewModel in src/RomPilot.UI/ViewModels/GameListViewModel.cs (displays grouped games with selected versions)
-- [ ] T097 [US2] Create game list view GameListView in src/RomPilot.UI/Views/GameListView.axaml (list of games with version info)
-- [ ] T098 [US2] Integrate grouping and filtering with UI in src/RomPilot.UI/ViewModels/GameListViewModel.cs (apply preferences, update selection)
-- [ ] T099 [US2] Add manual version override capability in src/RomPilot.UI/ViewModels/GameListViewModel.cs (user can manually select different version)
+### 2.3 Services Fondamentaux
 
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - users can scan, group games, and filter versions
+- [ ] T043 Créer ChecksumService dans src/RomPilot.Core/Services/ChecksumService.cs (calcul MD5, SHA1, SHA256, CRC32)
+- [ ] T044 Tests unitaires ChecksumService dans tests/RomPilot.Core.Tests/Services/ChecksumServiceTests.cs
+- [ ] T045 Créer ArchiveScanner dans src/RomPilot.Infrastructure/Archives/ArchiveScanner.cs (SharpCompress pour ZIP/7Z/RAR)
+- [ ] T046 Tests unitaires ArchiveScanner avec archives test dans tests/RomPilot.Infrastructure.Tests/Archives/ArchiveScannerTests.cs
+- [ ] T047 Créer FileSystemScanner dans src/RomPilot.Infrastructure/FileSystem/FileSystemScanner.cs (scan récursif)
+- [ ] T048 Tests unitaires FileSystemScanner dans tests/RomPilot.Infrastructure.Tests/FileSystem/FileSystemScannerTests.cs
 
----
+### 2.4 UI Infrastructure MVVM
 
-## Phase 5: User Story 3 - Exporter vers Recalbox et Romm (Priority: P3)
-
-**Goal**: Exporter collection de ROMs filtrée vers Recalbox et Romm en respectant conventions de chaque plateforme (noms dossiers, formats fichiers)
-
-**Independent Test**: Exporter une petite collection vers dossiers destination Recalbox et Romm. Vérifier que fichiers sont placés dans bons dossiers, formats respectent conventions, structure correcte.
-
-### Tests for User Story 3 (OPTIONAL - TDD approach) ⚠️
-
-- [ ] T100 [P] [US3] Unit test for RecalboxExportAdapter in src/RomPilot.Tests/Unit/PlatformAdapters/RecalboxExportAdapterTests.cs
-- [ ] T101 [P] [US3] Unit test for RommExportAdapter in src/RomPilot.Tests/Unit/PlatformAdapters/RommExportAdapterTests.cs
-- [ ] T102 [US3] Integration test for export workflow in src/RomPilot.Tests/Integration/ExportIntegrationTests.cs
-
-### Implementation for User Story 3
-
-- [ ] T103 [US3] Create export service interface IExportService in src/RomPilot.Core/Services/IExportService.cs
-- [ ] T104 [US3] Create export service implementation ExportService in src/RomPilot.Core/Services/ExportService.cs (orchestrates export)
-- [ ] T105 [P] [US3] Create platform adapter interface IPlatformAdapter in src/RomPilot.Core/PlatformAdapters/IPlatformAdapter.cs
-- [ ] T106 [US3] Create Recalbox export adapter RecalboxExportAdapter in src/RomPilot.Core/PlatformAdapters/RecalboxExportAdapter.cs (folder naming, format conversion)
-- [ ] T107 [US3] Create Romm export adapter RommExportAdapter in src/RomPilot.Core/PlatformAdapters/RommExportAdapter.cs (folder structure, API integration)
-- [ ] T108 [US3] Create console folder name mapping service ConsoleFolderMappingService in src/RomPilot.Core/Services/ConsoleFolderMappingService.cs (Recalbox and Romm conventions)
-- [ ] T109 [US3] Create export configuration view model ExportViewModel in src/RomPilot.UI/ViewModels/ExportViewModel.cs
-- [ ] T110 [US3] Create export configuration view ExportView in src/RomPilot.UI/Views/ExportView.axaml (platform selection, destination path, options)
-- [ ] T111 [US3] Create export progress view model ExportProgressViewModel in src/RomPilot.UI/ViewModels/ExportProgressViewModel.cs
-- [ ] T112 [US3] Create export progress view ExportProgressView in src/RomPilot.UI/Views/ExportProgressView.axaml (progress bar, file list)
-- [ ] T113 [US3] Integrate export service with UI in src/RomPilot.UI/ViewModels/ExportViewModel.cs (async export, progress updates)
-- [ ] T114 [US3] Add conflict resolution handling in src/RomPilot.Core/Services/ExportService.cs (file exists, user confirmation)
-- [ ] T115 [US3] Create export history repository interface IExportHistoryRepository in src/RomPilot.Core/Repositories/IExportHistoryRepository.cs
-- [ ] T116 [US3] Create export history repository implementation ExportHistoryRepository in src/RomPilot.Core/Repositories/ExportHistoryRepository.cs
-
-**Checkpoint**: At this point, User Stories 1, 2, AND 3 should all work independently - users can scan, filter, and export to platforms
+- [ ] T049 [P] Créer MainWindowViewModel dans src/RomPilot.UI/ViewModels/MainWindowViewModel.cs
+- [ ] T050 [P] Créer MainWindow.axaml dans src/RomPilot.UI/Views/MainWindow.axaml (navigation principale)
+- [ ] T051 [P] Configurer dependency injection dans src/RomPilot.UI/App.axaml.cs
+- [ ] T052 [P] Créer ViewModelBase dans src/RomPilot.UI/ViewModels/ViewModelBase.cs
+- [ ] T053 [P] Créer converters XAML communs dans src/RomPilot.UI/Converters/
 
 ---
 
-## Phase 6: User Story 4 - Synchroniser les métadonnées (Priority: P4)
+## Phase 3 : User Story 2 - Gérer Bases de Données (P1.5) 🆕
 
-**Goal**: Synchroniser métadonnées de jeux entre application et plateformes Recalbox et Romm (récupération scrap, synchronisation bidirectionnelle données utilisateur)
+**Objectif** : Permettre téléchargement et gestion des bases de données de référence (NoIntro, Redump, GoodSet)
 
-**Independent Test**: Configurer connexion Recalbox (gamelist.xml) et Romm (API). Vérifier que métadonnées scrap sont récupérées, favoris/ratings synchronisés bidirectionnellement, conflits gérés.
+**Pourquoi d'abord ?** : US1 nécessite les bases de données pour identifier les ROMs. US2 doit être implémenté avant ou en parallèle de US1.
 
-### Tests for User Story 4 (OPTIONAL - TDD approach) ⚠️
+**Test Indépendant** : Utilisateur peut naviguer providers, sélectionner console/version, télécharger base de données, voir bases téléchargées dans tableau.
 
-- [ ] T117 [P] [US4] Unit test for RecalboxMetadataAdapter in src/RomPilot.Tests/Unit/PlatformAdapters/RecalboxMetadataAdapterTests.cs
-- [ ] T118 [P] [US4] Unit test for RommApiClient in src/RomPilot.Tests/Unit/PlatformAdapters/RommApiClientTests.cs
-- [ ] T119 [US4] Integration test for sync workflow in src/RomPilot.Tests/Integration/SyncIntegrationTests.cs
+### 3.1 Tests US2 (TDD)
 
-### Implementation for User Story 4
+- [ ] T054 [US2] Créer DatabaseManagerServiceTests dans tests/RomPilot.Core.Tests/Services/DatabaseManagerServiceTests.cs
+- [ ] T055 [US2] Tests : Lister providers disponibles (NoIntro, Redump, GoodSet)
+- [ ] T056 [US2] Tests : Lister versions par provider et console
+- [ ] T057 [US2] Tests : Télécharger base de données avec progression
+- [ ] T058 [US2] Tests : Sélectionner version par défaut par console
+- [ ] T059 [US2] Tests : Vérifier disponibilité mises à jour
+- [ ] T060 [US2] Tests : Gérer échecs téléchargement avec retry
 
-- [ ] T120 [US4] Create sync service interface ISyncService in src/RomPilot.Core/Services/ISyncService.cs
-- [ ] T121 [US4] Create sync service implementation SyncService in src/RomPilot.Core/Services/SyncService.cs (orchestrates sync)
-- [ ] T122 [US4] Create Recalbox metadata adapter RecalboxMetadataAdapter in src/RomPilot.Core/PlatformAdapters/RecalboxMetadataAdapter.cs (read/write gamelist.xml)
-- [ ] T123 [US4] Create Romm API client interface IRommApiClient in src/RomPilot.Core/PlatformAdapters/IRommApiClient.cs
-- [ ] T124 [US4] Create Romm API client implementation RommApiClient in src/RomPilot.Core/PlatformAdapters/RommApiClient.cs (HTTP client, endpoints)
-- [ ] T125 [US4] Create metadata mapping service MetadataMappingService in src/RomPilot.Core/Services/MetadataMappingService.cs (maps between formats)
-- [ ] T126 [US4] Create conflict resolution service ConflictResolutionService in src/RomPilot.Core/Services/ConflictResolutionService.cs (last modified wins, user confirmation)
-- [ ] T127 [US4] Create sync configuration view model SyncViewModel in src/RomPilot.UI/ViewModels/SyncViewModel.cs
-- [ ] T128 [US4] Create sync configuration view SyncView in src/RomPilot.UI/Views/SyncView.axaml (platform selection, sync direction, options)
-- [ ] T129 [US4] Create sync progress view model SyncProgressViewModel in src/RomPilot.UI/ViewModels/SyncProgressViewModel.cs
-- [ ] T130 [US4] Create sync progress view SyncProgressView in src/RomPilot.UI/Views/SyncProgressView.axaml (progress bar, conflicts list)
-- [ ] T131 [US4] Integrate sync service with UI in src/RomPilot.UI/ViewModels/SyncViewModel.cs (async sync, progress updates)
-- [ ] T132 [US4] Add conflict resolution UI ConflictResolutionView in src/RomPilot.UI/Views/ConflictResolutionView.axaml (show conflicts, user choice)
-- [ ] T133 [US4] Create sync history repository interface ISyncHistoryRepository in src/RomPilot.Core/Repositories/ISyncHistoryRepository.cs
-- [ ] T134 [US4] Create sync history repository implementation SyncHistoryRepository in src/RomPilot.Core/Repositories/SyncHistoryRepository.cs
+### 3.2 Service Gestion Bases de Données
 
-**Checkpoint**: All user stories should now be independently functional - complete workflow from scan to sync
+- [ ] T061 [US2] Créer DatabaseManagerService dans src/RomPilot.Core/Services/DatabaseManagerService.cs
+- [ ] T062 [US2] Implémenter méthode GetAvailableProvidersAsync() retournant NoIntro, Redump, GoodSet
+- [ ] T063 [US2] Implémenter méthode GetAvailableVersionsAsync(provider, console) avec parsing métadonnées
+- [ ] T064 [US2] Implémenter méthode DownloadDatabaseAsync(provider, console, version) avec HttpClient
+- [ ] T065 [US2] Implémenter progress reporting (IProgress<T>) pour téléchargement
+- [ ] T066 [US2] Implémenter méthode SetDefaultVersionAsync(provider, console, version)
+- [ ] T067 [US2] Implémenter méthode CheckForUpdatesAsync() comparant versions locales vs disponibles
+- [ ] T068 [US2] Gérer erreurs réseau et retry logic dans téléchargements
 
----
+### 3.3 UI Gestionnaire Bases de Données
 
-## Phase 7: Polish & Cross-Cutting Concerns
+- [ ] T069 [US2] Créer DatabaseManagerViewModel dans src/RomPilot.UI/ViewModels/DatabaseManagerViewModel.cs
+- [ ] T070 [US2] Créer DatabaseManagerView.axaml dans src/RomPilot.UI/Views/DatabaseManagerView.axaml
+- [ ] T071 [US2] Implémenter UI : Liste providers avec consoles associées
+- [ ] T072 [US2] Implémenter UI : Liste versions disponibles avec dates et tailles
+- [ ] T073 [US2] Implémenter UI : Bouton télécharger avec barre de progression
+- [ ] T074 [US2] Implémenter UI : Tableau bases téléchargées avec filtres (provider, console, version)
+- [ ] T075 [US2] Implémenter UI : Notification disponibilité mises à jour
+- [ ] T076 [US2] Implémenter UI : Sélection version par défaut (bouton/icône)
+- [ ] T077 [US2] Implémenter UI : Affichage erreurs téléchargement avec bouton retry
 
-**Purpose**: Improvements that affect multiple user stories
+### 3.4 Tests Intégration US2
 
-- [ ] T135 [P] Documentation updates in README.md (installation, usage, features)
-- [ ] T136 [P] Code cleanup and refactoring in src/ (remove unused code, improve naming)
-- [ ] T137 [P] Performance optimization across all stories in src/RomPilot.Core/ (profiling, bottlenecks)
-- [ ] T138 [P] Additional unit tests in src/RomPilot.Tests/Unit/ (increase coverage to 80% critical, 60% rest)
-- [ ] T139 [P] Security hardening in src/RomPilot.Core/ (validate user inputs, sanitize paths, secure API key storage)
-- [ ] T140 [P] Error handling improvements in src/RomPilot.Core/ (comprehensive error messages, logging)
-- [ ] T141 [P] UI/UX polish in src/RomPilot.UI/ (icons, tooltips, keyboard shortcuts, accessibility)
-- [ ] T142 [P] Localization support preparation in src/RomPilot.UI/ (if needed, prepare for translations)
-- [ ] T143 [P] Run quickstart.md validation (verify all setup steps work)
-- [ ] T144 [P] Create deployment packages (Linux AppImage/.deb, Windows MSI, macOS .dmg)
+- [ ] T078 [US2] Test intégration end-to-end : Télécharger NoIntro NES, vérifier fichier local, définir par défaut
+- [ ] T079 [US2] Test intégration : Télécharger plusieurs versions même console, basculer version par défaut
+- [ ] T080 [US2] Test intégration : Vérifier mises à jour, notification affichée si nouvelle version
 
 ---
 
-## Dependencies & Execution Order
+## Phase 4 : User Story 1 - Scanner et Identifier (P1) ⚠️ Adaptation
 
-### Phase Dependencies
+**Objectif** : Scanner tous fichiers (sans présupposition), calculer checksums, identifier ROMs via bases de données
 
-- **Setup (Phase 1)**: No dependencies - can start immediately
-- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
-- **User Stories (Phase 3+)**: All depend on Foundational phase completion
-  - User stories can then proceed in parallel (if staffed)
-  - Or sequentially in priority order (P1 → P2 → P3 → P4)
-- **Polish (Final Phase)**: Depends on all desired user stories being complete
+**Adaptation Requise** : Code existant doit être modifié pour (1) ne pas présupposer ce qui est ROM, (2) gérer filtres d'exclusion configurables, (3) supporter scans incrémentaux.
 
-### User Story Dependencies
+**Test Indépendant** : Scanner répertoire avec fichiers variés, voir fichiers "identifiés", "non identifiés", "exclus" avec raisons, choisir scan rapide/complet.
 
-- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
-- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - Depends on US1 for scanned ROMs data
-- **User Story 3 (P3)**: Can start after Foundational (Phase 2) - Depends on US2 for filtered/selected ROMs
-- **User Story 4 (P4)**: Can start after Foundational (Phase 2) - Depends on US3 for exported games (for sync)
+### 4.1 Service Filtres d'Exclusion (Nouveau)
 
-### Within Each User Story
+- [ ] T081 [US1] Créer FilterService dans src/RomPilot.Core/Services/FilterService.cs
+- [ ] T082 [US1] Tests FilterService dans tests/RomPilot.Core.Tests/Services/FilterServiceTests.cs
+- [ ] T083 [US1] Implémenter GetActiveFiltersAsync() retournant filtres actifs depuis ExclusionFilters
+- [ ] T084 [US1] Implémenter IsFileExcluded(filePath) vérifiant extension, taille, pattern
+- [ ] T085 [US1] Implémenter AddCustomFilterAsync(filterType, filterValue)
+- [ ] T086 [US1] Implémenter UpdateFilterStatusAsync(filterId, isActive) pour activer/désactiver
+- [ ] T087 [US1] Implémenter DeleteFilterAsync(filterId) pour filtres personnalisés
 
-- Tests (if included) MUST be written and FAIL before implementation
-- Models before services
-- Services before UI/adapters
-- Core implementation before integration
-- Story complete before moving to next priority
+### 4.2 UI Configuration Filtres
 
-### Parallel Opportunities
+- [ ] T088 [US1] Créer FilterConfigViewModel dans src/RomPilot.UI/ViewModels/FilterConfigViewModel.cs
+- [ ] T089 [US1] Créer FilterConfigView.axaml dans src/RomPilot.UI/Views/FilterConfigView.axaml
+- [ ] T090 [US1] Implémenter UI : Tableau filtres avec colonnes Type, Valeur, Par Défaut, Actif
+- [ ] T091 [US1] Implémenter UI : Bouton ajouter filtre personnalisé (dialog)
+- [ ] T092 [US1] Implémenter UI : Checkbox activer/désactiver chaque filtre
+- [ ] T093 [US1] Implémenter UI : Bouton supprimer pour filtres personnalisés uniquement
 
-- All Setup tasks marked [P] can run in parallel
-- All Foundational tasks marked [P] can run in parallel (within Phase 2)
-- Once Foundational phase completes, user stories can start in parallel (if team capacity allows)
-- All tests for a user story marked [P] can run in parallel
-- Models within a story marked [P] can run in parallel
-- Different user stories can be worked on in parallel by different team members (with coordination)
+### 4.3 Service Scan Adapté (Modification Code Existant)
+
+- [ ] T094 [US1] **ADAPTER** ScanService dans src/RomPilot.Core/Services/ScanService.cs pour scan sans présupposition
+- [ ] T095 [US1] Tests ScanService dans tests/RomPilot.Core.Tests/Services/ScanServiceTests.cs
+- [ ] T096 [US1] Modifier ScanDirectoryAsync() pour (1) appeler FilterService avant scan, (2) scanner TOUS fichiers hors exclusions
+- [ ] T097 [US1] Ajouter paramètre scanType (Quick/Full) à ScanDirectoryAsync()
+- [ ] T098 [US1] Implémenter logique scan rapide : comparer timestamp + taille, skip si inchangé
+- [ ] T099 [US1] Implémenter logique scan complet : recalculer tous checksums
+- [ ] T100 [US1] Stocker LastModifiedTimestamp et ScanType dans ScannedFiles
+- [ ] T101 [US1] Pour chaque fichier scanné, définir IdentificationStatus : "Identified"/"Unidentified"/"Excluded"/"Failed"
+- [ ] T102 [US1] Stocker ExclusionReason si status="Excluded" (ex: "Extension .jpg exclue")
+- [ ] T103 [US1] Stocker FailureReason si status="Failed" (ex: "Archive corrompue")
+
+### 4.4 Service Identification ROMs
+
+- [ ] T104 [US1] Créer IdentificationService dans src/RomPilot.Core/Services/IdentificationService.cs
+- [ ] T105 [US1] Tests IdentificationService dans tests/RomPilot.Core.Tests/Services/IdentificationServiceTests.cs
+- [ ] T106 [US1] Implémenter IdentifyFileAsync(scannedFile) cherchant checksums dans GameEntries
+- [ ] T107 [US1] Si match trouvé : mettre à jour ScannedFile avec ConsoleId, GameEntryId, status="Identified"
+- [ ] T108 [US1] Si aucun match : laisser status="Unidentified", garder checksums calculés
+- [ ] T109 [US1] Gérer fichiers identifiés dans plusieurs bases de données (multi-match)
+- [ ] T110 [US1] Implémenter BatchIdentifyAsync() pour identification parallèle de multiples fichiers
+
+### 4.5 UI Scan et Progression
+
+- [ ] T111 [US1] **ADAPTER** ScanViewModel dans src/RomPilot.UI/ViewModels/ScanViewModel.cs
+- [ ] T112 [US1] **ADAPTER** ScanView.axaml dans src/RomPilot.UI/Views/ScanView.axaml
+- [ ] T113 [US1] Ajouter UI : Boutons radio "Scan Rapide" / "Scan Complet"
+- [ ] T114 [US1] Adapter UI : Barre progression avec compteurs (Scannés, Identifiés, Non identifiés, Exclus, Échecs)
+- [ ] T115 [US1] Adapter UI : Tableau résultats avec colonnes Fichier, Statut, Console, Jeu, Raison
+- [ ] T116 [US1] Implémenter filtres tableau : Afficher uniquement Identifiés / Non identifiés / Exclus / Échecs
+- [ ] T117 [US1] Implémenter tri tableau par colonne (nom, taille, statut, console)
+- [ ] T118 [US1] Afficher raison explicite pour fichiers Exclus et Échecs
+
+### 4.6 Tests Intégration US1
+
+- [ ] T119 [US1] Test intégration : Scan répertoire test avec .zip, .nes, .jpg (identifier ROMs, exclure images)
+- [ ] T120 [US1] Test intégration : Scan rapide répertoire déjà scanné, vérifier réutilisation checksums
+- [ ] T121 [US1] Test intégration : Scan complet même répertoire, vérifier recalcul checksums
+- [ ] T122 [US1] Test intégration : Ajouter filtre personnalisé (.mp3), rescanner, vérifier exclusion
+- [ ] T123 [US1] Test intégration : Scan archives imbriquées (ZIP dans ZIP dans RAR), vérifier profondeur récursive
 
 ---
 
-## Parallel Example: User Story 1
+## Phase 5 : User Story 3 - Grouper et Filtrer (P2)
 
-```bash
-# Launch all tests for User Story 1 together (if tests requested):
-Task: "Unit test for ArchiveScanner recursive directory traversal in src/RomPilot.Tests/Unit/Archives/ArchiveScannerRecursiveTests.cs"
-Task: "Unit test for ArchiveScanner RAR support in src/RomPilot.Tests/Unit/Archives/ArchiveScannerRarTests.cs"
-Task: "Unit test for ArchiveScanner nested archives in src/RomPilot.Tests/Unit/Archives/ArchiveScannerNestedTests.cs"
+**Objectif** : Regrouper versions d'un même jeu, sélectionner meilleure version selon préférences (région + format vidéo + langue)
 
-# Launch all database providers together:
-Task: "Create database provider interfaces in src/RomPilot.Core/DatabaseProviders/..."
-Task: "Create database provider implementations in src/RomPilot.Core/DatabaseProviders/..."
+**Test Indépendant** : Plusieurs versions même jeu détectées, configuré préférences EUR>USA + PAL>NTSC + FR>EN, version EUR PAL FR sélectionnée automatiquement.
 
-# Launch RAR support updates together:
-Task: "Update ArchiveScanner to support RAR format: add RAR detection in IsArchiveFile()"
-Task: "Update ArchiveScanner to support RAR format: add RAR archive opening logic"
-Task: "Update ArchiveScanner to support RAR format: add RAR extraction logic"
+### 5.1 Tests US3 (TDD)
+
+- [ ] T124 [US3] Créer VersionSelectionServiceTests dans tests/RomPilot.Core.Tests/Services/VersionSelectionServiceTests.cs
+- [ ] T125 [US3] Tests : Regrouper versions par jeu (même nom + console)
+- [ ] T126 [US3] Tests : Calculer score sélection selon préférences région
+- [ ] T127 [US3] Tests : Calculer score sélection selon préférences format vidéo (PAL/NTSC)
+- [ ] T128 [US3] Tests : Calculer score sélection selon préférences langue
+- [ ] T129 [US3] Tests : Exclure versions "bad dump"
+- [ ] T130 [US3] Tests : Sélectionner meilleure version avec critères combinés
+
+### 5.2 Service Sélection Versions
+
+- [ ] T131 [US3] Créer VersionSelectionService dans src/RomPilot.Core/Services/VersionSelectionService.cs
+- [ ] T132 [US3] Implémenter GroupGameVersionsAsync() regroupant ScannedFiles identifiés par GameName+Console
+- [ ] T133 [US3] Implémenter CalculateSelectionScore(gameEntry, preferences) avec pondération région + videoFormat + langue
+- [ ] T134 [US3] Implémenter SelectBestVersionAsync(gameId) appliquant préférences utilisateur
+- [ ] T135 [US3] Exclure automatiquement versions avec QualityFlags contenant "bad dump"
+- [ ] T136 [US3] Créer/mettre à jour entrées Games avec SelectedScannedFileId
+- [ ] T137 [US3] Créer entrées GameRomVersions liant Game à tous ScannedFiles avec IsSelected et SelectionScore
+
+### 5.3 Service Gestion Préférences
+
+- [ ] T138 [US3] Créer PreferencesService dans src/RomPilot.Core/Services/PreferencesService.cs
+- [ ] T139 [US3] Tests PreferencesService dans tests/RomPilot.Core.Tests/Services/PreferencesServiceTests.cs
+- [ ] T140 [US3] Implémenter GetRegionPriorityAsync() retournant ordre (ex: ["EUR", "USA", "JAP"])
+- [ ] T141 [US3] Implémenter SetRegionPriorityAsync(order) stockant dans UserPreferences
+- [ ] T142 [US3] Implémenter GetVideoFormatPriorityAsync() retournant ordre (ex: ["PAL", "NTSC", "NTSC-J"])
+- [ ] T143 [US3] Implémenter SetVideoFormatPriorityAsync(order) stockant dans UserPreferences
+- [ ] T144 [US3] Implémenter GetLanguagePriorityAsync() retournant ordre (ex: ["FR", "EN"])
+- [ ] T145 [US3] Implémenter SetLanguagePriorityAsync(order) stockant dans UserPreferences
+
+### 5.4 UI Préférences
+
+- [ ] T146 [US3] Créer PreferencesViewModel dans src/RomPilot.UI/ViewModels/PreferencesViewModel.cs
+- [ ] T147 [US3] Créer PreferencesView.axaml dans src/RomPilot.UI/Views/PreferencesView.axaml
+- [ ] T148 [US3] Implémenter UI : Liste ordonnée réorganisable pour préférences région
+- [ ] T149 [US3] Implémenter UI : Liste ordonnée réorganisable pour préférences format vidéo
+- [ ] T150 [US3] Implémenter UI : Liste ordonnée réorganisable pour préférences langue
+- [ ] T151 [US3] Implémenter UI : Checkbox "Exclure bad dumps"
+- [ ] T152 [US3] Implémenter UI : Bouton "Appliquer" recalculant sélections après changement préférences
+
+### 5.5 Tests Intégration US3
+
+- [ ] T153 [US3] Test intégration : Scanner jeu avec 3 versions (USA, EUR, JAP), vérifier regroupement sous même Game
+- [ ] T154 [US3] Test intégration : Configurer préférences EUR>USA, vérifier sélection EUR
+- [ ] T155 [US3] Test intégration : Changer préférences USA>EUR, réappliquer, vérifier nouvelle sélection USA
+- [ ] T156 [US3] Test intégration : Jeu avec versions PAL et NTSC, préférence PAL>NTSC, vérifier sélection PAL
+
+---
+
+## Phase 6 : User Story 4 - Exporter (P3)
+
+**Objectif** : Exporter jeux vers Recalbox et Romm (local ou distant SSH/SFTP) avec conventions spécifiques
+
+**Test Indépendant** : Créer config export local et distant, exporter jeux, vérifier structure dossiers et fichiers sur destination.
+
+### 6.1 Tests US4 (TDD)
+
+- [ ] T157 [US4] Créer ExportServiceTests dans tests/RomPilot.Core.Tests/Services/ExportServiceTests.cs
+- [ ] T158 [US4] Tests : Export local vers répertoire avec structure Recalbox
+- [ ] T159 [US4] Tests : Export local vers répertoire avec structure Romm
+- [ ] T160 [US4] Tests : Export distant SSH/SFTP avec mock client
+- [ ] T161 [US4] Tests : Progress reporting pendant export
+- [ ] T162 [US4] Tests : Gestion conflits (overwrite, skip)
+- [ ] T163 [US4] Tests : Conversion formats (ZIP / uncompressed) selon plateforme
+
+### 6.2 Service Export Local
+
+- [ ] T164 [US4] Créer RecalboxExporter dans src/RomPilot.Infrastructure/Export/RecalboxExporter.cs
+- [ ] T165 [US4] Implémenter ExportAsync() pour export local Recalbox avec conventions dossiers
+- [ ] T166 [US4] Implémenter logique conversion ZIP/uncompressed selon console
+- [ ] T167 [US4] Créer RommExporter dans src/RomPilot.Infrastructure/Export/RommExporter.cs
+- [ ] T168 [US4] Implémenter ExportAsync() pour export local Romm avec conventions dossiers
+- [ ] T169 [US4] Gérer conflits selon stratégie (overwrite/skip/ask)
+- [ ] T170 [US4] Progress reporting (IProgress<T>) avec nombre fichiers copiés
+
+### 6.3 Service Export Distant SSH/SFTP
+
+- [ ] T171 [US4] Créer SftpExporter dans src/RomPilot.Infrastructure/Export/SftpExporter.cs
+- [ ] T172 [US4] Tests SftpExporter dans tests/RomPilot.Infrastructure.Tests/Export/SftpExporterTests.cs
+- [ ] T173 [US4] Implémenter ConnectAsync(config) avec SSH.NET SftpClient
+- [ ] T174 [US4] Implémenter TestConnectionAsync(config) pour vérification connexion
+- [ ] T175 [US4] Implémenter UploadFileAsync(localPath, remotePath) avec progress
+- [ ] T176 [US4] Implémenter ExportAsync() utilisant SftpClient pour transfert batch
+- [ ] T177 [US4] Calculer vitesse transfert et temps restant estimé
+- [ ] T178 [US4] Gérer erreurs réseau et retry logic
+
+### 6.4 UI Export et Configuration
+
+- [ ] T179 [US4] Créer ExportConfigViewModel dans src/RomPilot.UI/ViewModels/ExportConfigViewModel.cs
+- [ ] T180 [US4] Créer ExportConfigView.axaml dans src/RomPilot.UI/Views/ExportConfigView.axaml
+- [ ] T181 [US4] Implémenter UI : Liste configurations export avec nom, plateforme, type
+- [ ] T182 [US4] Implémenter UI : Dialog création configuration (nom, plateforme, local/distant)
+- [ ] T183 [US4] Implémenter UI : Champs config local (chemin destination)
+- [ ] T184 [US4] Implémenter UI : Champs config SFTP (host, port, user, auth, key/password, remote dir)
+- [ ] T185 [US4] Implémenter UI : Bouton "Tester connexion" pour configs SFTP
+- [ ] T186 [US4] Créer ExportViewModel dans src/RomPilot.UI/ViewModels/ExportViewModel.cs
+- [ ] T187 [US4] Créer ExportView.axaml dans src/RomPilot.UI/Views/ExportView.axaml
+- [ ] T188 [US4] Implémenter UI : Sélection configuration export
+- [ ] T189 [US4] Implémenter UI : Sélection consoles et jeux à exporter
+- [ ] T190 [US4] Implémenter UI : Barre progression avec vitesse transfert (si distant)
+- [ ] T191 [US4] Implémenter UI : Affichage erreurs export avec détails
+
+### 6.5 Tests Intégration US4
+
+- [ ] T192 [US4] Test intégration : Export local Recalbox, vérifier structure dossiers /nes/, /snes/
+- [ ] T193 [US4] Test intégration : Export local Romm, vérifier structure spécifique Romm
+- [ ] T194 [US4] Test intégration : Créer config SFTP mock, exporter jeux, vérifier appels UploadFile
+- [ ] T195 [US4] Test intégration : Export avec conflit existant, stratégie overwrite, vérifier remplacement
+
+---
+
+## Phase 7 : User Story 6 - Interface Bibliothèque (P3) 🆕
+
+**Objectif** : Visualiser collection avec vues grille/liste, filtres avancés, recherche temps réel, détails jeux
+
+**Test Indépendant** : Ouvrir bibliothèque, basculer vue grille/liste, filtrer par console, rechercher jeu, voir détails avec versions.
+
+**Note** : Peut être développée en parallèle de US4.
+
+### 7.1 Tests US6 (TDD)
+
+- [ ] T196 [US6] Créer LibraryServiceTests dans tests/RomPilot.Core.Tests/Services/LibraryServiceTests.cs
+- [ ] T197 [US6] Tests : Récupérer jeux avec pagination
+- [ ] T198 [US6] Tests : Filtrer jeux par console
+- [ ] T199 [US6] Tests : Filtrer jeux par région, langue, format vidéo
+- [ ] T200 [US6] Tests : Recherche jeux par nom (temps réel)
+- [ ] T201 [US6] Tests : Tri jeux par nom, date, rating, console
+- [ ] T202 [US6] Tests : Récupérer versions disponibles pour un jeu
+
+### 7.2 Service Bibliothèque
+
+- [ ] T203 [US6] Créer LibraryService dans src/RomPilot.Core/Services/LibraryService.cs
+- [ ] T204 [US6] Implémenter GetGamesAsync(filters, sorting, pagination) avec requête optimisée
+- [ ] T205 [US6] Implémenter SearchGamesAsync(query) avec recherche texte plein
+- [ ] T206 [US6] Implémenter GetGameDetailsAsync(gameId) avec métadonnées complètes
+- [ ] T207 [US6] Implémenter GetGameVersionsAsync(gameId) retournant tous ScannedFiles du jeu
+- [ ] T208 [US6] Implémenter SetSelectedVersionAsync(gameId, scannedFileId)
+- [ ] T209 [US6] Optimiser requêtes avec index, projection, Include explicites
+
+### 7.3 UI Vue Grille
+
+- [ ] T210 [US6] Créer LibraryViewModel dans src/RomPilot.UI/ViewModels/LibraryViewModel.cs
+- [ ] T211 [US6] Créer LibraryView.axaml dans src/RomPilot.UI/Views/LibraryView.axaml
+- [ ] T212 [US6] Créer GameCardControl.axaml dans src/RomPilot.UI/Controls/GameCardControl.axaml (carte jeu avec cover)
+- [ ] T213 [US6] Implémenter UI : Vue grille avec WrapPanel de GameCardControl
+- [ ] T214 [US6] Implémenter UI : Chargement lazy des images cover (virtualisation)
+- [ ] T215 [US6] Implémenter UI : Indicateur visuel métadonnées incomplètes
+- [ ] T216 [US6] Implémenter UI : Clic sur carte ouvre détails jeu
+
+### 7.4 UI Vue Liste
+
+- [ ] T217 [US6] Créer GameListItemControl.axaml dans src/RomPilot.UI/Controls/GameListItemControl.axaml
+- [ ] T218 [US6] Implémenter UI : Vue liste DataGrid avec colonnes (Nom, Console, Région, Format, Statut, Taille)
+- [ ] T219 [US6] Implémenter UI : Tri colonnes cliquable
+- [ ] T220 [US6] Implémenter UI : Double-clic ligne ouvre détails jeu
+
+### 7.5 UI Filtres et Recherche
+
+- [ ] T221 [US6] Implémenter UI : Bouton toggle vue grille/liste
+- [ ] T222 [US6] Implémenter UI : Barre recherche avec debounce (recherche temps réel < 100ms)
+- [ ] T223 [US6] Implémenter UI : Filtres dropdown (Console, Région, Langue, Format Vidéo)
+- [ ] T224 [US6] Implémenter UI : Application filtres combinés (plusieurs actifs simultanément)
+- [ ] T225 [US6] Implémenter UI : Compteur jeux affichés / total
+
+### 7.6 UI Détails Jeu
+
+- [ ] T226 [US6] Créer GameDetailsViewModel dans src/RomPilot.UI/ViewModels/GameDetailsViewModel.cs
+- [ ] T227 [US6] Créer GameDetailsView.axaml dans src/RomPilot.UI/Views/GameDetailsView.axaml
+- [ ] T228 [US6] Implémenter UI : Affichage métadonnées complètes (description, images, screenshots, vidéo)
+- [ ] T229 [US6] Implémenter UI : Liste versions disponibles avec région, format, langue
+- [ ] T230 [US6] Implémenter UI : Highlight version sélectionnée
+- [ ] T231 [US6] Implémenter UI : Bouton changer version sélectionnée
+- [ ] T232 [US6] Implémenter UI : Lecteur vidéo in-app pour preview
+
+### 7.7 Tests Intégration US6
+
+- [ ] T233 [US6] Test intégration : Ouvrir bibliothèque, voir jeux en grille avec covers
+- [ ] T234 [US6] Test intégration : Basculer vue liste, vérifier colonnes et tri
+- [ ] T235 [US6] Test intégration : Filtrer console "nes", vérifier uniquement jeux NES affichés
+- [ ] T236 [US6] Test intégration : Rechercher "mario", résultats < 100ms
+- [ ] T237 [US6] Test intégration : Ouvrir détails jeu, voir 3 versions, changer sélection
+
+---
+
+## Phase 8 : User Story 5 - Synchroniser Métadonnées (P4)
+
+**Objectif** : Synchroniser métadonnées bidirectionnelle avec Recalbox (gamelist.xml) et Romm (API REST)
+
+**Test Indépendant** : Importer métadonnées depuis Recalbox, modifier favori dans app, exporter vers Recalbox, vérifier gamelist.xml mis à jour.
+
+### 8.1 Tests US5 (TDD)
+
+- [ ] T238 [US5] Créer RecalboxSyncProviderTests dans tests/RomPilot.Infrastructure.Tests/Sync/RecalboxSyncProviderTests.cs
+- [ ] T239 [US5] Tests : Parser gamelist.xml avec données complètes
+- [ ] T240 [US5] Tests : Importer métadonnées depuis gamelist.xml vers Metadata
+- [ ] T241 [US5] Tests : Importer données utilisateur depuis gamelist.xml vers UserData
+- [ ] T242 [US5] Tests : Exporter métadonnées vers gamelist.xml
+- [ ] T243 [US5] Tests : Résolution conflits (dernière modif gagne)
+
+### 8.2 Provider Sync Recalbox
+
+- [ ] T244 [US5] Créer RecalboxSyncProvider dans src/RomPilot.Infrastructure/Sync/RecalboxSyncProvider.cs
+- [ ] T245 [US5] Implémenter ParseGamelistXml(xmlPath) avec System.Xml.Linq (voir contracts/recalbox-gamelist.md)
+- [ ] T246 [US5] Implémenter ImportFromRecalboxAsync(consolePath) lisant gamelist.xml
+- [ ] T247 [US5] Pour chaque entrée <game> : trouver ScannedFile via path, créer/update Metadata
+- [ ] T248 [US5] Importer données utilisateur (playcount, lastplayed, favorite) vers UserData
+- [ ] T249 [US5] Implémenter ExportToRecalboxAsync(consolePath, games) générant gamelist.xml
+- [ ] T250 [US5] Implémenter résolution conflits via comparaison timestamps LastModifiedAt
+
+### 8.3 Provider Sync Romm API
+
+- [ ] T251 [US5] Créer RommSyncProvider dans src/RomPilot.Infrastructure/Sync/RommSyncProvider.cs
+- [ ] T252 [US5] Tests RommSyncProvider dans tests/RomPilot.Infrastructure.Tests/Sync/RommSyncProviderTests.cs (avec mock HttpClient)
+- [ ] T253 [US5] Implémenter GetMetadataAsync(gameId) appelant API Romm (voir contracts/romm-api.md)
+- [ ] T254 [US5] Implémenter ImportFromRommAsync() récupérant métadonnées via API
+- [ ] T255 [US5] Implémenter UpdateMetadataAsync(gameId, metadata) envoyant métadonnées à Romm
+- [ ] T256 [US5] Implémenter gestion authentification API (token stocké dans UserPreferences chiffré)
+
+### 8.4 Service Synchronisation
+
+- [ ] T257 [US5] Créer SyncService dans src/RomPilot.Core/Services/SyncService.cs
+- [ ] T258 [US5] Tests SyncService dans tests/RomPilot.Core.Tests/Services/SyncServiceTests.cs
+- [ ] T259 [US5] Implémenter SyncFromRecalboxAsync(direction) orchestrant import/export
+- [ ] T260 [US5] Implémenter SyncFromRommAsync(direction) orchestrant appels API
+- [ ] T261 [US5] Implémenter gestion conflits selon stratégie utilisateur
+- [ ] T262 [US5] Implémenter sync bidirectionnelle (import puis export)
+
+### 8.5 UI Synchronisation
+
+- [ ] T263 [US5] Créer SyncViewModel dans src/RomPilot.UI/ViewModels/SyncViewModel.cs
+- [ ] T264 [US5] Créer SyncView.axaml dans src/RomPilot.UI/Views/SyncView.axaml
+- [ ] T265 [US5] Implémenter UI : Sélection plateforme (Recalbox / Romm)
+- [ ] T266 [US5] Implémenter UI : Sélection direction (Import / Export / Bidirectionnelle)
+- [ ] T267 [US5] Implémenter UI : Checkboxes types données (Métadonnées scrap / Données utilisateur)
+- [ ] T268 [US5] Implémenter UI : Configuration chemins Recalbox ou URL/API key Romm
+- [ ] T269 [US5] Implémenter UI : Bouton lancer sync avec barre progression
+- [ ] T270 [US5] Implémenter UI : Dialog résolution conflits si détectés
+- [ ] T271 [US5] Implémenter UI : Résumé sync (X jeux synchronisés, Y conflits résolus)
+
+### 8.6 Tests Intégration US5
+
+- [ ] T272 [US5] Test intégration : Importer métadonnées depuis gamelist.xml exemple, vérifier données en BD
+- [ ] T273 [US5] Test intégration : Modifier favorite dans app, exporter vers Recalbox, parser XML, vérifier <favorite>true</favorite>
+- [ ] T274 [US5] Test intégration : Sync bidirectionnelle avec conflit, stratégie dernière modif, vérifier données finales
+- [ ] T275 [US5] Test intégration : Importer depuis Romm mock API, vérifier métadonnées créées
+
+---
+
+## Phase 9 : Polish et Cross-Cutting Concerns
+
+**Objectif** : Finaliser application avec gestion erreurs, logging, documentation, packaging
+
+### 9.1 Gestion Erreurs et Logging
+
+- [ ] T276 [P] Configurer Serilog pour logging structuré dans src/RomPilot.UI/App.axaml.cs
+- [ ] T277 [P] Implémenter GlobalExceptionHandler interceptant exceptions non gérées
+- [ ] T278 [P] Ajouter logging dans services critiques (ScanService, ExportService, SyncService)
+- [ ] T279 [P] Créer dialog erreur générique affichant messages utilisateur-friendly
+- [ ] T280 [P] Implémenter bouton "Voir logs" ouvrant fichier log
+
+### 9.2 Performance et Optimisation
+
+- [ ] T281 [P] Ajouter index manquants dans BD si détectés par profiling
+- [ ] T282 [P] Implémenter cache pour checksums calculés (éviter recalcul)
+- [ ] T283 [P] Optimiser requêtes EF Core avec AsNoTracking() où approprié
+- [ ] T284 [P] Implémenter virtualisation UI pour listes longues (bibliothèque)
+- [ ] T285 [P] Profiler performance scan 1000+ fichiers, optimiser si nécessaire
+
+### 9.3 Documentation
+
+- [ ] T286 [P] Mettre à jour README.md avec installation, utilisation, screenshots
+- [ ] T287 [P] Créer ARCHITECTURE.md documentant structure projet et patterns
+- [ ] T288 [P] Créer CONTRIBUTING.md avec guidelines contributions
+- [ ] T289 [P] Générer documentation XML APIs publiques
+- [ ] T290 [P] Créer guide utilisateur (user manual) basé sur quickstart.md
+
+### 9.4 Packaging et Distribution
+
+- [ ] T291 [P] Créer script build Linux AppImage
+- [ ] T292 [P] Créer script build Windows MSI avec Wix Toolset
+- [ ] T293 [P] Créer script build macOS DMG
+- [ ] T294 [P] Tester packages sur chaque plateforme (Windows 10+, Ubuntu 22+, macOS 11+)
+- [ ] T295 [P] Créer workflow GitHub Actions pour releases automatiques
+
+### 9.5 Tests Finaux
+
+- [ ] T296 Test couverture globale, vérifier 80%+ atteint (SC-014)
+- [ ] T297 Tests end-to-end workflow complet : scan → filtrage → export → sync
+- [ ] T298 Tests performance : scan 1000 fichiers < 5 minutes (SC-001)
+- [ ] T299 Tests performance : export 500 jeux < 2 minutes (SC-005)
+- [ ] T300 Tests performance : recherche bibliothèque 10K jeux < 100ms (SC-013)
+
+---
+
+## Dépendances entre User Stories
+
+```
+Phase 1 (Setup) + Phase 2 (Fondations)
+    ↓
+    ├─→ Phase 3 (US2: Bases de données) ──┐
+    │                                      ↓
+    └─→ Phase 4 (US1: Scan) ←─────────────┘
+             ↓
+        Phase 5 (US3: Filtrage)
+             ↓
+        ┌────┴────┐
+        ↓         ↓
+    Phase 6    Phase 7
+   (US4: Export) (US6: Bibliothèque)
+        ↓         ↓
+        └────┬────┘
+             ↓
+        Phase 8 (US5: Sync)
+             ↓
+        Phase 9 (Polish)
 ```
 
----
+**Ordre de Complétion Requis** :
+1. Setup + Fondations (Phase 1-2) : Bloquant pour tout
+2. US2 doit être complété avant US1 (US1 nécessite bases de données)
+3. US1 doit être complété avant US3 (US3 utilise fichiers scannés)
+4. US3 doit être complété avant US4 et US6 (sélection versions requise)
+5. US4 et US6 peuvent être en parallèle
+6. US5 après US4 (sync utilise métadonnées exportées)
 
-## Implementation Strategy
-
-### MVP First (User Story 1 Only)
-
-1. Complete Phase 1: Setup
-2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
-3. Complete Phase 3: User Story 1 (including NEW tasks T072-T086 for spec updates)
-4. **STOP and VALIDATE**: Test User Story 1 independently
-5. Deploy/demo if ready
-
-### Incremental Delivery
-
-1. Complete Setup + Foundational → Foundation ready
-2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
-3. Add User Story 2 → Test independently → Deploy/Demo
-4. Add User Story 3 → Test independently → Deploy/Demo
-5. Add User Story 4 → Test independently → Deploy/Demo
-6. Each story adds value without breaking previous stories
-
-### Parallel Team Strategy
-
-With multiple developers:
-
-1. Team completes Setup + Foundational together
-2. Once Foundational is done:
-   - Developer A: User Story 1 (including RAR support and detailed feedback)
-   - Developer B: User Story 2 (after US1 data available)
-   - Developer C: User Story 3 (after US2 filtering available)
-   - Developer D: User Story 4 (after US3 export available)
-3. Stories complete and integrate independently
+**US Indépendantes (Parallélisables)** :
+- US4 (Export) et US6 (Bibliothèque) après US3
 
 ---
 
-## Notes
+## Exemples Exécution Parallèle
 
-- [P] tasks = different files, no dependencies
-- [Story] label maps task to specific user story for traceability
-- Each user story should be independently completable and testable
-- Verify tests fail before implementing (TDD)
-- Commit after each task or logical group
-- Stop at any checkpoint to validate story independently
-- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
-- **NEW tasks T072-T086** address spec clarifications: RAR support, detailed progress feedback, recursive scanning verification
-- Total tasks: 144 (Setup: 9, Foundational: 35, US1: 35 [25 existing + 10 new], US2: 13, US3: 17, US4: 18, Polish: 10)
+### Par Phase
+
+**Phase 3 (US2)** - Opportunités parallèles :
+- T061-T068 (Service) peuvent commencer dès T054-T060 (Tests) écrits
+- T069-T077 (UI) peuvent commencer en parallèle de T061-T068 si interfaces définies
+
+**Phase 4 (US1)** - Opportunités parallèles :
+- T081-T087 (FilterService) et T094-T103 (ScanService adapté) peuvent être en parallèle si interfaces définies
+- T088-T093 (UI Filtres) et T111-T118 (UI Scan) peuvent être en parallèle
+
+**Phase 6 (US4) + Phase 7 (US6)** - Parallèles complets :
+- Toute la Phase 6 peut être développée en parallèle de Phase 7
+- T164-T178 (Services Export) indépendants de T203-T209 (Service Bibliothèque)
+- T179-T191 (UI Export) indépendants de T210-T232 (UI Bibliothèque)
+
+### Par Développeur
+
+**Développeur 1** :
+- Phase 3 : US2 Services + UI
+- Phase 4 : US1 FilterService + UI Filtres
+- Phase 6 : US4 Export Services + UI
+
+**Développeur 2** :
+- Phase 3 : US2 Tests
+- Phase 4 : US1 ScanService + IdentificationService
+- Phase 7 : US6 LibraryService + UI complète
+
+---
+
+## Résumé Statistiques
+
+- **Total Tâches** : 300
+- **Setup** : 19 tâches
+- **Fondations** : 34 tâches
+- **US2** (P1.5) : 27 tâches 🆕
+- **US1** (P1) : 43 tâches ⚠️ (adaptation code existant)
+- **US3** (P2) : 32 tâches
+- **US4** (P3) : 39 tâches
+- **US6** (P3) : 42 tâches 🆕
+- **US5** (P4) : 38 tâches
+- **Polish** : 26 tâches
+
+**Tâches Parallélisables** : ~85 tâches marquées [P]
+
+**MVP Recommandé** : Phase 1-4 (Setup + Fondations + US2 + US1) = ~123 tâches
+
+**Tests Unitaires** : ~45 tâches de tests (15% du total)
+**Tests Intégration** : ~25 tâches de tests (8% du total)
+**Total Tests** : ~70 tâches (23% du total) - Objectif 80% couverture
+
+**Estimation Temps** :
+- MVP (Setup + US2 + US1) : 4-6 semaines
+- Version Complète : 10-12 semaines
+- (Estimation 1 développeur temps plein, 2-3 jours par tâche complexe)
+
+---
+
+## Notes Implémentation
+
+### Adaptation Code Existant US1
+
+Si code partiel existe pour US1 :
+1. **Renommer** `RomFile` → `ScannedFile` dans tout le code (T021, migration BD)
+2. **Ajouter** FilterService (T081-T087) - nouveau composant
+3. **Modifier** ScanService (T094-T103) pour scan sans présupposition
+4. **Mettre à jour** UI Scan (T111-T118) avec choix scan rapide/complet
+
+### Priorités selon Itérations
+
+**Itération 1 (MVP)** :
+- Phase 1-2 : Setup + Fondations
+- Phase 3 : US2 complète
+- Phase 4 : US1 complète et adaptée
+
+**Itération 2** :
+- Phase 5 : US3 complète
+
+**Itération 3** :
+- Phase 6 + 7 : US4 et US6 en parallèle
+
+**Itération 4** :
+- Phase 8 : US5 complète
+- Phase 9 : Polish
+
+### TDD Workflow
+
+Pour chaque service :
+1. Écrire tests d'abord (tâches marquées "Tests")
+2. Vérifier que tests échouent (red)
+3. Implémenter service (green)
+4. Refactoriser si nécessaire (refactor)
+5. Vérifier couverture ≥ 80%
+
+---
+
+## Prochaines Étapes
+
+1. ✅ **Accepter tasks.md** généré
+2. 🚀 **Commencer Phase 1** : Setup (T001-T019)
+3. 📊 **Tracker progrès** : Marquer tâches complétées avec `[x]`
+4. 🔄 **Itérations** : Compléter phase par phase selon dépendances
+5. ✅ **Tests** : Exécuter tests après chaque phase
+6. 📝 **Documentation** : Mettre à jour au fur et à mesure
+
+**Commande pour démarrer l'implémentation** : `/speckit.implement` (si disponible)
