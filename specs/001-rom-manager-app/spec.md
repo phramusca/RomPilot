@@ -41,34 +41,43 @@ Je ne veux pas nécessairement du java. C'est pour tourner sur PC (linux, window
 - Q: Comment les exports vers Recalbox et Romm doivent-ils être effectués (local vs distant) ? → A: Support pour export local (dossier) et distant via SSH/SFTP avec configuration dans l'interface
 - Q: Comment gérer les préférences de région et format vidéo (PAL/NTSC) ? → A: Préférences séparées pour région ET format vidéo (PAL/NTSC/NTSC-J) avec ordre de priorité configurable
 - Q: Quel type d'interface pour la Partie Bibliothèque (affichage des jeux avec métadonnées) ? → A: Interface dédiée "Bibliothèque" avec vue grille/liste, filtres avancés, et aperçu des métadonnées
+- Q: Comment le scan doit-il déterminer quels fichiers traiter sans présupposer ce qui est une ROM ? → A: Scanner tous les fichiers avec exclusions par défaut de types évidents (images, textes, exécutables), et permettre à l'utilisateur de configurer des filtres d'exclusion personnalisés (extensions, tailles)
+- Q: Quelle liste d'extensions doit être exclue par défaut lors du scan ? → A: .jpg .jpeg .png .gif .bmp .txt .nfo .diz .exe .dll .so .doc .pdf .html .xml (liste configurable par l'utilisateur)
+- Q: Comment persister les données scannées (checksums, identifications, métadonnées, préférences) ? → A: Base de données SQLite locale (fichier .db unique avec requêtes SQL)
+- Q: Quelle exigence de couverture de tests pour ce projet (TDD mentionné dans specs.md) ? → A: 80%+ couverture tests unitaires + tests d'intégration pour user stories critiques
+- Q: Quelle approche de revue de code et standards pour garantir les bonnes pratiques ? → A: Linter/formatter automatique uniquement (sans revue humaine obligatoire)
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Scanner et identifier les ROMs (Priority: P1)
 
-Un utilisateur veut importer sa collection de ROMs depuis un ou plusieurs répertoires locaux. L'application doit automatiquement scanner tous les fichiers de manière récursive : (1) parcourir récursivement le système de fichiers (tous les sous-dossiers du répertoire choisi), (2) parcourir récursivement le contenu des archives (ZIP, 7Z, RAR), y compris les archives imbriquées (archives contenant d'autres archives). Pour chaque fichier ROM trouvé, l'application doit identifier la console correspondante et le jeu, en utilisant les bases de données de référence (NoIntro, Redump, GoodSet).
+Un utilisateur veut importer sa collection de ROMs depuis un ou plusieurs répertoires locaux. L'application doit automatiquement scanner tous les fichiers de manière récursive : (1) parcourir récursivement le système de fichiers (tous les sous-dossiers du répertoire choisi), (2) parcourir récursivement le contenu des archives (ZIP, 7Z, RAR), y compris les archives imbriquées (archives contenant d'autres archives). Le scan ne doit pas présupposer quels fichiers sont des ROMs (pas de filtrage par extension) : tous les fichiers sont candidats, sauf ceux exclus par des filtres (exclusions par défaut de types évidents comme images .jpg/.png, textes .txt/.nfo, exécutables .exe/.dll, et filtres personnalisables par l'utilisateur). Pour chaque fichier scanné, l'application calcule les checksums et tente d'identifier la console et le jeu correspondants en les comparant avec les bases de données de référence (NoIntro, Redump, GoodSet). Les fichiers qui correspondent sont identifiés comme ROMs, les autres restent non identifiés.
 
 **Why this priority**: Cette fonctionnalité est la fondation de toute l'application. Sans capacité à scanner et identifier les ROMs, aucune autre fonctionnalité n'est possible. C'est le MVP minimum qui apporte de la valeur immédiate en permettant à l'utilisateur de voir sa collection organisée.
 
-**Independent Test**: Peut être testé indépendamment en fournissant un répertoire de test contenant des ROMs dans différents formats (fichiers directs, ZIP, 7Z, RAR, archives imbriquées). L'utilisateur peut vérifier que tous les ROMs sont détectés, que les consoles sont correctement identifiées, et que les jeux sont reconnus via les bases de données. L'utilisateur peut également vérifier que la liste des fichiers traités et échoués est visible avec les raisons d'échec pour chaque fichier non traité.
+**Independent Test**: Peut être testé indépendamment en fournissant un répertoire de test contenant des fichiers variés (ROMs dans différents formats, fichiers directs, ZIP, 7Z, RAR, archives imbriquées, et aussi des fichiers non-ROM). L'utilisateur peut vérifier que tous les fichiers candidats sont scannés (hors exclusions), que les checksums sont calculés, que les ROMs correspondant aux bases de données sont correctement identifiés avec leur console et jeu, et que les fichiers non identifiés restent listés séparément. L'utilisateur peut également vérifier que la liste des fichiers traités et échoués est visible avec les raisons d'échec pour chaque fichier non traité.
 
 **Acceptance Scenarios**:
 
-1. **Given** un répertoire contenant des fichiers ROM directement accessibles (y compris dans des sous-dossiers), **When** l'utilisateur lance un scan, **Then** tous les fichiers ROM sont détectés récursivement dans tous les sous-dossiers et identifiés avec leur console et jeu correspondants
-2. **Given** un répertoire contenant des archives ZIP avec des ROMs à l'intérieur, **When** l'utilisateur lance un scan, **Then** les ROMs dans les archives ZIP sont détectés et identifiés
-3. **Given** un répertoire contenant des archives 7Z avec des ROMs à l'intérieur, **When** l'utilisateur lance un scan, **Then** les ROMs dans les archives 7Z sont détectés et identifiés
-4. **Given** un répertoire contenant des archives RAR avec des ROMs à l'intérieur, **When** l'utilisateur lance un scan, **Then** les ROMs dans les archives RAR sont détectés et identifiés
-5. **Given** un répertoire contenant des archives (ZIP, 7Z, ou RAR) qui contiennent elles-mêmes des archives avec des ROMs, **When** l'utilisateur lance un scan, **Then** les ROMs dans les archives imbriquées sont détectés récursivement
-6. **Given** un répertoire mixte contenant des ROMs de différentes consoles (NES, SNES, Game Boy), **When** l'utilisateur lance un scan, **Then** chaque ROM est correctement associé à sa console d'origine sans pré-classement manuel requis
-7. **Given** un ROM qui correspond à une entrée dans une base de données (NoIntro, Redump, ou GoodSet), **When** l'utilisateur lance un scan, **Then** le ROM est identifié avec le nom du jeu et les métadonnées de la base de données en utilisant les checksums calculés pour faire la correspondance
-8. **Given** un répertoire contenant des ROMs, **When** l'utilisateur lance un scan, **Then** tous les types de checksums/hash requis (MD5, SHA1, SHA256, CRC32, etc.) sont calculés pour chaque ROM et utilisés pour identifier les jeux et versions via correspondance avec les bases de données
-9. **Given** un jeu qui peut être identifié dans plusieurs bases de données (par exemple, présent à la fois dans Redump et GoodSet), **When** le système identifie le jeu, **Then** le jeu est associé à toutes les sources de bases de données pertinentes, et la source à utiliser est sélectionnée selon les préférences utilisateur (région, langue, etc.)
-10. **Given** un scan en cours avec des fichiers traités et certains fichiers échoués, **When** l'utilisateur consulte l'interface de scan, **Then** l'utilisateur voit une liste détaillée de tous les fichiers traités (avec statut : succès, console identifiée, jeu identifié) et tous les fichiers échoués avec la raison d'échec explicite (ex: "Console non détectée", "Archive corrompue", "Fichier illisible", "Erreur de checksum")
-11. **Given** un répertoire déjà scanné précédemment, **When** l'utilisateur lance un nouveau scan, **Then** il peut choisir entre un "scan rapide" (détection basée sur timestamp et taille, recalcul des checksums uniquement pour fichiers modifiés) ou un "scan complet" (recalcul de tous les checksums)
-12. **Given** un scan rapide sur un répertoire déjà scanné, **When** un fichier a le même timestamp et la même taille, **Then** le système réutilise les checksums et identifications précédentes sans recalcul
-13. **Given** un scan rapide sur un répertoire déjà scanné, **When** un fichier a un timestamp ou une taille différente, **Then** le système recalcule les checksums et réidentifie le ROM
-14. **Given** un scan sur un répertoire déjà scanné, **When** des fichiers ont été supprimés depuis le dernier scan, **Then** ces fichiers sont retirés de la base de données de l'application
-15. **Given** un scan sur un répertoire déjà scanné, **When** de nouveaux fichiers ont été ajoutés depuis le dernier scan, **Then** ces nouveaux fichiers sont scannés et ajoutés à la base de données
+1. **Given** un répertoire contenant divers fichiers (y compris dans des sous-dossiers), **When** l'utilisateur lance un scan, **Then** tous les fichiers sont scannés récursivement (hors exclusions par défaut), les checksums sont calculés, et les fichiers correspondant aux bases de données sont identifiés comme ROMs avec leur console et jeu correspondants
+2. **Given** un répertoire contenant des fichiers d'exclusion par défaut (.jpg, .jpeg, .png, .gif, .bmp, .txt, .nfo, .diz, .exe, .dll, .so, .doc, .pdf, .html, .xml), **When** l'utilisateur lance un scan, **Then** ces fichiers sont automatiquement exclus du scan et n'apparaissent pas dans les résultats
+3. **Given** un utilisateur consulte la liste d'exclusions par défaut, **When** il accède aux paramètres de scan, **Then** il voit la liste complète des extensions exclues par défaut et peut ajouter ou retirer des extensions de cette liste
+4. **Given** un utilisateur configure des filtres d'exclusion personnalisés (ex: exclure .mp3, .avi, ou fichiers > 2GB), **When** il lance un scan, **Then** les fichiers correspondant aux filtres personnalisés sont exclus en plus des exclusions par défaut (ou de la liste modifiée)
+5. **Given** un répertoire contenant des archives ZIP avec des fichiers à l'intérieur, **When** l'utilisateur lance un scan, **Then** le contenu des archives ZIP est extrait et scanné, et les fichiers correspondant aux bases de données sont identifiés comme ROMs
+6. **Given** un répertoire contenant des archives 7Z avec des fichiers à l'intérieur, **When** l'utilisateur lance un scan, **Then** le contenu des archives 7Z est extrait et scanné, et les fichiers correspondant aux bases de données sont identifiés comme ROMs
+7. **Given** un répertoire contenant des archives RAR avec des fichiers à l'intérieur, **When** l'utilisateur lance un scan, **Then** le contenu des archives RAR est extrait et scanné, et les fichiers correspondant aux bases de données sont identifiés comme ROMs
+8. **Given** un répertoire contenant des archives (ZIP, 7Z, ou RAR) qui contiennent elles-mêmes des archives avec des fichiers, **When** l'utilisateur lance un scan, **Then** les fichiers dans les archives imbriquées sont extraits et scannés récursivement, et ceux correspondant aux bases de données sont identifiés comme ROMs
+9. **Given** un répertoire mixte contenant des fichiers de différentes consoles potentielles (sans pré-classement), **When** l'utilisateur lance un scan, **Then** chaque fichier scanné a ses checksums calculés et est automatiquement identifié avec sa console d'origine si correspondance trouvée dans les bases de données
+10. **Given** un fichier qui correspond à une entrée dans une base de données (NoIntro, Redump, ou GoodSet), **When** l'utilisateur lance un scan, **Then** ce fichier est identifié comme ROM avec le nom du jeu et les métadonnées de la base de données en utilisant les checksums calculés pour faire la correspondance
+11. **Given** un fichier qui ne correspond à aucune entrée dans les bases de données, **When** l'utilisateur lance un scan, **Then** ce fichier apparaît dans la liste des fichiers scannés comme "non identifié" avec ses checksums calculés mais sans association à un jeu
+12. **Given** un répertoire contenant des fichiers, **When** l'utilisateur lance un scan, **Then** tous les types de checksums/hash requis (MD5, SHA1, SHA256, CRC32, etc.) sont calculés pour chaque fichier scanné (hors exclusions) et utilisés pour tenter d'identifier les jeux et versions via correspondance avec les bases de données
+13. **Given** un fichier qui peut être identifié dans plusieurs bases de données (par exemple, présent à la fois dans Redump et GoodSet), **When** le système identifie le fichier, **Then** le fichier est associé à toutes les sources de bases de données pertinentes, et la source à utiliser est sélectionnée selon les préférences utilisateur (région, langue, etc.)
+14. **Given** un scan en cours avec des fichiers traités et certains fichiers échoués, **When** l'utilisateur consulte l'interface de scan, **Then** l'utilisateur voit une liste détaillée de tous les fichiers traités avec leur statut : "Identifié comme ROM" (console et jeu), "Non identifié" (checksum calculé mais pas de match), "Exclu" (filtres), ou "Échec" avec raison explicite (ex: "Archive corrompue", "Fichier illisible", "Erreur de checksum")
+15. **Given** un répertoire déjà scanné précédemment, **When** l'utilisateur lance un nouveau scan, **Then** il peut choisir entre un "scan rapide" (détection basée sur timestamp et taille, recalcul des checksums uniquement pour fichiers modifiés) ou un "scan complet" (recalcul de tous les checksums)
+16. **Given** un scan rapide sur un répertoire déjà scanné, **When** un fichier a le même timestamp et la même taille, **Then** le système réutilise les checksums et identifications précédentes sans recalcul
+17. **Given** un scan rapide sur un répertoire déjà scanné, **When** un fichier a un timestamp ou une taille différente, **Then** le système recalcule les checksums et réidentifie le fichier
+18. **Given** un scan sur un répertoire déjà scanné, **When** des fichiers ont été supprimés depuis le dernier scan, **Then** ces fichiers sont retirés de la base de données de l'application
+19. **Given** un scan sur un répertoire déjà scanné, **When** de nouveaux fichiers ont été ajoutés depuis le dernier scan, **Then** ces nouveaux fichiers sont scannés et ajoutés à la base de données
 
 ---
 
@@ -179,9 +188,10 @@ Un utilisateur veut visualiser sa collection de jeux dans une interface dédiée
 
 ### Edge Cases
 
-- Que se passe-t-il si un fichier ROM est corrompu ou illisible pendant le scan ? → Le fichier doit apparaître dans la liste des fichiers échoués avec la raison "Fichier corrompu" ou "Fichier illisible", et le scan continue avec les autres fichiers
-- Comment le système gère-t-il les ROMs qui ne correspondent à aucune entrée dans les bases de données (NoIntro, Redump, GoodSet) ?
-- Que se passe-t-il si plusieurs bases de données contiennent des informations contradictoires pour le même ROM ?
+- Que se passe-t-il si un fichier est corrompu ou illisible pendant le scan ? → Le fichier doit apparaître dans la liste des fichiers échoués avec la raison "Fichier corrompu" ou "Fichier illisible", et le scan continue avec les autres fichiers
+- Comment le système gère-t-il les fichiers qui ne correspondent à aucune entrée dans les bases de données (NoIntro, Redump, GoodSet) ? → Ces fichiers apparaissent dans la liste comme "non identifiés" avec leurs checksums calculés, permettant à l'utilisateur de les consulter (ils pourraient être des ROMs de systèmes non couverts par les bases de données, ou des fichiers non-ROM qui ont passé les filtres)
+- Que se passe-t-il si un utilisateur veut scanner un fichier qui serait normalement exclu par les filtres par défaut ? → L'utilisateur peut modifier les filtres d'exclusion avant le scan ou désactiver temporairement certains filtres pour inclure ces fichiers
+- Que se passe-t-il si plusieurs bases de données contiennent des informations contradictoires pour le même fichier identifié ?
 - Comment le système gère-t-il les archives très volumineuses ou profondément imbriquées (risque de dépassement de mémoire) pour les formats ZIP, 7Z et RAR ?
 - Que se passe-t-il si un export échoue partiellement (certains fichiers copiés, d'autres non) ?
 - Comment le système gère-t-il les caractères spéciaux dans les noms de fichiers lors de l'export vers différentes plateformes ?
@@ -194,10 +204,14 @@ Un utilisateur veut visualiser sa collection de jeux dans une interface dédiée
 
 ### Functional Requirements
 
-- **FR-001**: System MUST scan directories recursively (all subdirectories) to find ROM files, and MUST recursively process archives (ZIP, 7Z, RAR) including nested archives (archives within archives) at any depth
-- **FR-002**: System MUST calculate all checksum/hash types used by Romm, Recalbox, Redump, NoIntro, and other reference databases (MD5, SHA1, SHA256, CRC32, and any other hash types required by these platforms) for each ROM file during scanning
-- **FR-003**: System MUST use checksums/hashes to identify games and versions by matching against entries in reference databases
-- **FR-004**: System MUST automatically identify the console/platform for each detected ROM file without requiring manual pre-classification
+- **FR-001**: System MUST scan directories recursively (all subdirectories) to find all files (not presupposing which are ROMs), and MUST recursively process archives (ZIP, 7Z, RAR) including nested archives (archives within archives) at any depth
+- **FR-001.1**: System MUST exclude by default files with the following extensions: .jpg, .jpeg, .png, .gif, .bmp (images), .txt, .nfo, .diz (text files), .exe, .dll, .so (executables), .doc, .pdf, .html, .xml (documents)
+- **FR-001.2**: System MUST allow users to configure custom exclusion filters by file extension, file size range, or file name patterns before scanning
+- **FR-001.3**: System MUST allow users to view and modify the default exclusion list (add or remove extensions)
+- **FR-002**: System MUST calculate all checksum/hash types used by Romm, Recalbox, Redump, NoIntro, and other reference databases (MD5, SHA1, SHA256, CRC32, and any other hash types required by these platforms) for each scanned file (excluding filtered files) during scanning
+- **FR-003**: System MUST use checksums/hashes to identify which scanned files are ROMs by matching against entries in reference databases, and identify their games and versions
+- **FR-003.1**: System MUST list files that do not match any database entry as "unidentified files" with their calculated checksums, without assuming they are not ROMs
+- **FR-004**: System MUST automatically identify the console/platform for each file that matches a database entry, without requiring manual pre-classification
 - **FR-005**: System MUST identify games using reference databases (NoIntro, Redump, GoodSet) when available, and MUST support associating each game with multiple database sources
 - **FR-006**: System MUST select which database source to use for each game based on user-configured preferences (region, language, etc.) when multiple sources are available
 - **FR-006.1**: System MUST provide an integrated database manager interface for browsing, selecting, and downloading reference databases (NoIntro, Redump, GoodSet)
@@ -251,11 +265,17 @@ Un utilisateur veut visualiser sa collection de jeux dans une interface dédiée
 - **FR-039**: System MUST allow users to view and manage all available versions of a game when multiple versions exist
 - **FR-040**: System MUST support in-app video playback for game preview videos
 - **FR-041**: System MUST visually indicate games with incomplete or missing metadata
+- **FR-042**: System MUST persist all scanned file data, checksums, identifications, metadata, and user preferences in a local SQLite database
+- **FR-043**: System MUST use SQL queries for filtering, searching, and retrieving data from the collection
+- **FR-044**: System MUST maintain database integrity and handle concurrent access appropriately
+- **FR-045**: System MUST provide backup and restore functionality for the SQLite database
 
 ### Key Entities *(include if feature involves data)*
 
-- **ROM File**: Represents a single ROM file found during scanning. Attributes: file path, file size, last modified timestamp, archive location (if in ZIP/7Z/RAR archive), detected console/platform, game identification (if matched in database via checksum matching), version information (region, video format [PAL/NTSC/NTSC-J], language, quality flags), checksums/hashes (MD5, SHA1, SHA256, CRC32, and any other hash types required by Romm, Recalbox, Redump, NoIntro, and other reference databases - used for game/version identification), processing status (success, failed), failure reason (if processing failed: e.g., "Console not detected", "Corrupted archive", "Unreadable file", "Checksum error", "Archive extraction failed"), last scan date, scan type (quick/full)
-- **Game**: Represents a logical game that may have multiple ROM versions. Attributes: game name, console/platform, associated database sources (can be associated with multiple sources: NoIntro, Redump, GoodSet, etc.), selected database source (chosen based on user preferences when multiple sources available), grouped ROM versions, selected version (best match based on preferences), metadata (description, images, ratings)
+**Note**: All entities below are persisted in a local SQLite database for efficient querying, filtering, and data management.
+
+- **Scanned File**: Represents a single file found during scanning (may or may not be a ROM until identified). Attributes: file path, file size, last modified timestamp, archive location (if in ZIP/7Z/RAR archive), identification status (identified as ROM / unidentified / excluded / failed), detected console/platform (only if identified as ROM via database match), game identification (only if matched in database via checksum matching), version information (region, video format [PAL/NTSC/NTSC-J], language, quality flags - only if identified), checksums/hashes (MD5, SHA1, SHA256, CRC32, and any other hash types required by Romm, Recalbox, Redump, NoIntro, and other reference databases - calculated for all scanned files to attempt identification), processing status (success, failed), failure reason (if processing failed: e.g., "Corrupted archive", "Unreadable file", "Checksum calculation error", "Archive extraction failed"), exclusion reason (if excluded: e.g., "Default exclusion filter", "User-defined exclusion filter"), last scan date, scan type (quick/full)
+- **Game**: Represents a logical game that may have multiple ROM versions (files identified as ROMs). Attributes: game name, console/platform, associated database sources (can be associated with multiple sources: NoIntro, Redump, GoodSet, etc.), selected database source (chosen based on user preferences when multiple sources available), grouped identified ROM files, selected version (best match based on preferences), metadata (description, images, ratings)
 - **Console/Platform**: Represents a gaming console or platform. Attributes: platform name, folder naming conventions for Recalbox, folder naming conventions for Romm, supported file formats, export requirements
 - **Reference Database**: Represents a downloaded reference database file (NoIntro, Redump, GoodSet). Attributes: provider name (NoIntro/Redump/GoodSet), console/platform, version identifier, release date, file size, download status, file path, is_default (boolean indicating if this version is the default for this console), last updated timestamp, available update flag
 - **User Preferences**: Represents user configuration for filtering and selection. Attributes: region priority order (e.g., EUR > USA > JAP), video format priority order (e.g., PAL > NTSC > NTSC-J - separate from region preferences), language priority order (e.g., FR > EN > others), quality filters (exclude bad dumps), export settings per platform
@@ -267,8 +287,8 @@ Un utilisateur veut visualiser sa collection de jeux dans une interface dédiée
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can scan a directory containing 1000+ ROM files (including archives) and have all ROMs identified within 5 minutes on a standard desktop computer
-- **SC-002**: System correctly identifies console/platform for 95%+ of ROM files without manual intervention
+- **SC-001**: Users can scan a directory containing 1000+ files (including archives) and have checksums calculated and identification attempted for all files (excluding filters) within 5 minutes on a standard desktop computer
+- **SC-002**: System correctly identifies console/platform for 95%+ of files that match database entries (identified as ROMs) without manual intervention
 - **SC-003**: System successfully groups versions of the same game with 99%+ accuracy when multiple versions exist in the collection
 - **SC-004**: System automatically selects the preferred version (based on user preferences) for 90%+ of games with multiple versions
 - **SC-005**: Users can export a collection of 500 games to Recalbox or Romm in under 2 minutes
@@ -280,3 +300,28 @@ Un utilisateur veut visualiser sa collection de jeux dans une interface dédiée
 - **SC-011**: Library interface can display and filter a collection of 5000+ games without performance degradation
 - **SC-012**: Users can switch between grid and list views with less than 500ms transition time
 - **SC-013**: Real-time search filtering returns results within 100ms for collections up to 10,000 games
+- **SC-014**: Test coverage must reach minimum 80% for unit tests across the codebase
+- **SC-015**: All critical user stories (Priority P1, P1.5) have comprehensive integration tests validating end-to-end scenarios
+
+## Quality Attributes *(mandatory)*
+
+### Testing & Quality Assurance
+
+- **QA-001**: Development MUST follow Test-Driven Development (TDD) practices where tests are written before implementation
+- **QA-002**: Codebase MUST maintain minimum 80% unit test coverage measured by line/branch coverage
+- **QA-003**: All critical user stories (scan, database management, grouping/filtering, export, sync, library) MUST have integration tests validating complete workflows
+- **QA-004**: Unit tests MUST cover all business logic, data transformations, and error handling scenarios
+- **QA-005**: Integration tests MUST validate interaction between components and external systems (file system, databases, SSH/SFTP)
+- **QA-006**: Test suite MUST run automatically on each code change (continuous integration)
+- **QA-007**: All tests MUST be maintainable, readable, and follow consistent naming conventions
+- **QA-008**: Performance tests MUST validate success criteria metrics (SC-001 through SC-013)
+
+### Code Quality & Standards
+
+- **QA-009**: Codebase MUST use automated linter configured to enforce coding standards and best practices for the chosen language/framework
+- **QA-010**: Codebase MUST use automated code formatter to ensure consistent code style across the project
+- **QA-011**: Linter and formatter MUST run automatically before each commit (pre-commit hooks) or in CI/CD pipeline
+- **QA-012**: Code MUST pass all linter checks without warnings or errors before being merged
+- **QA-013**: Linter configuration MUST enforce language-specific best practices (e.g., ESLint for JavaScript/TypeScript, Pylint/Flake8 for Python, RuboCop for Ruby, Clippy for Rust)
+- **QA-014**: Code MUST follow consistent naming conventions for variables, functions, classes, and files as enforced by linter
+- **QA-015**: Complex logic MUST be documented with inline comments explaining the "why" not just the "what"
