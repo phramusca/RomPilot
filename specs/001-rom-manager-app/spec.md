@@ -200,128 +200,128 @@ Un utilisateur veut visualiser sa collection de jeux dans une interface dédiée
 - Que se passe-t-il si la connexion à l'API Romm échoue pendant une synchronisation ?
 - Comment le système gère-t-il les fichiers gamelist.xml malformés ou incomplets dans Recalbox ?
 
-## Requirements *(mandatory)*
+## Exigences *(obligatoire)*
 
-### Functional Requirements
+### Exigences Fonctionnelles
 
-- **FR-001**: System MUST scan directories recursively (all subdirectories) to find all files (not presupposing which are ROMs), and MUST recursively process archives (ZIP, 7Z, RAR) including nested archives (archives within archives) at any depth
-- **FR-001.1**: System MUST exclude by default files with the following extensions: .jpg, .jpeg, .png, .gif, .bmp (images), .txt, .nfo, .diz (text files), .exe, .dll, .so (executables), .doc, .pdf, .html, .xml (documents)
-- **FR-001.2**: System MUST allow users to configure custom exclusion filters by file extension, file size range, or file name patterns before scanning
-- **FR-001.3**: System MUST allow users to view and modify the default exclusion list (add or remove extensions)
-- **FR-002**: System MUST calculate all checksum/hash types used by Romm, Recalbox, Redump, NoIntro, and other reference databases (MD5, SHA1, SHA256, CRC32, and any other hash types required by these platforms) for each scanned file (excluding filtered files) during scanning
-- **FR-003**: System MUST use checksums/hashes to identify which scanned files are ROMs by matching against entries in reference databases, and identify their games and versions
-- **FR-003.1**: System MUST list files that do not match any database entry as "unidentified files" with their calculated checksums, without assuming they are not ROMs
-- **FR-004**: System MUST automatically identify the console/platform for each file that matches a database entry, without requiring manual pre-classification
-- **FR-005**: System MUST identify games using reference databases (NoIntro, Redump, GoodSet) when available, and MUST support associating each game with multiple database sources
-- **FR-006**: System MUST select which database source to use for each game based on user-configured preferences (region, language, etc.) when multiple sources are available
-- **FR-006.1**: System MUST provide an integrated database manager interface for browsing, selecting, and downloading reference databases (NoIntro, Redump, GoodSet)
-- **FR-006.2**: System MUST allow users to view available database providers, consoles, and versions in a dedicated interface with filtering capabilities
-- **FR-006.3**: System MUST support downloading multiple versions of the same database for a single console
-- **FR-006.4**: System MUST display download progress and status for database downloads
-- **FR-006.5**: System MUST allow users to select which database version to use as default when multiple versions exist for the same console
-- **FR-006.6**: System MUST display all downloaded databases in a table view with filters by provider, console, and version
-- **FR-006.7**: System MUST notify users when updates to downloaded databases are available
-- **FR-006.8**: System MUST handle download failures gracefully with clear error messages and retry capability
-- **FR-007**: System MUST group multiple versions of the same game together
-- **FR-008**: System MUST allow users to configure priority preferences for region selection (e.g., EUR > USA > JAP)
-- **FR-009**: System MUST allow users to configure priority preferences for language selection
-- **FR-009.1**: System MUST allow users to configure priority preferences for video format selection (PAL, NTSC, NTSC-J) as a separate preference list from region
-- **FR-009.2**: System MUST apply both region and video format preferences when selecting the best ROM version (both criteria evaluated with configurable priority)
-- **FR-010**: System MUST automatically exclude ROM versions marked as "bad dump" or with quality issues from automatic selection
-- **FR-011**: System MUST automatically select the best ROM version for each game based on user-configured region, video format, and language preferences, including selection of the appropriate database source when multiple sources are available
-- **FR-012**: System MUST export ROMs to Recalbox following Recalbox folder naming conventions for consoles
-- **FR-013**: System MUST export ROMs to Romm following Romm folder naming conventions for consoles
-- **FR-014**: System MUST respect format requirements for each platform (ZIP vs uncompressed, supported file formats)
-- **FR-014.1**: System MUST support export to local directories (local filesystem or mounted network drives)
-- **FR-014.2**: System MUST support export to remote servers via SSH/SFTP protocol
-- **FR-014.3**: System MUST provide an interface for configuring SSH/SFTP connection parameters (host, port, username, password/key, target directory)
-- **FR-014.4**: System MUST allow users to test SSH/SFTP connection before starting export
-- **FR-014.5**: System MUST display transfer progress for remote exports (number of files transferred, transfer speed, estimated time remaining)
-- **FR-014.6**: System MUST handle SSH/SFTP connection failures gracefully with clear error messages and retry capability
-- **FR-015**: System MUST retrieve scrap metadata (descriptions, images, ratings) from Recalbox via gamelist.xml files
-- **FR-016**: System MUST retrieve scrap metadata from Romm via REST API
-- **FR-017**: System MUST synchronize user data (favorites, ratings, play statistics) bidirectionally with Recalbox via gamelist.xml
-- **FR-018**: System MUST synchronize user data bidirectionally with Romm via REST API
-- **FR-019**: System MUST handle conflicts when metadata differs between application and platforms (last modified wins, or user confirmation)
-- **FR-020**: System MUST support scanning from multiple source directories
-- **FR-021**: System MUST preserve file integrity during export operations
-- **FR-022**: System MUST provide detailed progress feedback during scan operations, including a list of all files processed (with status: success, console identified, game identified) and all files that failed processing with explicit failure reasons (e.g., "Console not detected", "Corrupted archive", "Unreadable file", "Checksum error")
-- **FR-023**: System MUST handle errors gracefully and provide meaningful error messages to users, including specific reasons why individual files could not be processed during scanning
-- **FR-024**: System MUST offer users a choice between "quick scan" and "full scan" when rescanning a previously scanned directory
-- **FR-025**: In quick scan mode, System MUST detect file changes by comparing timestamp and file size, and MUST recalculate checksums only for files that have changed
-- **FR-026**: In quick scan mode, System MUST reuse previously calculated checksums and identifications for files with unchanged timestamp and size
-- **FR-027**: In full scan mode, System MUST recalculate all checksums for all files regardless of timestamp or size changes
-- **FR-028**: During rescan operations (quick or full), System MUST remove from database any files that no longer exist in the scanned directory
-- **FR-029**: During rescan operations (quick or full), System MUST add newly discovered files to the database
-- **FR-030**: System MUST provide a dedicated Library interface for visualizing the game collection
-- **FR-031**: System MUST support grid view display mode showing games with cover art thumbnails
-- **FR-032**: System MUST support list view display mode showing games in a table with sortable columns (name, console, region, format, status, size)
-- **FR-033**: System MUST allow users to switch between grid and list view modes
-- **FR-034**: System MUST provide filtering capabilities by console, region, language, video format, status, and other game attributes
-- **FR-035**: System MUST support combined filters (multiple criteria applied simultaneously)
-- **FR-036**: System MUST provide a search bar with real-time filtering as user types
-- **FR-037**: System MUST allow sorting games by name, release date, rating, console, and other attributes
-- **FR-038**: System MUST display complete metadata for selected games including description, images, screenshots, videos, rating, developer, publisher, release date
-- **FR-039**: System MUST allow users to view and manage all available versions of a game when multiple versions exist
-- **FR-040**: System MUST support in-app video playback for game preview videos
-- **FR-041**: System MUST visually indicate games with incomplete or missing metadata
-- **FR-042**: System MUST persist all scanned file data, checksums, identifications, metadata, and user preferences in a local SQLite database
-- **FR-043**: System MUST use SQL queries for filtering, searching, and retrieving data from the collection
-- **FR-044**: System MUST maintain database integrity and handle concurrent access appropriately
-- **FR-045**: System MUST provide backup and restore functionality for the SQLite database
+- **FR-001**: Le système DOIT scanner les répertoires de manière récursive (tous les sous-répertoires) pour trouver tous les fichiers (sans présupposer lesquels sont des ROMs), et DOIT traiter récursivement les archives (ZIP, 7Z, RAR) incluant les archives imbriquées (archives dans d'autres archives) à n'importe quelle profondeur
+- **FR-001.1**: Le système DOIT exclure par défaut les fichiers avec les extensions suivantes : .jpg, .jpeg, .png, .gif, .bmp (images), .txt, .nfo, .diz (fichiers texte), .exe, .dll, .so (exécutables), .doc, .pdf, .html, .xml (documents)
+- **FR-001.2**: Le système DOIT permettre aux utilisateurs de configurer des filtres d'exclusion personnalisés par extension de fichier, plage de taille ou motifs de nom de fichier avant le scan
+- **FR-001.3**: Le système DOIT permettre aux utilisateurs de consulter et modifier la liste d'exclusion par défaut (ajouter ou retirer des extensions)
+- **FR-002**: Le système DOIT calculer tous les types de checksums/hash utilisés par Romm, Recalbox, Redump, NoIntro et autres bases de données de référence (MD5, SHA1, SHA256, CRC32, et tout autre type de hash requis par ces plateformes) pour chaque fichier scanné (excluant les fichiers filtrés) pendant le scan
+- **FR-003**: Le système DOIT utiliser les checksums/hash pour identifier quels fichiers scannés sont des ROMs en les comparant aux entrées des bases de données de référence, et identifier leurs jeux et versions
+- **FR-003.1**: Le système DOIT lister les fichiers qui ne correspondent à aucune entrée de base de données comme "fichiers non identifiés" avec leurs checksums calculés, sans présupposer qu'ils ne sont pas des ROMs
+- **FR-004**: Le système DOIT identifier automatiquement la console/plateforme pour chaque fichier qui correspond à une entrée de base de données, sans nécessiter de pré-classification manuelle
+- **FR-005**: Le système DOIT identifier les jeux en utilisant les bases de données de référence (NoIntro, Redump, GoodSet) lorsque disponibles, et DOIT supporter l'association de chaque jeu avec plusieurs sources de bases de données
+- **FR-006**: Le système DOIT sélectionner quelle source de base de données utiliser pour chaque jeu en fonction des préférences configurées par l'utilisateur (région, langue, etc.) lorsque plusieurs sources sont disponibles
+- **FR-006.1**: Le système DOIT fournir une interface de gestion de bases de données intégrée pour parcourir, sélectionner et télécharger les bases de données de référence (NoIntro, Redump, GoodSet)
+- **FR-006.2**: Le système DOIT permettre aux utilisateurs de voir les providers de bases de données disponibles, les consoles et les versions dans une interface dédiée avec capacités de filtrage
+- **FR-006.3**: Le système DOIT supporter le téléchargement de plusieurs versions d'une même base de données pour une seule console
+- **FR-006.4**: Le système DOIT afficher la progression et le statut du téléchargement pour les bases de données
+- **FR-006.5**: Le système DOIT permettre aux utilisateurs de sélectionner quelle version de base de données utiliser par défaut lorsque plusieurs versions existent pour la même console
+- **FR-006.6**: Le système DOIT afficher toutes les bases de données téléchargées dans une vue tableau avec filtres par provider, console et version
+- **FR-006.7**: Le système DOIT notifier les utilisateurs lorsque des mises à jour des bases de données téléchargées sont disponibles
+- **FR-006.8**: Le système DOIT gérer les échecs de téléchargement avec élégance avec des messages d'erreur clairs et une capacité de réessai
+- **FR-007**: Le système DOIT regrouper ensemble plusieurs versions d'un même jeu
+- **FR-008**: Le système DOIT permettre aux utilisateurs de configurer les préférences de priorité pour la sélection de région (ex : EUR > USA > JAP)
+- **FR-009**: Le système DOIT permettre aux utilisateurs de configurer les préférences de priorité pour la sélection de langue
+- **FR-009.1**: Le système DOIT permettre aux utilisateurs de configurer les préférences de priorité pour la sélection de format vidéo (PAL, NTSC, NTSC-J) comme une liste de préférence séparée de la région
+- **FR-009.2**: Le système DOIT appliquer à la fois les préférences de région et de format vidéo lors de la sélection de la meilleure version de ROM (les deux critères évalués avec priorité configurable)
+- **FR-010**: Le système DOIT automatiquement exclure les versions de ROM marquées comme "bad dump" ou avec des problèmes de qualité de la sélection automatique
+- **FR-011**: Le système DOIT automatiquement sélectionner la meilleure version de ROM pour chaque jeu basée sur les préférences configurées de région, format vidéo et langue, incluant la sélection de la source de base de données appropriée lorsque plusieurs sources sont disponibles
+- **FR-012**: Le système DOIT exporter les ROMs vers Recalbox en suivant les conventions de nommage de dossiers Recalbox pour les consoles
+- **FR-013**: Le système DOIT exporter les ROMs vers Romm en suivant les conventions de nommage de dossiers Romm pour les consoles
+- **FR-014**: Le système DOIT respecter les exigences de format pour chaque plateforme (ZIP vs décompressé, formats de fichiers supportés)
+- **FR-014.1**: Le système DOIT supporter l'export vers des répertoires locaux (système de fichiers local ou lecteurs réseau montés)
+- **FR-014.2**: Le système DOIT supporter l'export vers des serveurs distants via protocole SSH/SFTP
+- **FR-014.3**: Le système DOIT fournir une interface pour configurer les paramètres de connexion SSH/SFTP (hôte, port, nom d'utilisateur, mot de passe/clé, répertoire cible)
+- **FR-014.4**: Le système DOIT permettre aux utilisateurs de tester la connexion SSH/SFTP avant de démarrer l'export
+- **FR-014.5**: Le système DOIT afficher la progression du transfert pour les exports distants (nombre de fichiers transférés, vitesse de transfert, temps restant estimé)
+- **FR-014.6**: Le système DOIT gérer les échecs de connexion SSH/SFTP avec élégance avec des messages d'erreur clairs et une capacité de réessai
+- **FR-015**: Le système DOIT récupérer les métadonnées de scrap (descriptions, images, notes) depuis Recalbox via les fichiers gamelist.xml
+- **FR-016**: Le système DOIT récupérer les métadonnées de scrap depuis Romm via l'API REST
+- **FR-017**: Le système DOIT synchroniser les données utilisateur (favoris, notes, statistiques de jeu) de manière bidirectionnelle avec Recalbox via gamelist.xml
+- **FR-018**: Le système DOIT synchroniser les données utilisateur de manière bidirectionnelle avec Romm via l'API REST
+- **FR-019**: Le système DOIT gérer les conflits lorsque les métadonnées diffèrent entre l'application et les plateformes (dernière modification gagne, ou confirmation utilisateur)
+- **FR-020**: Le système DOIT supporter le scan depuis plusieurs répertoires sources
+- **FR-021**: Le système DOIT préserver l'intégrité des fichiers pendant les opérations d'export
+- **FR-022**: Le système DOIT fournir un retour détaillé de progression pendant les opérations de scan, incluant une liste de tous les fichiers traités (avec statut : succès, console identifiée, jeu identifié) et tous les fichiers en échec avec les raisons explicites d'échec (ex : "Console non détectée", "Archive corrompue", "Fichier illisible", "Erreur de checksum")
+- **FR-023**: Le système DOIT gérer les erreurs avec élégance et fournir des messages d'erreur significatifs aux utilisateurs, incluant les raisons spécifiques pour lesquelles des fichiers individuels n'ont pas pu être traités pendant le scan
+- **FR-024**: Le système DOIT offrir aux utilisateurs un choix entre "scan rapide" et "scan complet" lors du rescan d'un répertoire précédemment scanné
+- **FR-025**: En mode scan rapide, le système DOIT détecter les changements de fichiers en comparant timestamp et taille de fichier, et DOIT recalculer les checksums uniquement pour les fichiers qui ont changé
+- **FR-026**: En mode scan rapide, le système DOIT réutiliser les checksums et identifications précédemment calculés pour les fichiers avec timestamp et taille inchangés
+- **FR-027**: En mode scan complet, le système DOIT recalculer tous les checksums pour tous les fichiers indépendamment des changements de timestamp ou taille
+- **FR-028**: Pendant les opérations de rescan (rapide ou complet), le système DOIT retirer de la base de données tous les fichiers qui n'existent plus dans le répertoire scanné
+- **FR-029**: Pendant les opérations de rescan (rapide ou complet), le système DOIT ajouter les fichiers nouvellement découverts à la base de données
+- **FR-030**: Le système DOIT fournir une interface Bibliothèque dédiée pour visualiser la collection de jeux
+- **FR-031**: Le système DOIT supporter le mode d'affichage grille montrant les jeux avec vignettes de cover art
+- **FR-032**: Le système DOIT supporter le mode d'affichage liste montrant les jeux dans un tableau avec colonnes triables (nom, console, région, format, statut, taille)
+- **FR-033**: Le système DOIT permettre aux utilisateurs de basculer entre les modes d'affichage grille et liste
+- **FR-034**: Le système DOIT fournir des capacités de filtrage par console, région, langue, format vidéo, statut et autres attributs de jeu
+- **FR-035**: Le système DOIT supporter les filtres combinés (plusieurs critères appliqués simultanément)
+- **FR-036**: Le système DOIT fournir une barre de recherche avec filtrage en temps réel pendant que l'utilisateur tape
+- **FR-037**: Le système DOIT permettre le tri des jeux par nom, date de sortie, note, console et autres attributs
+- **FR-038**: Le système DOIT afficher les métadonnées complètes pour les jeux sélectionnés incluant description, images, captures d'écran, vidéos, note, développeur, éditeur, date de sortie
+- **FR-039**: Le système DOIT permettre aux utilisateurs de voir et gérer toutes les versions disponibles d'un jeu lorsque plusieurs versions existent
+- **FR-040**: Le système DOIT supporter la lecture vidéo in-app pour les vidéos de prévisualisation de jeux
+- **FR-041**: Le système DOIT indiquer visuellement les jeux avec métadonnées incomplètes ou manquantes
+- **FR-042**: Le système DOIT persister toutes les données de fichiers scannés, checksums, identifications, métadonnées et préférences utilisateur dans une base de données SQLite locale
+- **FR-043**: Le système DOIT utiliser des requêtes SQL pour filtrer, rechercher et récupérer les données de la collection
+- **FR-044**: Le système DOIT maintenir l'intégrité de la base de données et gérer l'accès concurrent de manière appropriée
+- **FR-045**: Le système DOIT fournir une fonctionnalité de sauvegarde et restauration pour la base de données SQLite
 
-### Key Entities *(include if feature involves data)*
+### Entités Clés *(inclure si la fonctionnalité implique des données)*
 
-**Note**: All entities below are persisted in a local SQLite database for efficient querying, filtering, and data management.
+**Note** : Toutes les entités ci-dessous sont persistées dans une base de données SQLite locale pour des requêtes, filtrages et gestion de données efficaces.
 
-- **Scanned File**: Represents a single file found during scanning (may or may not be a ROM until identified). Attributes: file path, file size, last modified timestamp, archive location (if in ZIP/7Z/RAR archive), identification status (identified as ROM / unidentified / excluded / failed), detected console/platform (only if identified as ROM via database match), game identification (only if matched in database via checksum matching), version information (region, video format [PAL/NTSC/NTSC-J], language, quality flags - only if identified), checksums/hashes (MD5, SHA1, SHA256, CRC32, and any other hash types required by Romm, Recalbox, Redump, NoIntro, and other reference databases - calculated for all scanned files to attempt identification), processing status (success, failed), failure reason (if processing failed: e.g., "Corrupted archive", "Unreadable file", "Checksum calculation error", "Archive extraction failed"), exclusion reason (if excluded: e.g., "Default exclusion filter", "User-defined exclusion filter"), last scan date, scan type (quick/full)
-- **Game**: Represents a logical game that may have multiple ROM versions (files identified as ROMs). Attributes: game name, console/platform, associated database sources (can be associated with multiple sources: NoIntro, Redump, GoodSet, etc.), selected database source (chosen based on user preferences when multiple sources available), grouped identified ROM files, selected version (best match based on preferences), metadata (description, images, ratings)
-- **Console/Platform**: Represents a gaming console or platform. Attributes: platform name, folder naming conventions for Recalbox, folder naming conventions for Romm, supported file formats, export requirements
-- **Reference Database**: Represents a downloaded reference database file (NoIntro, Redump, GoodSet). Attributes: provider name (NoIntro/Redump/GoodSet), console/platform, version identifier, release date, file size, download status, file path, is_default (boolean indicating if this version is the default for this console), last updated timestamp, available update flag
-- **User Preferences**: Represents user configuration for filtering and selection. Attributes: region priority order (e.g., EUR > USA > JAP), video format priority order (e.g., PAL > NTSC > NTSC-J - separate from region preferences), language priority order (e.g., FR > EN > others), quality filters (exclude bad dumps), export settings per platform
-- **Metadata**: Represents game metadata from various sources. Attributes: description, cover images, screenshots, videos, ratings, release date, developer, publisher, genre, user data (favorites, play statistics, save states), source (scraped from Recalbox/Romm or user-entered), last modified timestamp
-- **Export Configuration**: Represents settings for exporting to a platform. Attributes: target platform (Recalbox/Romm), export type (local/remote), destination directory (for local exports), SSH/SFTP connection settings (host, port, username, authentication method, password/key path, remote directory - for remote exports), format requirements (ZIP/uncompressed), conflict resolution strategy, connection test status
-- **Sync Configuration**: Represents settings for metadata synchronization. Attributes: source platform, sync direction (bidirectional/import only/export only), conflict resolution strategy, sync scope (which metadata types to sync)
+- **Fichier Scanné** : Représente un fichier unique trouvé pendant le scan (peut être ou ne pas être une ROM jusqu'à identification). Attributs : chemin du fichier, taille du fichier, timestamp de dernière modification, emplacement dans archive (si dans archive ZIP/7Z/RAR), statut d'identification (identifié comme ROM / non identifié / exclu / échec), console/plateforme détectée (seulement si identifié comme ROM via correspondance base de données), identification du jeu (seulement si correspondance dans base de données via checksums), informations de version (région, format vidéo [PAL/NTSC/NTSC-J], langue, drapeaux de qualité - seulement si identifié), checksums/hashs (MD5, SHA1, SHA256, CRC32, et tout autre type de hash requis par Romm, Recalbox, Redump, NoIntro et autres bases de données de référence - calculés pour tous les fichiers scannés pour tenter l'identification), statut de traitement (succès, échec), raison d'échec (si traitement échoué : ex. "Archive corrompue", "Fichier illisible", "Erreur de calcul de checksum", "Échec d'extraction d'archive"), raison d'exclusion (si exclu : ex. "Filtre d'exclusion par défaut", "Filtre d'exclusion défini par l'utilisateur"), date du dernier scan, type de scan (rapide/complet)
+- **Jeu** : Représente un jeu logique qui peut avoir plusieurs versions de ROM (fichiers identifiés comme ROMs). Attributs : nom du jeu, console/plateforme, sources de bases de données associées (peut être associé à plusieurs sources : NoIntro, Redump, GoodSet, etc.), source de base de données sélectionnée (choisie en fonction des préférences utilisateur lorsque plusieurs sources disponibles), fichiers ROM identifiés regroupés, version sélectionnée (meilleure correspondance basée sur les préférences), métadonnées (description, images, notes)
+- **Console/Plateforme** : Représente une console de jeu ou plateforme. Attributs : nom de la plateforme, conventions de nommage des dossiers pour Recalbox, conventions de nommage des dossiers pour Romm, formats de fichiers supportés, exigences d'export
+- **Base de Données de Référence** : Représente un fichier de base de données de référence téléchargé (NoIntro, Redump, GoodSet). Attributs : nom du provider (NoIntro/Redump/GoodSet), console/plateforme, identifiant de version, date de sortie, taille du fichier, statut de téléchargement, chemin du fichier, is_default (booléen indiquant si cette version est celle par défaut pour cette console), timestamp de dernière mise à jour, drapeau de mise à jour disponible
+- **Préférences Utilisateur** : Représente la configuration utilisateur pour le filtrage et la sélection. Attributs : ordre de priorité de région (ex : EUR > USA > JAP), ordre de priorité de format vidéo (ex : PAL > NTSC > NTSC-J - séparé des préférences de région), ordre de priorité de langue (ex : FR > EN > autres), filtres de qualité (exclure les bad dumps), paramètres d'export par plateforme
+- **Métadonnées** : Représente les métadonnées de jeu depuis diverses sources. Attributs : description, images de couverture, captures d'écran, vidéos, notes, date de sortie, développeur, éditeur, genre, données utilisateur (favoris, statistiques de jeu, save states), source (scrappées depuis Recalbox/Romm ou saisies par l'utilisateur), timestamp de dernière modification
+- **Configuration d'Export** : Représente les paramètres pour exporter vers une plateforme. Attributs : plateforme cible (Recalbox/Romm), type d'export (local/distant), répertoire de destination (pour exports locaux), paramètres de connexion SSH/SFTP (hôte, port, nom d'utilisateur, méthode d'authentification, chemin mot de passe/clé, répertoire distant - pour exports distants), exigences de format (ZIP/décompressé), stratégie de résolution de conflits, statut de test de connexion
+- **Configuration de Synchronisation** : Représente les paramètres pour la synchronisation des métadonnées. Attributs : plateforme source, direction de synchronisation (bidirectionnelle/import seulement/export seulement), stratégie de résolution de conflits, portée de synchronisation (quels types de métadonnées synchroniser)
 
-## Success Criteria *(mandatory)*
+## Critères de Succès *(obligatoire)*
 
-### Measurable Outcomes
+### Résultats Mesurables
 
-- **SC-001**: Users can scan a directory containing 1000+ files (including archives) and have checksums calculated and identification attempted for all files (excluding filters) within 5 minutes on a standard desktop computer
-- **SC-002**: System correctly identifies console/platform for 95%+ of files that match database entries (identified as ROMs) without manual intervention
-- **SC-003**: System successfully groups versions of the same game with 99%+ accuracy when multiple versions exist in the collection
-- **SC-004**: System automatically selects the preferred version (based on user preferences) for 90%+ of games with multiple versions
-- **SC-005**: Users can export a collection of 500 games to Recalbox or Romm in under 2 minutes
-- **SC-006**: Exported ROMs are correctly placed in platform-specific folder structures with 100% accuracy (all files in correct console folders)
-- **SC-007**: Metadata synchronization completes successfully for 95%+ of games when source data is available
-- **SC-008**: Users can complete a full workflow (scan → filter → export → sync metadata) for a new collection in under 10 minutes
-- **SC-009**: System handles archives nested up to 5 levels deep without performance degradation or errors
-- **SC-010**: Application runs on Windows, Linux, and macOS with consistent functionality across all platforms
-- **SC-011**: Library interface can display and filter a collection of 5000+ games without performance degradation
-- **SC-012**: Users can switch between grid and list views with less than 500ms transition time
-- **SC-013**: Real-time search filtering returns results within 100ms for collections up to 10,000 games
-- **SC-014**: Test coverage must reach minimum 80% for unit tests across the codebase
-- **SC-015**: All critical user stories (Priority P1, P1.5) have comprehensive integration tests validating end-to-end scenarios
+- **SC-001** : Les utilisateurs peuvent scanner un répertoire contenant 1000+ fichiers (incluant les archives) et avoir les checksums calculés et l'identification tentée pour tous les fichiers (excluant les filtres) en moins de 5 minutes sur un ordinateur de bureau standard
+- **SC-002** : Le système identifie correctement la console/plateforme pour 95%+ des fichiers qui correspondent aux entrées de base de données (identifiés comme ROMs) sans intervention manuelle
+- **SC-003** : Le système regroupe avec succès les versions d'un même jeu avec 99%+ de précision lorsque plusieurs versions existent dans la collection
+- **SC-004** : Le système sélectionne automatiquement la version préférée (basée sur les préférences utilisateur) pour 90%+ des jeux avec plusieurs versions
+- **SC-005** : Les utilisateurs peuvent exporter une collection de 500 jeux vers Recalbox ou Romm en moins de 2 minutes
+- **SC-006** : Les ROMs exportées sont correctement placées dans les structures de dossiers spécifiques aux plateformes avec 100% de précision (tous les fichiers dans les bons dossiers de consoles)
+- **SC-007** : La synchronisation des métadonnées se termine avec succès pour 95%+ des jeux lorsque les données sources sont disponibles
+- **SC-008** : Les utilisateurs peuvent compléter un workflow complet (scan → filtrer → exporter → synchroniser métadonnées) pour une nouvelle collection en moins de 10 minutes
+- **SC-009** : Le système gère les archives imbriquées jusqu'à 5 niveaux de profondeur sans dégradation de performance ou erreurs
+- **SC-010** : L'application fonctionne sur Windows, Linux et macOS avec une fonctionnalité cohérente sur toutes les plateformes
+- **SC-011** : L'interface Bibliothèque peut afficher et filtrer une collection de 5000+ jeux sans dégradation de performance
+- **SC-012** : Les utilisateurs peuvent basculer entre les vues grille et liste avec moins de 500ms de temps de transition
+- **SC-013** : Le filtrage de recherche en temps réel retourne les résultats en moins de 100ms pour des collections jusqu'à 10 000 jeux
+- **SC-014** : La couverture de tests doit atteindre un minimum de 80% pour les tests unitaires sur l'ensemble du code
+- **SC-015** : Toutes les user stories critiques (Priorité P1, P1.5) ont des tests d'intégration complets validant les scénarios de bout en bout
 
-## Quality Attributes *(mandatory)*
+## Attributs de Qualité *(obligatoire)*
 
-### Testing & Quality Assurance
+### Tests et Assurance Qualité
 
-- **QA-001**: Development MUST follow Test-Driven Development (TDD) practices where tests are written before implementation
-- **QA-002**: Codebase MUST maintain minimum 80% unit test coverage measured by line/branch coverage
-- **QA-003**: All critical user stories (scan, database management, grouping/filtering, export, sync, library) MUST have integration tests validating complete workflows
-- **QA-004**: Unit tests MUST cover all business logic, data transformations, and error handling scenarios
-- **QA-005**: Integration tests MUST validate interaction between components and external systems (file system, databases, SSH/SFTP)
-- **QA-006**: Test suite MUST run automatically on each code change (continuous integration)
-- **QA-007**: All tests MUST be maintainable, readable, and follow consistent naming conventions
-- **QA-008**: Performance tests MUST validate success criteria metrics (SC-001 through SC-013)
+- **QA-001** : Le développement DOIT suivre les pratiques de Test-Driven Development (TDD) où les tests sont écrits avant l'implémentation
+- **QA-002** : Le code DOIT maintenir une couverture minimale de 80% de tests unitaires mesurée par couverture de lignes/branches
+- **QA-003** : Toutes les user stories critiques (scan, gestion de base de données, regroupement/filtrage, export, sync, bibliothèque) DOIVENT avoir des tests d'intégration validant les workflows complets
+- **QA-004** : Les tests unitaires DOIVENT couvrir toute la logique métier, les transformations de données et les scénarios de gestion d'erreurs
+- **QA-005** : Les tests d'intégration DOIVENT valider l'interaction entre les composants et les systèmes externes (système de fichiers, bases de données, SSH/SFTP)
+- **QA-006** : La suite de tests DOIT s'exécuter automatiquement à chaque changement de code (intégration continue)
+- **QA-007** : Tous les tests DOIVENT être maintenables, lisibles et suivre des conventions de nommage cohérentes
+- **QA-008** : Les tests de performance DOIVENT valider les métriques des critères de succès (SC-001 à SC-013)
 
-### Code Quality & Standards
+### Qualité du Code et Standards
 
-- **QA-009**: Codebase MUST use automated linter configured to enforce coding standards and best practices for the chosen language/framework
-- **QA-010**: Codebase MUST use automated code formatter to ensure consistent code style across the project
-- **QA-011**: Linter and formatter MUST run automatically before each commit (pre-commit hooks) or in CI/CD pipeline
-- **QA-012**: Code MUST pass all linter checks without warnings or errors before being merged
-- **QA-013**: Linter configuration MUST enforce language-specific best practices (e.g., ESLint for JavaScript/TypeScript, Pylint/Flake8 for Python, RuboCop for Ruby, Clippy for Rust)
-- **QA-014**: Code MUST follow consistent naming conventions for variables, functions, classes, and files as enforced by linter
-- **QA-015**: Complex logic MUST be documented with inline comments explaining the "why" not just the "what"
+- **QA-009** : Le code DOIT utiliser un linter automatisé configuré pour appliquer les standards de codage et bonnes pratiques pour le langage/framework choisi
+- **QA-010** : Le code DOIT utiliser un formateur de code automatisé pour assurer un style de code cohérent sur tout le projet
+- **QA-011** : Le linter et le formateur DOIVENT s'exécuter automatiquement avant chaque commit (pre-commit hooks) ou dans le pipeline CI/CD
+- **QA-012** : Le code DOIT passer toutes les vérifications du linter sans avertissements ni erreurs avant d'être fusionné
+- **QA-013** : La configuration du linter DOIT appliquer les bonnes pratiques spécifiques au langage (ex : ESLint pour JavaScript/TypeScript, Pylint/Flake8 pour Python, RuboCop pour Ruby, Clippy pour Rust)
+- **QA-014** : Le code DOIT suivre des conventions de nommage cohérentes pour les variables, fonctions, classes et fichiers tel qu'imposé par le linter
+- **QA-015** : La logique complexe DOIT être documentée avec des commentaires inline expliquant le "pourquoi" et pas seulement le "quoi"
