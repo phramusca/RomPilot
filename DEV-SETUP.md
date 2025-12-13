@@ -142,7 +142,7 @@ Installées automatiquement par le dev container :
 - `anysphere.csharp` - Support C# officiel Cursor avec debug et IntelliSense
 - `josefpihrt-vscode.roslynator` - Analyseur de code avancé (linting + refactorings)
 - `aaron-bond.better-comments` - Commentaires améliorés
-- `ms-azuretools.vscode-docker` - Support Docker
+- `ms-azuretools.vscode-containers` - Support Docker et Dev Containers
 
 ## 🔄 Workflow Recommandé
 

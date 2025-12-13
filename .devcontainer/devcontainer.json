@@ -15,7 +15,7 @@
 				"anysphere.csharp",
 				"josefpihrt-vscode.roslynator",
 				"aaron-bond.better-comments",
-				"ms-azuretools.vscode-docker"
+				"ms-azuretools.vscode-containers"
 			],
 			"settings": {
 				// ⚙️ Configuration .NET : Force l'utilisation du .NET 8.0 du container
