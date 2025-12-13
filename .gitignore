@@ -41,9 +41,6 @@ artifacts/
 *.vspscc
 *.vsp
 *.vssscc
-# VSCode - ignorer les fichiers personnels mais garder tasks.json et settings.json (communs)
-.vscode/launch.json
-.vscode/extensions.json
 .idea/
 
 # Rider

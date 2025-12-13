@@ -20,7 +20,7 @@ cursor .
 
 ### 2. Reopen in Container
 ```bash
-Ctrl+Shift+P > Dev Containers: Reopen in Container
+F1 > Dev Containers: Reopen in Container
 # Choisir: "RomPilot"
 ```
 
@@ -114,7 +114,7 @@ dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
 Si vous voyez des doublons :
 1. Fermez tous les dossiers/workspaces
 2. Ouvrez uniquement le dossier racine
-3. Rechargez la fenêtre (`Ctrl+Shift+P` > "Reload Window")
+3. Rechargez la fenêtre (`F1` > "Reload Window")
 
 ## 📦 Dépendances
 
@@ -156,4 +156,4 @@ Installées automatiquement par le dev container :
 En cas de problème :
 1. Vérifier ce guide
 2. Consulter les logs du container (`Docker` > `Containers` > clic droit > `View Logs`)
-3. Reconstruire le container (`Ctrl+Shift+P` > "Dev Containers: Rebuild Container")
+3. Reconstruire le container (`F1` > "Dev Containers: Rebuild Container")

@@ -1,23 +1,10 @@
 {
-    // Solution .NET
-    "dotnet.defaultSolution": "RomPilot.sln",
-    "dotnet.generateAssets": false,
-    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
-    "dotnet.formatting.organizeImportsOnFormat": true,
-    
-    // OmniSharp / C# Language Server
-    "omnisharp.useModernNet": true,
-    "omnisharp.enableEditorConfigSupport": true,
-    "omnisharp.enableRoslynAnalyzers": true,
-    "omnisharp.organizeImportsOnFormat": true,
-    
     // Editor
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.fixAll": "explicit",
         "source.organizeImports": "explicit"
     },
-    
     // Files
     "files.exclude": {
         "**/bin": true,
@@ -33,28 +20,21 @@
         "**/bin/**": true,
         "**/obj/**": true
     },
-    
     // C# Formatting
     "[csharp]": {
-        "editor.defaultFormatter": "ms-dotnettools.csharp",
+        "editor.defaultFormatter": "anysphere.csharp",
         "editor.rulers": [
             120
         ],
         "editor.tabSize": 4,
         "editor.insertSpaces": true
     },
-    
     // XML (pour les .csproj et .axaml)
     "[xml]": {
         "editor.tabSize": 2
     },
-    
     // Terminal
     "terminal.integrated.defaultProfile.linux": "bash",
-    
     // Problems
-    "problems.showCurrentInStatus": true,
-    
-    // Test Explorer
-    "dotnet-test-explorer.testProjectPath": "**/*Tests.csproj"
+    "problems.showCurrentInStatus": true
 }

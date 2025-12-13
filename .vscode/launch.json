@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🐛 Debug UI",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/RomPilot.UI/bin/Debug/net8.0/RomPilot.UI.dll",
+            "cwd": "${workspaceFolder}/src/RomPilot.UI",
+            "env": {
+                "DISPLAY": ":0",
+                "GDK_BACKEND": "x11",
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": "🧪 Debug Tests",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-tests",
+            "program": "dotnet",
+            "args": [
+                "test",
+                "${workspaceFolder}/src/RomPilot.Tests/RomPilot.Tests.csproj",
+                "--no-build",
+                "--verbosity",
+                "normal"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development"
+            }
+        }
+    ]
+}

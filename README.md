@@ -11,7 +11,7 @@ cursor .
 
 ### 2. Reopen in Container
 ```bash
-Ctrl+Shift+P > Dev Containers: Reopen in Container
+F1 > Dev Containers: Reopen in Container
 # Choisir: "RomPilot"
 ```
 
