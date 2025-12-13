@@ -1,0 +1,24 @@
+{
+	"name": "RomPilot - Cursor (Édition)",
+	"dockerComposeFile": "../docker-compose.yml",
+	"service": "devcontainer",
+	"workspaceFolder": "/workspace",
+	"postCreateCommand": "dotnet restore && dotnet build",
+	"remoteUser": "vscode",
+	"mounts": [
+		"source=${localEnv:HOME},target=/host/home,type=bind,consistency=cached,readonly",
+		"source=/media/${localEnv:USER},target=/host/media,type=bind,consistency=cached,readonly"
+	],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"anysphere.csharp",
+				"josefpihrt-vscode.roslynator",
+				"ms-dotnettools.vscode-dotnet-runtime",
+				"aaron-bond.better-comments",
+				"ms-azuretools.vscode-docker"
+			],
+			"settings": {}
+		}
+	}
+}
