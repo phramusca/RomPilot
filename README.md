@@ -4,32 +4,24 @@ Application de gestion de ROMs (lecture seule) avec support de multiples formats
 
 ## 🚀 Démarrage Rapide
 
-### Pour les Développeurs
+### 1. Ouvrir dans le Dev Container
+```bash
+VS Code/Cursor > Dev Containers: Reopen in Container
+```
 
-1. **Ouvrir dans le Dev Container**
-   ```bash
-   VS Code/Cursor > Dev Containers: Reopen in Container
-   ```
+### 2. Lancer l'application
+```bash
+# Avec F5 > "🚀 Lancer l'UI (Sans Debug)"
+# Ou :
+dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
+```
 
-2. **Consulter les guides**
-   - 📖 [Guide de Configuration de l'Environnement de Développement](DEV-SETUP.md)
-   - 🎯 [Configuration Spécifique pour Cursor](docs/CURSOR-SETUP.md)
-
-3. **Lancer l'application** 🚀
-   ```bash
-   # Appuyez sur F5 et sélectionnez "🚀 Lancer l'UI (Sans Debug)"
-   # Ou en ligne de commande :
-   dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
-   ```
-
-4. **Lancer les tests** 🧪
-   ```bash
-   # Appuyez sur F5 et sélectionnez "🧪 Lancer les Tests"
-   # Ou en ligne de commande :
-   dotnet test
-   ```
-
-💡 **Note** : Pour le debugging avec breakpoints, utilisez VS Code avec l'extension "C# Dev Kit" (Cursor ne supporte pas les breakpoints C#).
+### 3. Lancer les tests
+```bash
+# Avec F5 > "🧪 Lancer les Tests"
+# Ou :
+dotnet test
+```
 
 ## 📋 Prérequis
 
@@ -72,12 +64,7 @@ RomPilot/
 │       ├── tasks.md          # Tâches détaillées
 │       └── data-model.md     # Modèle de données
 ├── .vscode/                  # Configuration VS Code/Cursor
-│   ├── launch.json          # Configurations de debug
-│   ├── tasks.json           # Tâches automatisées
-│   └── settings.json        # Paramètres du projet
-├── .devcontainer/           # Configuration du dev container
-└── .editorconfig            # Standards de code
-
+└── .devcontainer/            # Configuration du dev container
 ```
 
 ## 🧪 Tests
@@ -98,12 +85,32 @@ dotnet test --logger "console;verbosity=detailed"
 
 **Résultats actuels** : ✅ 36 tests / 36 passés
 
+## 🔧 Commandes Utiles
+
+```bash
+# Build
+dotnet build
+
+# Restaurer les dépendances
+dotnet restore
+
+# Formatage du code
+dotnet format
+
+# Nettoyage
+dotnet clean
+
+# Migrations EF Core
+dotnet ef migrations add NomDeLaMigration --project src/RomPilot.Core
+dotnet ef database update --project src/RomPilot.Core
+```
+
 ## 📖 Documentation
 
-- [Guide de Configuration de l'Environnement](DEV-SETUP.md) - Setup complet pour développeurs
 - [Spécifications](specs/001-rom-manager-app/spec.md) - Détails des fonctionnalités
 - [Plan d'Implémentation](specs/001-rom-manager-app/plan.md) - Architecture et roadmap
 - [Modèle de Données](specs/001-rom-manager-app/data-model.md) - Structure de la base de données
+- [Guide de Configuration](DEV-SETUP.md) - Troubleshooting et détails avancés
 
 ## 🎯 État d'Avancement
 

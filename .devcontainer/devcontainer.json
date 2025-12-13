@@ -12,9 +12,7 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				// Extension C# pour Cursor - fournit IntelliSense et autocomplétion
-				// Note : ne supporte pas le debugging avec breakpoints (utiliser VS Code pour ça)
-				"anysphere.csharp",
+				"josefpihrt-vscode.roslynator",
 				"ms-dotnettools.vscode-dotnet-runtime",
 				"aaron-bond.better-comments",
 				"ms-azuretools.vscode-docker"
@@ -27,11 +25,7 @@
 					"**/bin": true,
 					"**/obj": true
 				},
-				// Configuration pour améliorer la performance
-				"editor.formatOnSave": true,
-				"editor.codeActionsOnSave": {
-					"source.fixAll": "explicit"
-				}
+				"editor.formatOnSave": true
 			}
 		}
 	}
