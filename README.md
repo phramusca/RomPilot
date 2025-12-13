@@ -82,8 +82,8 @@ RomPilot/
 │       ├── plan.md                 # Plan d'implémentation
 │       ├── tasks.md                # Tâches détaillées
 │       └── data-model.md           # Modèle de données
-├── .vscode/                        # Configurations Cursor
-│   ├── launch.json                # F5 : Lancer sans debug (node-terminal)
+├── .vscode/                        # Configurations communes
+│   ├── settings.json              # Settings partagés (versionné)
 │   └── tasks.json                 # Tâches partagées (build, test, format)
 ├── .devcontainer/                  # Configurations Dev Containers
 │   ├── cursor/                    # Config Cursor (édition)
@@ -92,7 +92,8 @@ RomPilot/
 │   │   └── devcontainer.json     # Extensions : csdevkit, vsdbg auto-install
 │   ├── docker-compose.yml         # Docker Compose partagé
 │   └── Dockerfile                 # Image Docker partagée
-└── RomPilot-Debug.code-workspace   # Workspace VS Code avec debug coreclr
+├── RomPilot-cursor.code-workspace  # Workspace Cursor (sans debug, node-terminal)
+└── RomPilot-vscode.code-workspace  # Workspace VS Code (avec debug, coreclr)
 ```
 
 ## 🧪 Tests
@@ -147,7 +148,7 @@ dotnet ef database update --project src/RomPilot.Core
 | **Usage** | ✏️ Édition, refactoring | 🐛 Debug avec breakpoints |
 | **Extensions** | `anysphere.csharp` | `ms-dotnettools.csdevkit` |
 | **Debugger** | ❌ node-terminal only | ✅ coreclr + vsdbg |
-| **Launch configs** | `.vscode/launch.json` | `RomPilot-Debug.code-workspace` |
+| **Launch configs** | `RomPilot-cursor.code-workspace` | `RomPilot-vscode.code-workspace` |
 | **Breakpoints** | ❌ | ✅ |
 | **Recommandé pour** | Développement quotidien | Investigation de bugs |
 

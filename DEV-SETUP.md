@@ -133,7 +133,7 @@ Ils ne se mélangent pas car ils utilisent des containers séparés.
 ### Tâches ou launch configs en double
 Si vous voyez des doublons dans VS Code :
 1. Fermez tous les dossiers/workspaces
-2. Ouvrez **uniquement** `RomPilot-Debug.code-workspace`
+2. Ouvrez **uniquement** `RomPilot-vscode.code-workspace`
 3. Rechargez la fenêtre (`Ctrl+Shift+P` > "Reload Window")
 
 ### vsdbg introuvable
@@ -190,9 +190,12 @@ Installées automatiquement par les dev containers :
 
 ## 📝 Notes Importantes
 
-- **Ne pas mélanger** : N'ouvrez pas le dossier racine dans VS Code si vous voulez débugger. Utilisez `RomPilot-Debug.code-workspace`.
+- **Workspaces spécifiques** : Utilisez `RomPilot-cursor.code-workspace` pour Cursor et `RomPilot-vscode.code-workspace` pour VS Code.
+- **Settings communs** : `.vscode/settings.json` contient les settings partagés (versionné).
 - **Tâches partagées** : `.vscode/tasks.json` est utilisé par les deux environnements.
-- **Launch configs séparées** : Cursor utilise `.vscode/launch.json`, VS Code utilise le workspace file.
+- **Launch configs séparées** : 
+  - Cursor : configurations sans debug (node-terminal) dans `RomPilot-cursor.code-workspace`
+  - VS Code : configurations avec debug (coreclr) dans `RomPilot-vscode.code-workspace`
 - **Même Docker Compose** : Les deux dev containers réutilisent `.devcontainer/docker-compose.yml`.
 
 ## 🆘 Support
