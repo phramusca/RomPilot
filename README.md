@@ -145,11 +145,11 @@ dotnet ef database update --project src/RomPilot.Core
 
 | Feature | Cursor (`.devcontainer/cursor`) | VS Code (`.devcontainer/vscode`) |
 |---------|--------------------------------|----------------------------------|
-| **Usage** | ✏️ Édition, refactoring | 🐛 Debug avec breakpoints |
+| **Usage** | ✏️ Édition, refactoring, debug | 🐛 Debug avec breakpoints |
 | **Extensions** | `anysphere.csharp` | `ms-dotnettools.csdevkit` |
-| **Debugger** | ❌ node-terminal only | ✅ coreclr + vsdbg |
+| **Debugger** | ✅ coreclr + netcoredbg | ✅ coreclr + vsdbg |
 | **Launch configs** | `RomPilot-cursor.code-workspace` | `RomPilot-vscode.code-workspace` |
-| **Breakpoints** | ❌ | ✅ |
+| **Breakpoints** | ✅ | ✅ |
 | **Recommandé pour** | Développement quotidien | Investigation de bugs |
 
 ## 🎯 État d'Avancement

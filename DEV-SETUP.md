@@ -6,9 +6,9 @@ RomPilot utilise **deux configurations de dev container** dans `.devcontainer/` 
 
 ### 🖊️ Cursor (`.devcontainer/cursor/`) - Édition et Développement
 - **Extensions** : `anysphere.csharp`, `roslynator`
-- **Debugger** : ❌ Pas de breakpoints (node-terminal)
-- **Usage** : Édition, refactoring, tests rapides
-- **Lancement** : `F5` → "🚀 Lancer l'UI" (sans debug)
+- **Debugger** : ✅ `coreclr` + `netcoredbg` (breakpoints fonctionnels)
+- **Usage** : Édition, refactoring, tests rapides, debug
+- **Lancement** : `F5` → "🐛 Debug UI" (avec breakpoints) ou "🚀 Lancer l'UI" (sans debug)
 
 ### 🐛 VS Code (`.devcontainer/vscode/`) - Debug Complet
 - **Extensions** : `ms-dotnettools.csdevkit`, `ms-dotnettools.csharp`
@@ -28,7 +28,7 @@ Ctrl+Shift+P > Dev Containers: Reopen in Container
 # Choisir: "RomPilot - Cursor (Édition)"
 
 # 3. Lancer l'application
-F5 > "🚀 Lancer l'UI"
+F5 > "🐛 Debug UI" (avec breakpoints) ou "🚀 Lancer l'UI" (sans debug)
 ```
 
 ### Option 2 : VS Code (Pour le debug avec breakpoints)
@@ -119,16 +119,19 @@ dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
 ```
 
 ### Les breakpoints ne fonctionnent pas dans Cursor
-**C'est normal !** Cursor ne supporte pas le debugger `coreclr` avec breakpoints.
+**Avec Cursor 2.2.20+** : Le debug est maintenant supporté grâce à l'extension `anysphere.csharp` qui utilise `netcoredbg`.
 
-**Solution** : Utilisez VS Code avec `.devcontainer-vscode/` pour le debug.
+**Vérifications** :
+1. Assurez-vous d'avoir Cursor 2.2.20 ou plus récent
+2. Vérifiez que l'extension `anysphere.csharp` est installée (elle devrait l'être automatiquement via le devcontainer)
+3. Utilisez les configurations de debug dans `RomPilot-cursor.code-workspace`
 
-### Conflits d'extensions C#
+### Extensions C#
 Les deux dev containers utilisent **des extensions différentes** :
-- **Cursor** : `anysphere.csharp` (léger, pas de debug)
-- **VS Code** : `ms-dotnettools.csdevkit` (complet, avec debug)
+- **Cursor** : `anysphere.csharp` (support C# officiel Cursor avec debug via `netcoredbg`)
+- **VS Code** : `ms-dotnettools.csdevkit` (support C# Microsoft avec debug via `vsdbg`)
 
-Ils ne se mélangent pas car ils utilisent des containers séparés.
+Les deux supportent maintenant le debug avec breakpoints. Ils ne se mélangent pas car ils utilisent des containers séparés.
 
 ### Tâches ou launch configs en double
 Si vous voyez des doublons dans VS Code :
@@ -155,7 +158,7 @@ curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/.vsdbg
 Installées automatiquement par les dev containers :
 
 **Cursor** :
-- `anysphere.csharp` - Support C# de base
+- `anysphere.csharp` - Support C# officiel Cursor avec debug (`netcoredbg`)
 - `josefpihrt-vscode.roslynator` - Analyseur de code
 - `ms-dotnettools.vscode-dotnet-runtime` - Runtime .NET
 - `aaron-bond.better-comments` - Commentaires améliorés
@@ -175,9 +178,11 @@ Installées automatiquement par les dev containers :
    - Édition de code
    - Refactoring
    - Tests rapides (`F5` > "🧪 Lancer les Tests")
+   - Debug avec breakpoints (`F5` > "🐛 Debug UI")
    - Lancement de l'UI pour vérifier visuellement
 
-2. **Investigation de bugs** : VS Code
+2. **Investigation de bugs** : Cursor ou VS Code
+   - Les deux supportent maintenant le debug avec breakpoints
    - Placer des breakpoints
    - Debug pas à pas
    - Inspecter les variables
@@ -194,8 +199,8 @@ Installées automatiquement par les dev containers :
 - **Settings communs** : `.vscode/settings.json` contient les settings partagés (versionné).
 - **Tâches partagées** : `.vscode/tasks.json` est utilisé par les deux environnements.
 - **Launch configs séparées** : 
-  - Cursor : configurations sans debug (node-terminal) dans `RomPilot-cursor.code-workspace`
-  - VS Code : configurations avec debug (coreclr) dans `RomPilot-vscode.code-workspace`
+  - Cursor : configurations avec debug (coreclr + netcoredbg) et sans debug (node-terminal) dans `RomPilot-cursor.code-workspace`
+  - VS Code : configurations avec debug (coreclr + vsdbg) dans `RomPilot-vscode.code-workspace`
 - **Même Docker Compose** : Les deux dev containers réutilisent `.devcontainer/docker-compose.yml`.
 
 ## 🆘 Support
