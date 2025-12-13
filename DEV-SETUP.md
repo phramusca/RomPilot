@@ -1,50 +1,37 @@
 # 🛠️ Guide de Configuration - RomPilot
 
-## 🎯 Deux Environnements, Deux Usages
+## 🎯 Environnement de Développement
 
-RomPilot utilise **deux configurations de dev container** dans `.devcontainer/` :
+RomPilot utilise **Cursor** avec un dev container configuré pour le développement et le debug.
 
-### 🖊️ Cursor (`.devcontainer/cursor/`) - Édition et Développement
-- **Extensions** : `anysphere.csharp`, `roslynator`
-- **Debugger** : ❌ Pas de breakpoints (node-terminal)
-- **Usage** : Édition, refactoring, tests rapides
-- **Lancement** : `F5` → "🚀 Lancer l'UI" (sans debug)
+### ✨ Fonctionnalités
 
-### 🐛 VS Code (`.devcontainer/vscode/`) - Debug Complet
-- **Extensions** : `ms-dotnettools.csdevkit`, `ms-dotnettools.csharp`
-- **Debugger** : ✅ `coreclr` + `vsdbg` (breakpoints fonctionnels)
-- **Usage** : Investigation de bugs, debug pas à pas
+- **Extensions** : `anysphere.csharp` (support C# officiel Cursor avec debug)
+- **Debugger** : ✅ `coreclr` + `netcoredbg` (breakpoints fonctionnels)
+- **Usage** : Édition, refactoring, tests, debug pas à pas
 - **Lancement** : `F5` → "🐛 Debug UI" (avec breakpoints)
 
 ## 🚀 Démarrage
 
-### Option 1 : Cursor (Recommandé pour le développement)
+### 1. Ouvrir dans Cursor
 ```bash
-# 1. Ouvrir le dossier dans Cursor
 cursor .
-
-# 2. Reopen in Container
-Ctrl+Shift+P > Dev Containers: Reopen in Container
-# Choisir: "RomPilot - Cursor (Édition)"
-
-# 3. Lancer l'application
-F5 > "🚀 Lancer l'UI"
 ```
 
-### Option 2 : VS Code (Pour le debug avec breakpoints)
+### 2. Reopen in Container
 ```bash
-# 1. Ouvrir le dossier dans VS Code
-code .
-
-# 2. Reopen in Container
 Ctrl+Shift+P > Dev Containers: Reopen in Container
-# Choisir: "RomPilot - VS Code (Debug)"
-
-# 3. Placer des breakpoints et lancer
-F5 > "🐛 Debug UI"
+# Choisir: "RomPilot"
 ```
 
-> 💡 **VS Code/Cursor détecte automatiquement les deux configurations** et vous propose de choisir !
+### 3. Lancer l'application avec debug
+```bash
+# Placer des breakpoints dans votre code
+# F5 > "🐛 Debug UI"
+# Les breakpoints fonctionnent ! ✅
+```
+
+> 💡 **Cursor détecte automatiquement la configuration** dans `.devcontainer/` !
 
 ## 🔧 Configuration X11 (Linux uniquement)
 
@@ -66,7 +53,7 @@ xhost +local:docker > /dev/null 2>&1
 
 ## 🧪 Tests
 
-### Depuis Cursor ou VS Code
+### Depuis Cursor
 ```bash
 # Tous les tests
 dotnet test
@@ -81,11 +68,10 @@ dotnet test --filter "FullyQualifiedName~ScanService"
 dotnet test --logger "console;verbosity=detailed"
 ```
 
-### Depuis VS Code avec Test Explorer
-1. Ouvrir la vue "Testing" (icône fiole dans la barre latérale)
-2. Tous les tests xUnit sont détectés automatiquement
-3. Cliquer sur ▶️ pour lancer un test
-4. Placer des breakpoints dans les tests pour débugger
+### Debug des tests
+1. Placer des breakpoints dans vos tests
+2. `F5` > "🧪 Debug Tests"
+3. Les breakpoints fonctionnent dans les tests aussi !
 
 ## 🎨 Formatage et Linting
 
@@ -118,52 +104,28 @@ xhost +local:docker
 dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
 ```
 
-### Les breakpoints ne fonctionnent pas dans Cursor
-**C'est normal !** Cursor ne supporte pas le debugger `coreclr` avec breakpoints.
-
-**Solution** : Utilisez VS Code avec `.devcontainer-vscode/` pour le debug.
-
-### Conflits d'extensions C#
-Les deux dev containers utilisent **des extensions différentes** :
-- **Cursor** : `anysphere.csharp` (léger, pas de debug)
-- **VS Code** : `ms-dotnettools.csdevkit` (complet, avec debug)
-
-Ils ne se mélangent pas car ils utilisent des containers séparés.
+### Les breakpoints ne fonctionnent pas
+**Vérifications** :
+1. Assurez-vous d'avoir Cursor 2.2.20 ou plus récent
+2. Vérifiez que l'extension `anysphere.csharp` est installée (elle devrait l'être automatiquement via le devcontainer)
+3. Utilisez les configurations de debug dans `.vscode/launch.json`
 
 ### Tâches ou launch configs en double
-Si vous voyez des doublons dans VS Code :
+Si vous voyez des doublons :
 1. Fermez tous les dossiers/workspaces
-2. Ouvrez **uniquement** `RomPilot-vscode.code-workspace`
+2. Ouvrez uniquement le dossier racine
 3. Rechargez la fenêtre (`Ctrl+Shift+P` > "Reload Window")
-
-### vsdbg introuvable
-Le debugger `vsdbg` est installé automatiquement par `.devcontainer-vscode/`.
-
-Si nécessaire, installation manuelle :
-```bash
-curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/.vsdbg
-```
 
 ## 📦 Dépendances
 
 ### Runtime
-- .NET 7.0 SDK
+- .NET 8.0 SDK (LTS)
 - SQLite
 - X11 (Linux, pour l'UI)
 
-### Extensions VS Code/Cursor
-Installées automatiquement par les dev containers :
-
-**Cursor** :
-- `anysphere.csharp` - Support C# de base
-- `josefpihrt-vscode.roslynator` - Analyseur de code
-- `ms-dotnettools.vscode-dotnet-runtime` - Runtime .NET
-- `aaron-bond.better-comments` - Commentaires améliorés
-- `ms-azuretools.vscode-docker` - Support Docker
-
-**VS Code** :
-- `ms-dotnettools.csdevkit` - C# Dev Kit (debugger inclus)
-- `ms-dotnettools.csharp` - Language server C#
+### Extensions Cursor
+Installées automatiquement par le dev container :
+- `anysphere.csharp` - Support C# officiel Cursor avec debug (`netcoredbg`)
 - `josefpihrt-vscode.roslynator` - Analyseur de code
 - `ms-dotnettools.vscode-dotnet-runtime` - Runtime .NET
 - `aaron-bond.better-comments` - Commentaires améliorés
@@ -174,29 +136,20 @@ Installées automatiquement par les dev containers :
 1. **Développement quotidien** : Cursor
    - Édition de code
    - Refactoring
-   - Tests rapides (`F5` > "🧪 Lancer les Tests")
+   - Tests rapides (`F5` > "🧪 Debug Tests")
+   - Debug avec breakpoints (`F5` > "🐛 Debug UI")
    - Lancement de l'UI pour vérifier visuellement
 
-2. **Investigation de bugs** : VS Code
-   - Placer des breakpoints
-   - Debug pas à pas
-   - Inspecter les variables
-   - Analyser la stack trace
-
-3. **Synchronisation** : Git
-   - Les deux environnements partagent le même code
-   - Commitez depuis n'importe lequel
+2. **Synchronisation** : Git
    - Les configurations sont versionnées
+   - Commitez depuis Cursor
 
 ## 📝 Notes Importantes
 
-- **Workspaces spécifiques** : Utilisez `RomPilot-cursor.code-workspace` pour Cursor et `RomPilot-vscode.code-workspace` pour VS Code.
-- **Settings communs** : `.vscode/settings.json` contient les settings partagés (versionné).
-- **Tâches partagées** : `.vscode/tasks.json` est utilisé par les deux environnements.
-- **Launch configs séparées** : 
-  - Cursor : configurations sans debug (node-terminal) dans `RomPilot-cursor.code-workspace`
-  - VS Code : configurations avec debug (coreclr) dans `RomPilot-vscode.code-workspace`
-- **Même Docker Compose** : Les deux dev containers réutilisent `.devcontainer/docker-compose.yml`.
+- **Settings** : `.vscode/settings.json` contient les settings partagés (versionné).
+- **Tâches** : `.vscode/tasks.json` contient les tâches communes.
+- **Launch configs** : `.vscode/launch.json` contient les configurations de debug.
+- **Dev Container** : Configuration unique dans `.devcontainer/devcontainer.json`.
 
 ## 🆘 Support
 

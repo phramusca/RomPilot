@@ -4,38 +4,26 @@ Application de gestion de ROMs (lecture seule) avec support de multiples formats
 
 ## 🚀 Démarrage Rapide
 
-### Choix de l'Environnement
-
-**🖊️ Pour éditer et coder** (Cursor recommandé) :
+### 1. Ouvrir dans Cursor
 ```bash
-Cursor > Dev Containers: Reopen in Container
-# Choisir: "RomPilot - Cursor (Édition)"
+cursor .
 ```
 
-**🐛 Pour débugger avec breakpoints** (VS Code requis) :
+### 2. Reopen in Container
 ```bash
-VS Code > Dev Containers: Reopen in Container
-# Choisir: "RomPilot - VS Code (Debug)"
+Ctrl+Shift+P > Dev Containers: Reopen in Container
+# Choisir: "RomPilot"
 ```
 
-> 💡 VS Code/Cursor détecte automatiquement les **deux configurations** dans `.devcontainer/` et vous propose de choisir !
-
-### Lancer l'Application
-
-**Dans Cursor** (sans breakpoints) :
-```bash
-# F5 > "🚀 Lancer l'UI"
-# Ou :
-dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
-```
-
-**Dans VS Code** (avec breakpoints) :
+### 3. Lancer l'Application avec Debug
 ```bash
 # F5 > "🐛 Debug UI"
 # Les breakpoints fonctionnent ! ✅
+# Ou sans debug :
+dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
 ```
 
-### 3. Lancer les tests
+### 4. Lancer les tests
 ```bash
 # Avec F5 > "🧪 Lancer les Tests"
 # Ou :
@@ -44,12 +32,12 @@ dotnet test
 
 ## 📋 Prérequis
 
-- Docker + VS Code/Cursor avec Dev Containers
-- Ou : .NET 7.0 SDK
+- Docker + Cursor avec Dev Containers
+- Ou : .NET 8.0 SDK
 
 ## 🛠️ Technologies
 
-- **Frontend** : Avalonia UI (C# / .NET 7.0)
+- **Frontend** : Avalonia UI (C# / .NET 8.0)
 - **Base de données** : SQLite + Entity Framework Core
 - **Tests** : xUnit + Fluent Assertions + Moq
 - **Archives** : SharpCompress (ZIP, 7Z, RAR)
@@ -82,18 +70,14 @@ RomPilot/
 │       ├── plan.md                 # Plan d'implémentation
 │       ├── tasks.md                # Tâches détaillées
 │       └── data-model.md           # Modèle de données
-├── .vscode/                        # Configurations communes
-│   ├── settings.json              # Settings partagés (versionné)
-│   └── tasks.json                 # Tâches partagées (build, test, format)
-├── .devcontainer/                  # Configurations Dev Containers
-│   ├── cursor/                    # Config Cursor (édition)
-│   │   └── devcontainer.json     # Extensions : anysphere.csharp, roslynator
-│   ├── vscode/                    # Config VS Code (debug)
-│   │   └── devcontainer.json     # Extensions : csdevkit, vsdbg auto-install
-│   ├── docker-compose.yml         # Docker Compose partagé
-│   └── Dockerfile                 # Image Docker partagée
-├── RomPilot-cursor.code-workspace  # Workspace Cursor (sans debug, node-terminal)
-└── RomPilot-vscode.code-workspace  # Workspace VS Code (avec debug, coreclr)
+├── .vscode/                        # Configurations
+│   ├── settings.json              # Settings
+│   ├── launch.json               # Configurations de debug
+│   └── tasks.json                 # Tâches (build, test, format)
+├── .devcontainer/                  # Configuration Dev Container
+│   ├── devcontainer.json         # Config Cursor avec extensions
+│   ├── docker-compose.yml         # Docker Compose
+│   └── Dockerfile                 # Image Docker (.NET 8.0)
 ```
 
 ## 🧪 Tests
@@ -141,16 +125,12 @@ dotnet ef database update --project src/RomPilot.Core
 - [Modèle de Données](specs/001-rom-manager-app/data-model.md) - Structure de la base de données
 - [Guide de Configuration](DEV-SETUP.md) - Troubleshooting et détails avancés
 
-### 🔧 Environnements de Développement
+### 🔧 Environnement de Développement
 
-| Feature | Cursor (`.devcontainer/cursor`) | VS Code (`.devcontainer/vscode`) |
-|---------|--------------------------------|----------------------------------|
-| **Usage** | ✏️ Édition, refactoring | 🐛 Debug avec breakpoints |
-| **Extensions** | `anysphere.csharp` | `ms-dotnettools.csdevkit` |
-| **Debugger** | ❌ node-terminal only | ✅ coreclr + vsdbg |
-| **Launch configs** | `RomPilot-cursor.code-workspace` | `RomPilot-vscode.code-workspace` |
-| **Breakpoints** | ❌ | ✅ |
-| **Recommandé pour** | Développement quotidien | Investigation de bugs |
+- **IDE** : Cursor (avec Dev Containers)
+- **Extensions** : `anysphere.csharp` (support C# officiel avec debug)
+- **Debugger** : `coreclr` + `netcoredbg` (breakpoints fonctionnels)
+- **.NET** : 8.0 (LTS)
 
 ## 🎯 État d'Avancement
 

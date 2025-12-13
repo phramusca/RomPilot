@@ -1,5 +1,5 @@
 {
-	"name": "RomPilot - Cursor (Édition)",
+	"name": "RomPilot",
 	"dockerComposeFile": "../docker-compose.yml",
 	"service": "devcontainer",
 	"workspaceFolder": "/workspace",

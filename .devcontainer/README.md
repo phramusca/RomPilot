@@ -5,28 +5,38 @@ Ce dossier contient la configuration du dev container pour le projet RomPilot.
 ## Prérequis
 
 - Docker installé et en cours d'exécution
-- Visual Studio Code avec l'extension "Dev Containers" installée
+- Cursor avec l'extension "Dev Containers" installée
 
 ## Utilisation
 
-1. Ouvrir le projet dans VS Code
-2. Appuyer sur `F1` et sélectionner "Dev Containers: Reopen in Container"
-3. Attendre que le container se construise et démarre
-4. Le projet sera automatiquement restauré et compilé
+1. Ouvrir le projet dans Cursor
+2. Appuyer sur `Ctrl+Shift+P` et sélectionner "Dev Containers: Reopen in Container"
+3. Choisir "RomPilot"
+4. Attendre que le container se construise et démarre
+5. Le projet sera automatiquement restauré et compilé
 
 ## Contenu du container
 
-- .NET SDK 7.0
-- Entity Framework Core Tools (dotnet-ef)
+- .NET SDK 8.0 (LTS)
+- Entity Framework Core Tools (dotnet-ef 8.0)
 - Dépendances système pour Avalonia UI (GTK3, X11, etc.)
 - Outils de développement (git, curl, wget)
+
+## Extensions installées
+
+- `anysphere.csharp` - Support C# officiel Cursor avec debug
+- `josefpihrt-vscode.roslynator` - Analyseur de code
+- `ms-dotnettools.vscode-dotnet-runtime` - Runtime .NET
+- `aaron-bond.better-comments` - Commentaires améliorés
+- `ms-azuretools.vscode-docker` - Support Docker
 
 ## Notes
 
 - Le container utilise un utilisateur non-root (`vscode`) pour la sécurité
-- Les extensions VS Code recommandées sont installées automatiquement
+- Les extensions Cursor sont installées automatiquement
 - Le workspace est monté dans `/workspace`
 - Les fichiers de l'hôte sont accessibles via `/host/home` et `/host/media` pour accéder aux ROMs
+- Le debug avec breakpoints fonctionne grâce à `netcoredbg`
 
 ## Accès aux fichiers de l'hôte
 
