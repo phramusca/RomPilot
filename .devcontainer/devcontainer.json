@@ -14,11 +14,49 @@
 			"extensions": [
 				"anysphere.csharp",
 				"josefpihrt-vscode.roslynator",
-				"ms-dotnettools.vscode-dotnet-runtime",
 				"aaron-bond.better-comments",
 				"ms-azuretools.vscode-docker"
 			],
-			"settings": {}
+			"settings": {
+				// Editor
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll": "explicit",
+					"source.organizeImports": "explicit"
+				},
+				// Files
+				"files.exclude": {
+					"**/bin": true,
+					"**/obj": true,
+					"**/.vs": true
+				},
+				"search.exclude": {
+					"**/bin": true,
+					"**/obj": true,
+					"**/node_modules": true
+				},
+				"files.watcherExclude": {
+					"**/bin/**": true,
+					"**/obj/**": true
+				},
+				// C# Formatting
+				"[csharp]": {
+					"editor.defaultFormatter": "anysphere.csharp",
+					"editor.rulers": [
+						120
+					],
+					"editor.tabSize": 4,
+					"editor.insertSpaces": true
+				},
+				// XML (pour les .csproj et .axaml)
+				"[xml]": {
+					"editor.tabSize": 2
+				},
+				// Terminal
+				"terminal.integrated.defaultProfile.linux": "bash",
+				// Problems
+				"problems.showCurrentInStatus": true
+			}
 		}
 	}
 }
