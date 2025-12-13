@@ -94,6 +94,20 @@ dotnet format --verify-no-changes
 
 ## 🐛 Troubleshooting
 
+### Extensions téléchargent .NET 9 alors qu'on utilise .NET 8
+
+**Problème** : Au démarrage du container, certaines extensions (notamment `ms-dotnettools.csharp`, dépendance de Roslynator) téléchargent automatiquement .NET 9.0 (~150 MB) alors que le projet utilise .NET 8.0.
+
+**Solution** : Les paramètres suivants dans `devcontainer.json` forcent l'utilisation du .NET 8.0 du container :
+```json
+"dotnetAcquisitionExtension.sharedExistingDotnetPath": "/usr/bin/dotnet",
+"dotnetAcquisitionExtension.existingDotnetPath": "/usr/bin/dotnet",
+"dotnetAcquisitionExtension.enableTelemetry": false,
+"dotnet.dotnetPath": "/usr/bin/dotnet"
+```
+
+Ces 4 paramètres sont **tous nécessaires** pour bloquer complètement l'acquisition automatique.
+
 ### L'UI ne se lance pas
 ```bash
 # Vérifier X11
@@ -125,9 +139,8 @@ Si vous voyez des doublons :
 
 ### Extensions Cursor
 Installées automatiquement par le dev container :
-- `anysphere.csharp` - Support C# officiel Cursor avec debug (`netcoredbg`)
-- `josefpihrt-vscode.roslynator` - Analyseur de code
-- `ms-dotnettools.vscode-dotnet-runtime` - Runtime .NET
+- `anysphere.csharp` - Support C# officiel Cursor avec debug et IntelliSense
+- `josefpihrt-vscode.roslynator` - Analyseur de code avancé (linting + refactorings)
 - `aaron-bond.better-comments` - Commentaires améliorés
 - `ms-azuretools.vscode-docker` - Support Docker
 
