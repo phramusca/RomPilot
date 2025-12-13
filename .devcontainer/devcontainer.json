@@ -15,17 +15,14 @@
 				"anysphere.csharp",
 				"josefpihrt-vscode.roslynator",
 				"aaron-bond.better-comments",
-				"ms-azuretools.vscode-containers"
+				"ms-azuretools.vscode-containers",
+				"ms-azuretools.vscode-docker",
+				"DavidAnson.vscode-markdownlint",
+				"mechatroner.rainbow-csv",
+				"Gruntfuggly.todo-tree",
+				"TakumiI.markdowntable"
 			],
 			"settings": {
-				// ⚙️ Configuration .NET : Force l'utilisation du .NET 8.0 du container
-				// Sans ces paramètres, certaines extensions (notamment les dépendances de Roslynator)
-				// téléchargent automatiquement .NET 9.0 (~150 MB) alors qu'on utilise .NET 8.0.
-				// Ces 4 paramètres bloquent l'acquisition automatique et forcent /usr/bin/dotnet.
-				"dotnetAcquisitionExtension.sharedExistingDotnetPath": "/usr/bin/dotnet",
-				"dotnetAcquisitionExtension.existingDotnetPath": "/usr/bin/dotnet",
-				"dotnetAcquisitionExtension.enableTelemetry": false,
-				"dotnet.dotnetPath": "/usr/bin/dotnet",
 				// Editor
 				"editor.formatOnSave": true,
 				"editor.codeActionsOnSave": {
