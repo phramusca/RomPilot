@@ -1,6 +1,6 @@
 {
 	"name": "RomPilot",
-	"dockerComposeFile": "../docker-compose.yml",
+	"dockerComposeFile": "docker-compose.yml",
 	"service": "devcontainer",
 	"workspaceFolder": "/workspace",
 	"postCreateCommand": "dotnet restore && dotnet build",
