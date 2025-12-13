@@ -42,12 +42,6 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Entity Framework Core tools globally
-RUN dotnet tool install --global dotnet-ef --version 8.0.0
-
-# Add dotnet tools to PATH
-ENV PATH="${PATH}:/root/.dotnet/tools"
-
 # Create a non-root user for development
 ARG USERNAME=vscode
 ARG USER_UID=1000
@@ -62,8 +56,11 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dotnet-ef for the non-root user as well
+# Install dotnet-ef for the non-root user
 RUN su - $USERNAME -c "dotnet tool install --global dotnet-ef --version 8.0.0"
+
+# Add dotnet tools to PATH for the vscode user
+ENV PATH="${PATH}:/home/vscode/.dotnet/tools"
 
 # Set working directory
 WORKDIR /workspace
