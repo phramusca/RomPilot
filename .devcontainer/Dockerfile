@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y \
     x11vnc \
     fluxbox \
     git \
+    openssh-client \
     curl \
     wget \
     ca-certificates \
