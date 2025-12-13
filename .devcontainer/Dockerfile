@@ -1,5 +1,5 @@
-# Use the official .NET 7.0 SDK image
-FROM mcr.microsoft.com/dotnet/sdk:7.0
+# Use the official .NET 8.0 SDK image
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 # Install system dependencies for Avalonia UI (GTK3, X11, etc.)
 RUN apt-get update && apt-get install -y \
@@ -43,7 +43,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Entity Framework Core tools globally
-RUN dotnet tool install --global dotnet-ef --version 7.0.20
+RUN dotnet tool install --global dotnet-ef --version 8.0.0
 
 # Add dotnet tools to PATH
 ENV PATH="${PATH}:/root/.dotnet/tools"
@@ -63,7 +63,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dotnet-ef for the non-root user as well
-RUN su - $USERNAME -c "dotnet tool install --global dotnet-ef --version 7.0.20"
+RUN su - $USERNAME -c "dotnet tool install --global dotnet-ef --version 8.0.0"
 
 # Set working directory
 WORKDIR /workspace

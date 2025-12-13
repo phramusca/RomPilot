@@ -12,7 +12,7 @@
                 "type": "coreclr",
                 "request": "launch",
                 "preLaunchTask": "build-ui",
-                "program": "${workspaceFolder}/src/RomPilot.UI/bin/Debug/net7.0/RomPilot.UI.dll",
+                "program": "${workspaceFolder}/src/RomPilot.UI/bin/Debug/net8.0/RomPilot.UI.dll",
                 "args": [],
                 "cwd": "${workspaceFolder}/src/RomPilot.UI",
                 "stopAtEntry": false,
