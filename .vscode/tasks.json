@@ -14,6 +14,18 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "build-ui",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/RomPilot.UI/RomPilot.UI.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "build-tests",
             "command": "dotnet",
             "type": "process",

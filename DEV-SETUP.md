@@ -1,244 +1,203 @@
-# 🛠️ Guide de Configuration de l'Environnement
+# 🛠️ Guide de Configuration - RomPilot
 
-Guide de troubleshooting et configuration avancée pour RomPilot.
+## 🎯 Deux Environnements, Deux Usages
 
-## 🚀 Installation
+RomPilot utilise **deux configurations de dev container** dans `.devcontainer/` :
 
-### Dev Container (Recommandé)
+### 🖊️ Cursor (`.devcontainer/cursor/`) - Édition et Développement
+- **Extensions** : `anysphere.csharp`, `roslynator`
+- **Debugger** : ❌ Pas de breakpoints (node-terminal)
+- **Usage** : Édition, refactoring, tests rapides
+- **Lancement** : `F5` → "🚀 Lancer l'UI" (sans debug)
+
+### 🐛 VS Code (`.devcontainer/vscode/`) - Debug Complet
+- **Extensions** : `ms-dotnettools.csdevkit`, `ms-dotnettools.csharp`
+- **Debugger** : ✅ `coreclr` + `vsdbg` (breakpoints fonctionnels)
+- **Usage** : Investigation de bugs, debug pas à pas
+- **Lancement** : `F5` → "🐛 Debug UI" (avec breakpoints)
+
+## 🚀 Démarrage
+
+### Option 1 : Cursor (Recommandé pour le développement)
+```bash
+# 1. Ouvrir le dossier dans Cursor
+cursor .
+
+# 2. Reopen in Container
+Ctrl+Shift+P > Dev Containers: Reopen in Container
+# Choisir: "RomPilot - Cursor (Édition)"
+
+# 3. Lancer l'application
+F5 > "🚀 Lancer l'UI"
+```
+
+### Option 2 : VS Code (Pour le debug avec breakpoints)
+```bash
+# 1. Ouvrir le dossier dans VS Code
+code .
+
+# 2. Reopen in Container
+Ctrl+Shift+P > Dev Containers: Reopen in Container
+# Choisir: "RomPilot - VS Code (Debug)"
+
+# 3. Placer des breakpoints et lancer
+F5 > "🐛 Debug UI"
+```
+
+> 💡 **VS Code/Cursor détecte automatiquement les deux configurations** et vous propose de choisir !
+
+## 🔧 Configuration X11 (Linux uniquement)
+
+Pour afficher l'UI Avalonia depuis le container :
 
 ```bash
-# 1. Ouvrir le projet dans VS Code/Cursor
-# 2. Dev Containers: Reopen in Container
-# 3. Attendre la construction (~2-3 minutes)
+# Autoriser les connexions X11 depuis le container
+xhost +local:docker
+
+# Vérifier que DISPLAY est défini
+echo $DISPLAY  # Devrait afficher ":0" ou ":1"
 ```
 
-Le dev container configure automatiquement :
-- .NET 7.0 SDK
-- Extensions C# (Roslynator)
-- SQLite
-- X11 forwarding pour l'UI
-
-### Installation Locale
-
+**Ajout permanent** (dans `~/.bashrc` ou `~/.zshrc`) :
 ```bash
-# 1. Installer .NET 7.0 SDK
-wget https://dot.net/v1/dotnet-install.sh
-bash dotnet-install.sh --channel 7.0
-
-# 2. Restaurer les dépendances
-dotnet restore
-
-# 3. Build
-dotnet build
-
-# 4. Créer la base de données
-dotnet ef database update --project src/RomPilot.Core
-```
-
-## 🐛 Troubleshooting
-
-### L'application ne se lance pas (F5)
-
-**Vérifier que tout compile** :
-```bash
-dotnet build
-```
-
-**Vérifier X11 (pour l'interface graphique)** :
-```bash
-echo $DISPLAY  # Devrait afficher ":0"
-xeyes          # Fenêtre de test
-```
-
-**Lancer manuellement** :
-```bash
-dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
-```
-
-### Erreurs OpenGL (libGL error)
-
-Ces erreurs sont **normales** et n'empêchent pas l'application de fonctionner :
-```
-libGL error: failed to load driver: nvidia-drm
-```
-Avalonia utilise un fallback software renderer.
-
-### Tests échouent
-
-```bash
-# Voir les détails
-dotnet test --logger "console;verbosity=detailed"
-
-# Nettoyer et rebuild
-dotnet clean
-dotnet build
-dotnet test
-```
-
-### Problèmes de base de données
-
-```bash
-# Supprimer et recréer
-rm -f src/RomPilot.UI/rompilot.db
-dotnet ef database update --project src/RomPilot.Core
-
-# Créer une nouvelle migration
-dotnet ef migrations add NomDeLaMigration --project src/RomPilot.Core
-```
-
-### IntelliSense ne fonctionne pas
-
-```bash
-# Recharger la fenêtre
-# Ctrl+Shift+P > "Developer: Reload Window"
-
-# Ou reconstruire
-dotnet clean
-dotnet restore
-dotnet build
+# Autoriser X11 pour Docker au démarrage
+xhost +local:docker > /dev/null 2>&1
 ```
 
 ## 🧪 Tests
 
-### Lancer les Tests
-
+### Depuis Cursor ou VS Code
 ```bash
-# Tous
+# Tous les tests
 dotnet test
 
-# Avec logs détaillés
-dotnet test --logger "console;verbosity=detailed"
+# Tests avec couverture
+dotnet test --collect:"XPlat Code Coverage"
 
-# Filtrer par nom
+# Tests filtrés
 dotnet test --filter "FullyQualifiedName~ScanService"
 
-# Avec couverture
-dotnet test --collect:"XPlat Code Coverage"
+# Mode verbeux
+dotnet test --logger "console;verbosity=detailed"
 ```
 
-### Mode Watch (TDD)
-
-```bash
-# Les tests se relancent automatiquement à chaque modification
-dotnet watch test --project src/RomPilot.Tests/RomPilot.Tests.csproj
-```
-
-## 🔧 Configuration
-
-### Fichiers de Configuration
-
-**`.devcontainer/devcontainer.json`** :
-- Extensions C# (Roslynator)
-- Settings VS Code/Cursor (formatage, IntelliSense, etc.)
-- Montage des répertoires hôte
-
-**`.vscode/launch.json`** :
-- 🚀 Lancer l'UI (Sans Debug)
-- 🧪 Lancer les Tests
-- 🔍 Lancer l'UI avec Logs Détaillés
-
-**`.vscode/tasks.json`** :
-- Tâches de build, test, format, clean
-
-**Note** : Les settings sont dans `devcontainer.json`, pas dans `.vscode/settings.json` (qui n'existe pas). Pour le debugging avec breakpoints, utilisez VS Code avec l'extension "C# Dev Kit".
-
-## 📦 Dépendances
-
-```bash
-# Ajouter un package
-dotnet add src/RomPilot.Core package NomDuPackage
-
-# Restaurer après changement
-dotnet restore
-```
-
-## 🗃️ Base de Données
-
-### Migrations EF Core
-
-```bash
-# Créer une migration
-dotnet ef migrations add NomDeLaMigration --project src/RomPilot.Core
-
-# Appliquer les migrations
-dotnet ef database update --project src/RomPilot.Core
-
-# Supprimer la dernière migration
-dotnet ef migrations remove --project src/RomPilot.Core
-
-# Voir les migrations
-dotnet ef migrations list --project src/RomPilot.Core
-```
-
-### Localisation de la BD
-
-```
-src/RomPilot.UI/rompilot.db
-```
+### Depuis VS Code avec Test Explorer
+1. Ouvrir la vue "Testing" (icône fiole dans la barre latérale)
+2. Tous les tests xUnit sont détectés automatiquement
+3. Cliquer sur ▶️ pour lancer un test
+4. Placer des breakpoints dans les tests pour débugger
 
 ## 🎨 Formatage et Linting
 
+Le formatage est **automatique à la sauvegarde** grâce à `.editorconfig` et Roslynator.
+
+### Formatage manuel
 ```bash
-# Formater automatiquement
+# Formater tout le projet
 dotnet format
 
 # Vérifier sans modifier
 dotnet format --verify-no-changes
-
-# Formater uniquement les fichiers modifiés
-dotnet format --include <fichier.cs>
 ```
 
-Le formatage suit les règles définies dans `.editorconfig`.
+### Règles de style
+- **Indentation** : 4 espaces (C#), 2 espaces (XML/AXAML)
+- **Longueur de ligne** : 120 caractères
+- **Imports** : Organisés automatiquement à la sauvegarde
+- **Analyseurs** : Roslynator + règles .editorconfig
 
-## 🔍 Debugging
+## 🐛 Troubleshooting
 
-### Avec Logs
+### L'UI ne se lance pas
+```bash
+# Vérifier X11
+echo $DISPLAY
+xhost +local:docker
 
-```csharp
-// Ajouter des logs informatifs
-Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [MyClass] Debug: {value}");
+# Vérifier les logs
+dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
 ```
 
-### Avec Tests
+### Les breakpoints ne fonctionnent pas dans Cursor
+**C'est normal !** Cursor ne supporte pas le debugger `coreclr` avec breakpoints.
 
-```csharp
-[Fact]
-public void Should_Handle_Edge_Case()
-{
-    // Arrange
-    var service = new MyService();
-    
-    // Act
-    var result = service.DoSomething();
-    
-    // Assert
-    result.Should().Be(expected);
-}
+**Solution** : Utilisez VS Code avec `.devcontainer-vscode/` pour le debug.
+
+### Conflits d'extensions C#
+Les deux dev containers utilisent **des extensions différentes** :
+- **Cursor** : `anysphere.csharp` (léger, pas de debug)
+- **VS Code** : `ms-dotnettools.csdevkit` (complet, avec debug)
+
+Ils ne se mélangent pas car ils utilisent des containers séparés.
+
+### Tâches ou launch configs en double
+Si vous voyez des doublons dans VS Code :
+1. Fermez tous les dossiers/workspaces
+2. Ouvrez **uniquement** `RomPilot-Debug.code-workspace`
+3. Rechargez la fenêtre (`Ctrl+Shift+P` > "Reload Window")
+
+### vsdbg introuvable
+Le debugger `vsdbg` est installé automatiquement par `.devcontainer-vscode/`.
+
+Si nécessaire, installation manuelle :
+```bash
+curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/.vsdbg
 ```
 
-### Avec Breakpoints (VS Code seulement)
+## 📦 Dépendances
 
-1. Ouvrir dans VS Code (pas Cursor)
-2. Installer "C# Dev Kit" (`ms-dotnettools.csdevkit`)
-3. F5 fonctionne avec breakpoints
+### Runtime
+- .NET 7.0 SDK
+- SQLite
+- X11 (Linux, pour l'UI)
 
-## 🌐 X11 et Avalonia UI
+### Extensions VS Code/Cursor
+Installées automatiquement par les dev containers :
 
-L'application nécessite un serveur X11 pour l'affichage graphique.
+**Cursor** :
+- `anysphere.csharp` - Support C# de base
+- `josefpihrt-vscode.roslynator` - Analyseur de code
+- `ms-dotnettools.vscode-dotnet-runtime` - Runtime .NET
+- `aaron-bond.better-comments` - Commentaires améliorés
+- `ms-azuretools.vscode-docker` - Support Docker
 
-### Linux
-X11 forwarding automatique via `DISPLAY=:0`
+**VS Code** :
+- `ms-dotnettools.csdevkit` - C# Dev Kit (debugger inclus)
+- `ms-dotnettools.csharp` - Language server C#
+- `josefpihrt-vscode.roslynator` - Analyseur de code
+- `ms-dotnettools.vscode-dotnet-runtime` - Runtime .NET
+- `aaron-bond.better-comments` - Commentaires améliorés
+- `ms-azuretools.vscode-docker` - Support Docker
 
-### Windows (WSL2)
-Installer VcXsrv ou X410
+## 🔄 Workflow Recommandé
 
-### macOS
-Installer XQuartz
+1. **Développement quotidien** : Cursor
+   - Édition de code
+   - Refactoring
+   - Tests rapides (`F5` > "🧪 Lancer les Tests")
+   - Lancement de l'UI pour vérifier visuellement
 
-## 📚 Ressources
+2. **Investigation de bugs** : VS Code
+   - Placer des breakpoints
+   - Debug pas à pas
+   - Inspecter les variables
+   - Analyser la stack trace
 
-- [Avalonia UI Docs](https://docs.avaloniaui.net/)
-- [.NET 7.0 Docs](https://docs.microsoft.com/dotnet/)
-- [Entity Framework Core](https://docs.microsoft.com/ef/core/)
-- [xUnit Documentation](https://xunit.net/)
+3. **Synchronisation** : Git
+   - Les deux environnements partagent le même code
+   - Commitez depuis n'importe lequel
+   - Les configurations sont versionnées
+
+## 📝 Notes Importantes
+
+- **Ne pas mélanger** : N'ouvrez pas le dossier racine dans VS Code si vous voulez débugger. Utilisez `RomPilot-Debug.code-workspace`.
+- **Tâches partagées** : `.vscode/tasks.json` est utilisé par les deux environnements.
+- **Launch configs séparées** : Cursor utilise `.vscode/launch.json`, VS Code utilise le workspace file.
+- **Même Docker Compose** : Les deux dev containers réutilisent `.devcontainer/docker-compose.yml`.
+
+## 🆘 Support
+
+En cas de problème :
+1. Vérifier ce guide
+2. Consulter les logs du container (`Docker` > `Containers` > clic droit > `View Logs`)
+3. Reconstruire le container (`Ctrl+Shift+P` > "Dev Containers: Rebuild Container")

@@ -4,16 +4,35 @@ Application de gestion de ROMs (lecture seule) avec support de multiples formats
 
 ## 🚀 Démarrage Rapide
 
-### 1. Ouvrir dans le Dev Container
+### Choix de l'Environnement
+
+**🖊️ Pour éditer et coder** (Cursor recommandé) :
 ```bash
-VS Code/Cursor > Dev Containers: Reopen in Container
+Cursor > Dev Containers: Reopen in Container
+# Choisir: "RomPilot - Cursor (Édition)"
 ```
 
-### 2. Lancer l'application
+**🐛 Pour débugger avec breakpoints** (VS Code requis) :
 ```bash
-# Avec F5 > "🚀 Lancer l'UI (Sans Debug)"
+VS Code > Dev Containers: Reopen in Container
+# Choisir: "RomPilot - VS Code (Debug)"
+```
+
+> 💡 VS Code/Cursor détecte automatiquement les **deux configurations** dans `.devcontainer/` et vous propose de choisir !
+
+### Lancer l'Application
+
+**Dans Cursor** (sans breakpoints) :
+```bash
+# F5 > "🚀 Lancer l'UI"
 # Ou :
 dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
+```
+
+**Dans VS Code** (avec breakpoints) :
+```bash
+# F5 > "🐛 Debug UI"
+# Les breakpoints fonctionnent ! ✅
 ```
 
 ### 3. Lancer les tests
@@ -54,20 +73,26 @@ dotnet test
 ```
 RomPilot/
 ├── src/
-│   ├── RomPilot.Core/       # Logique métier, modèles, services
-│   ├── RomPilot.UI/          # Interface Avalonia
-│   └── RomPilot.Tests/       # Tests unitaires et intégration
-├── specs/                    # Documentation des spécifications
+│   ├── RomPilot.Core/              # Logique métier, modèles, services
+│   ├── RomPilot.UI/                # Interface Avalonia
+│   └── RomPilot.Tests/             # Tests unitaires et intégration
+├── specs/                          # Documentation des spécifications
 │   └── 001-rom-manager-app/
-│       ├── spec.md           # Spécifications fonctionnelles
-│       ├── plan.md           # Plan d'implémentation
-│       ├── tasks.md          # Tâches détaillées
-│       └── data-model.md     # Modèle de données
-├── .vscode/                  # Configurations de lancement et tâches
-│   ├── launch.json          # F5 : Lancer l'UI et les tests
-│   └── tasks.json           # Tâches de build, test, format
-└── .devcontainer/            # Configuration du dev container
-    └── devcontainer.json    # Extensions et settings VS Code/Cursor
+│       ├── spec.md                 # Spécifications fonctionnelles
+│       ├── plan.md                 # Plan d'implémentation
+│       ├── tasks.md                # Tâches détaillées
+│       └── data-model.md           # Modèle de données
+├── .vscode/                        # Configurations Cursor
+│   ├── launch.json                # F5 : Lancer sans debug (node-terminal)
+│   └── tasks.json                 # Tâches partagées (build, test, format)
+├── .devcontainer/                  # Configurations Dev Containers
+│   ├── cursor/                    # Config Cursor (édition)
+│   │   └── devcontainer.json     # Extensions : anysphere.csharp, roslynator
+│   ├── vscode/                    # Config VS Code (debug)
+│   │   └── devcontainer.json     # Extensions : csdevkit, vsdbg auto-install
+│   ├── docker-compose.yml         # Docker Compose partagé
+│   └── Dockerfile                 # Image Docker partagée
+└── RomPilot-Debug.code-workspace   # Workspace VS Code avec debug coreclr
 ```
 
 ## 🧪 Tests
@@ -114,6 +139,17 @@ dotnet ef database update --project src/RomPilot.Core
 - [Plan d'Implémentation](specs/001-rom-manager-app/plan.md) - Architecture et roadmap
 - [Modèle de Données](specs/001-rom-manager-app/data-model.md) - Structure de la base de données
 - [Guide de Configuration](DEV-SETUP.md) - Troubleshooting et détails avancés
+
+### 🔧 Environnements de Développement
+
+| Feature | Cursor (`.devcontainer/cursor`) | VS Code (`.devcontainer/vscode`) |
+|---------|--------------------------------|----------------------------------|
+| **Usage** | ✏️ Édition, refactoring | 🐛 Debug avec breakpoints |
+| **Extensions** | `anysphere.csharp` | `ms-dotnettools.csdevkit` |
+| **Debugger** | ❌ node-terminal only | ✅ coreclr + vsdbg |
+| **Launch configs** | `.vscode/launch.json` | `RomPilot-Debug.code-workspace` |
+| **Breakpoints** | ❌ | ✅ |
+| **Recommandé pour** | Développement quotidien | Investigation de bugs |
 
 ## 🎯 État d'Avancement
 

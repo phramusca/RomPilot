@@ -50,5 +50,3 @@ Si vous rencontrez des problèmes avec l'affichage GUI (Avalonia) :
 2. Sur Windows/Mac, utilisez WSL2 ou un serveur X11
 3. Le container inclut `xvfb` pour les tests headless
 
-
-
