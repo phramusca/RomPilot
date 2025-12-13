@@ -18,14 +18,40 @@
 				"ms-azuretools.vscode-docker"
 			],
 			"settings": {
-				"dotnet.defaultSolution": "RomPilot.sln",
+				// C# Language Server
 				"omnisharp.enableRoslynAnalyzers": true,
 				"omnisharp.enableEditorConfigSupport": true,
+				// Solution
+				"dotnet.defaultSolution": "RomPilot.sln",
+				"dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+				"dotnet.formatting.organizeImportsOnFormat": true,
+				// Files
 				"files.exclude": {
 					"**/bin": true,
-					"**/obj": true
+					"**/obj": true,
+					"**/.vs": true
 				},
-				"editor.formatOnSave": true
+				// Editor
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll": "explicit",
+					"source.organizeImports": "explicit"
+				},
+				// C# Formatting
+				"[csharp]": {
+					"editor.defaultFormatter": "muhammad-sammy.csharp",
+					"editor.formatOnSave": true,
+					"editor.tabSize": 4,
+					"editor.insertSpaces": true
+				},
+				// XML (pour les .csproj et .axaml)
+				"[xml]": {
+					"editor.tabSize": 2
+				},
+				// Terminal
+				"terminal.integrated.defaultProfile.linux": "bash",
+				// Problems
+				"problems.showCurrentInStatus": true
 			}
 		}
 	}

@@ -41,7 +41,7 @@ artifacts/
 *.vspscc
 *.vsp
 *.vssscc
-.vscode/
+.vscode/settings.json
 .idea/
 
 # Rider

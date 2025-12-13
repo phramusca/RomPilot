@@ -123,18 +123,24 @@ dotnet test --collect:"XPlat Code Coverage"
 dotnet watch test --project src/RomPilot.Tests/RomPilot.Tests.csproj
 ```
 
-## 🔧 Configurations F5 (launch.json)
+## 🔧 Configuration
 
-### 🚀 Lancer l'UI (Sans Debug)
-Lance l'application normalement avec logs dans le terminal.
+### Fichiers de Configuration
 
-### 🧪 Lancer les Tests
-Exécute tous les tests unitaires avec sortie détaillée.
+**`.devcontainer/devcontainer.json`** :
+- Extensions C# (Roslynator)
+- Settings VS Code/Cursor (formatage, IntelliSense, etc.)
+- Montage des répertoires hôte
 
-### 🔍 Lancer l'UI avec Logs Détaillés
-Lance en mode Development avec logging verbeux.
+**`.vscode/launch.json`** :
+- 🚀 Lancer l'UI (Sans Debug)
+- 🧪 Lancer les Tests
+- 🔍 Lancer l'UI avec Logs Détaillés
 
-**Note** : Ces configurations utilisent `node-terminal` (compatible Cursor). Pour le debugging avec breakpoints, utilisez VS Code avec l'extension "C# Dev Kit".
+**`.vscode/tasks.json`** :
+- Tâches de build, test, format, clean
+
+**Note** : Les settings sont dans `devcontainer.json`, pas dans `.vscode/settings.json` (qui n'existe pas). Pour le debugging avec breakpoints, utilisez VS Code avec l'extension "C# Dev Kit".
 
 ## 📦 Dépendances
 

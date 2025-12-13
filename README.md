@@ -63,8 +63,11 @@ RomPilot/
 │       ├── plan.md           # Plan d'implémentation
 │       ├── tasks.md          # Tâches détaillées
 │       └── data-model.md     # Modèle de données
-├── .vscode/                  # Configuration VS Code/Cursor
+├── .vscode/                  # Configurations de lancement et tâches
+│   ├── launch.json          # F5 : Lancer l'UI et les tests
+│   └── tasks.json           # Tâches de build, test, format
 └── .devcontainer/            # Configuration du dev container
+    └── devcontainer.json    # Extensions et settings VS Code/Cursor
 ```
 
 ## 🧪 Tests
