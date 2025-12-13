@@ -22,17 +22,17 @@ La configuration de l'environnement de développement RomPilot est maintenant **
 
 ### ✅ Outils Disponibles
 ```bash
-# Lancer l'application
-./scripts/debug-ui.sh
+# Lancer l'application (F5 ou commande)
+dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
 
-# Lancer les tests
-./scripts/run-tests.sh
+# Lancer les tests (F5 ou commande)
+dotnet test
 
 # Formatage du code
 dotnet format
 
 # Tests avec couverture
-./scripts/run-tests.sh --coverage
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
 ## 📁 Fichiers de Configuration
@@ -47,10 +47,9 @@ dotnet format
 - Settings optimisés pour C#
 - Post-create command : `dotnet restore && dotnet build`
 
-### `scripts/debug-ui.sh`
-- Script helper pour lancer l'UI avec logs détaillés
-- Configuration X11 automatique
-- Mode Development activé
+### `.vscode/tasks.json`
+- Tâches de build, test, format, clean
+- Intégration avec les configurations de lancement
 
 ## 🚀 Utilisation Quotidienne
 

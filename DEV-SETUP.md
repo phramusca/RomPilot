@@ -77,10 +77,11 @@ Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [ScanService] Found {files.Count} 
 dotnet watch test --project src/RomPilot.Tests/RomPilot.Tests.csproj
 ```
 
-#### 3. Script de Debugging
+#### 3. Lancement avec Logs
 ```bash
-# Lance l'UI avec logs détaillés
-./scripts/debug-ui.sh
+# F5 > "🔍 Lancer l'UI avec Logs Détaillés"
+# Ou :
+DOTNET_ENVIRONMENT=Development dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
 ```
 
 ### 🔧 Debugging Avancé avec Breakpoints (VS Code uniquement)
@@ -133,19 +134,16 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ```bash
 # Tests basiques
-./scripts/run-tests.sh
+dotnet test
 
 # Avec couverture
-./scripts/run-tests.sh --coverage
+dotnet test --collect:"XPlat Code Coverage"
 
 # Filtrer les tests
-./scripts/run-tests.sh --filter ScanService
+dotnet test --filter "FullyQualifiedName~ScanService"
 
 # Mode verbeux
-./scripts/run-tests.sh --verbose
-
-# Aide
-./scripts/run-tests.sh --help
+dotnet test --logger "console;verbosity=detailed"
 ```
 
 ### Via VS Code Tasks
@@ -314,10 +312,10 @@ dotnet format
 dotnet build
 
 # 3. Lancer les tests
-./scripts/run-tests.sh
+dotnet test
 
 # 4. Vérifier la couverture si nécessaire
-./scripts/run-tests.sh --coverage
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
 ### Pendant le Développement

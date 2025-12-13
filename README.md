@@ -17,18 +17,15 @@ Application de gestion de ROMs (lecture seule) avec support de multiples formats
 
 3. **Lancer l'application** 🚀
    ```bash
-   # Dans Cursor/VS Code : Appuyez sur F5
-   # Sélectionnez "🚀 Lancer l'UI (Sans Debug)"
-   
+   # Appuyez sur F5 et sélectionnez "🚀 Lancer l'UI (Sans Debug)"
    # Ou en ligne de commande :
-   ./scripts/debug-ui.sh
+   dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
    ```
 
 4. **Lancer les tests** 🧪
    ```bash
-   # Avec F5 > "🧪 Lancer les Tests"
+   # Appuyez sur F5 et sélectionnez "🧪 Lancer les Tests"
    # Ou en ligne de commande :
-   ./scripts/run-tests.sh
    dotnet test
    ```
 
@@ -74,9 +71,7 @@ RomPilot/
 │       ├── plan.md           # Plan d'implémentation
 │       ├── tasks.md          # Tâches détaillées
 │       └── data-model.md     # Modèle de données
-├── scripts/                  # Scripts utilitaires
-│   └── run-tests.sh         # Script de lancement des tests
-├── .vscode/                  # Configuration VS Code
+├── .vscode/                  # Configuration VS Code/Cursor
 │   ├── launch.json          # Configurations de debug
 │   ├── tasks.json           # Tâches automatisées
 │   └── settings.json        # Paramètres du projet
@@ -89,16 +84,16 @@ RomPilot/
 
 ```bash
 # Tous les tests
-./scripts/run-tests.sh
+dotnet test
 
 # Avec couverture
-./scripts/run-tests.sh --coverage
+dotnet test --collect:"XPlat Code Coverage"
 
 # Tests filtrés
-./scripts/run-tests.sh --filter ScanService
+dotnet test --filter "FullyQualifiedName~ScanService"
 
 # Mode verbeux
-./scripts/run-tests.sh --verbose
+dotnet test --logger "console;verbosity=detailed"
 ```
 
 **Résultats actuels** : ✅ 36 tests / 36 passés

@@ -80,8 +80,6 @@ Puisque Cursor ne supporte pas les breakpoints, voici les alternatives :
 #### 1. Logs détaillés
 ```bash
 # F5 > "🔍 Lancer l'UI avec Logs Détaillés"
-# Ou :
-./scripts/debug-ui.sh
 ```
 
 #### 2. Console.WriteLine stratégiques
