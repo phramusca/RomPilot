@@ -80,7 +80,8 @@ public class ArchiveScanner : IArchiveScanner
                         FilePath = file,
                         ArchivePath = null,
                         ArchiveDepth = 0,
-                        FileSize = fileInfo.Length
+                        FileSize = fileInfo.Length,
+                        LastModifiedTimestamp = ((DateTimeOffset)fileInfo.LastWriteTimeUtc).ToUnixTimeSeconds()
                     });
                 }
                 else if (IsArchiveFile(file) && currentDepth < maxDepth)
@@ -216,13 +217,16 @@ public class ArchiveScanner : IArchiveScanner
                         progressReporter?.ReportProgress(processedCount, entries.Count, $"Found ROM in {archiveName}: {entryName}");
                         // Use original archive path if available (for nested archives), otherwise use current archive path
                         var sourceArchivePath = originalArchivePath ?? archivePath;
+                        // Get last modified time from entry, or fallback to archive file's modification time
+                        var lastModified = entry.LastModifiedTime ?? new FileInfo(archivePath).LastWriteTimeUtc;
                         results.Add(new ArchiveFileInfo
                         {
                             FilePath = entry.Key,
                             ArchivePath = sourceArchivePath, // Original source archive
                             ImmediateArchivePath = archivePath, // Immediate archive containing this file
                             ArchiveDepth = currentDepth,
-                            FileSize = entry.Size
+                            FileSize = entry.Size,
+                            LastModifiedTimestamp = ((DateTimeOffset)lastModified).ToUnixTimeSeconds()
                         });
                     }
                     else if (!string.IsNullOrEmpty(entry.Key) && IsArchiveFile(entry.Key) && currentDepth < maxDepth)
