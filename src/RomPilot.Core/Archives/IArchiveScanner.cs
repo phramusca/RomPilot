@@ -16,11 +16,11 @@ public interface IArchiveScanner
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of found ROM file paths with their archive locations</returns>
     Task<IEnumerable<ArchiveFileInfo>> ScanDirectoryAsync(
-        string directoryPath, 
+        string directoryPath,
         int maxDepth = 5,
         IScanProgressReporter? progressReporter = null,
         CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Extracts a file from an archive to a temporary location.
     /// </summary>
@@ -36,22 +36,22 @@ public class ArchiveFileInfo
     /// Path to the file within the archive (relative path)
     /// </summary>
     public string FilePath { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Path to the original source archive (the archive that was initially scanned)
     /// </summary>
     public string? ArchivePath { get; set; }
-    
+
     /// <summary>
     /// Path to the immediate archive containing this file (for extraction purposes).
     /// For nested archives, this is the archive that directly contains the file.
     /// For top-level archives, this is the same as ArchivePath.
     /// </summary>
     public string? ImmediateArchivePath { get; set; }
-    
+
     public int ArchiveDepth { get; set; }
     public long FileSize { get; set; }
-    
+
     /// <summary>
     /// Last modified timestamp (Unix timestamp)
     /// </summary>

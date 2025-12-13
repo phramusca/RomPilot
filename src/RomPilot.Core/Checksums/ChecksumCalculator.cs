@@ -55,14 +55,14 @@ public class ChecksumCalculator : IChecksumCalculator
     public async Task<Dictionary<string, string>> CalculateAllAsync(Stream stream)
     {
         var results = new Dictionary<string, string>();
-        
+
         // Read the stream into memory first to ensure all checksums are calculated
         // on the exact same data. This prevents race conditions when calculating in parallel.
         stream.Position = 0;
         var buffer = new MemoryStream();
         await stream.CopyToAsync(buffer);
         var data = buffer.ToArray();
-        
+
         // Calculate all checksums in parallel, each with its own copy of the data
         // This ensures thread safety and consistent results
         var tasks = new[]
@@ -90,7 +90,7 @@ public class ChecksumCalculator : IChecksumCalculator
         };
 
         await Task.WhenAll(tasks);
-        
+
         foreach (var task in tasks)
         {
             var (hashType, hashValue) = await task;

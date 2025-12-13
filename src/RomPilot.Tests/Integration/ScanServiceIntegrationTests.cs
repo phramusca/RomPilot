@@ -1,3 +1,5 @@
+using System.IO;
+using System.IO.Compression;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using RomPilot.Core.Archives;
@@ -5,8 +7,6 @@ using RomPilot.Core.Checksums;
 using RomPilot.Core.Database;
 using RomPilot.Core.Repositories;
 using RomPilot.Core.Services;
-using System.IO;
-using System.IO.Compression;
 using Xunit;
 
 namespace RomPilot.Tests.Integration;
@@ -46,7 +46,7 @@ public class ScanServiceIntegrationTests : IDisposable
         var gameIdentificationService = new GameIdentificationService(_context);
         var romFileRepository = new ScannedFileRepository(_context);
         var checksumRepository = new ChecksumRepository(_context);
-        
+
         // Note: ScanService constructor may need adjustment based on actual implementation
 
         _scanService = new ScanService(
@@ -96,21 +96,21 @@ public class ScanServiceIntegrationTests : IDisposable
         // Assert
         // Verify that scanning occurred (recursive scanning should be attempted)
         _progressReporter.Messages.Should().NotBeEmpty("Scanning should produce progress messages");
-        
+
         // The scanner should find ROMs recursively
         // If results are empty, it may be because console detection or checksum calculation failed
         // but the important part is that recursive scanning was attempted
-        var hasScanningMessages = _progressReporter.Messages.Any(m => 
-            m.Contains("Scanning") || 
+        var hasScanningMessages = _progressReporter.Messages.Any(m =>
+            m.Contains("Scanning") ||
             m.Contains("Found") ||
             m.Contains("Processing"));
         hasScanningMessages.Should().BeTrue("Progress messages should indicate scanning activity");
-        
+
         // If ROMs were found and processed, verify they are in results
         if (results.Any())
         {
-            var foundRom = results.FirstOrDefault(r => 
-                r.FilePath.Contains("game.nes") || 
+            var foundRom = results.FirstOrDefault(r =>
+                r.FilePath.Contains("game.nes") ||
                 r.FileName == "game.nes" ||
                 r.FilePath.EndsWith("game.nes"));
             foundRom.Should().NotBeNull("ROM file 'game.nes' should be found in subdirectory");

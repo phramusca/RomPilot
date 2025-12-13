@@ -1,4 +1,4 @@
-﻿namespace RomPilot.Core;
+namespace RomPilot.Core;
 public class Class1
 {
 

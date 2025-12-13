@@ -51,7 +51,7 @@ public class ScanService : IScanService
         foreach (var directoryPath in directoryPaths)
         {
             System.Console.WriteLine($"[ScanService] Starting scan of directory: {directoryPath}");
-            
+
             if (!Directory.Exists(directoryPath))
             {
                 var msg = $"Directory not found: {directoryPath}";
@@ -63,14 +63,14 @@ public class ScanService : IScanService
             var msg2 = $"Scanning directory: {directoryPath}";
             System.Console.WriteLine($"[ScanService] {msg2}");
             progressReporter?.ReportProgress(0, 0, msg2);
-            
+
             System.Console.WriteLine($"[ScanService] Calling ArchiveScanner.ScanDirectoryAsync...");
             var startTime = DateTime.Now;
             var archiveFiles = await _archiveScanner.ScanDirectoryAsync(directoryPath, 5, progressReporter, cancellationToken);
             var duration = DateTime.Now - startTime;
             var fileList = archiveFiles.ToList();
             System.Console.WriteLine($"[ScanService] ArchiveScanner returned {fileList.Count} files from {directoryPath} in {duration.TotalSeconds:F2} seconds");
-            
+
             allArchiveFiles.AddRange(fileList);
         }
 
@@ -84,7 +84,7 @@ public class ScanService : IScanService
         {
             cancellationToken.ThrowIfCancellationRequested();
             var archiveFile = allArchiveFiles[i];
-            
+
             progressReporter?.ReportProgress(i + 1, totalFiles, $"Processing: {Path.GetFileName(archiveFile.FilePath)}");
             progressReporter?.ReportFileProcessing(archiveFile.FilePath);
 
@@ -93,8 +93,8 @@ public class ScanService : IScanService
                 // Detect console
                 System.Console.WriteLine($"[ScanService] Detecting console for: {archiveFile.FilePath} (size: {archiveFile.FileSize})");
                 var consoleShortName = await _consoleDetectionService.DetectConsoleAsync(
-                    archiveFile.FilePath, 
-                    archiveFile.FileSize, 
+                    archiveFile.FilePath,
+                    archiveFile.FileSize,
                     null);
                 System.Console.WriteLine($"[ScanService] Console detection result: {(consoleShortName ?? "null")} for {archiveFile.FilePath}");
                 if (string.IsNullOrEmpty(consoleShortName))
@@ -152,11 +152,11 @@ public class ScanService : IScanService
                 // Identify game
                 System.Console.WriteLine($"[ScanService] Identifying game for ROM: {scannedFile.FilePath}");
                 var gameEntry = await _gameIdentificationService.IdentifyGameAsync(scannedFile, checksums, cancellationToken);
-                
+
                 // Update ScannedFile with processing status
                 scannedFile.IdentificationStatus = gameEntry != null ? "Identified" : "Unidentified";
                 scannedFile.FailureReason = null;
-                
+
                 if (gameEntry != null)
                 {
                     // Link game to ROM (this would be done via GameRomVersion in a full implementation)
@@ -182,7 +182,7 @@ public class ScanService : IScanService
                 System.Console.WriteLine($"[ScanService] Stack trace: {ex.StackTrace}");
                 progressReporter?.ReportFileFailure(archiveFile.FilePath, failureReason);
                 progressReporter?.ReportProgress(i + 1, totalFiles, failureReason);
-                
+
                 // Try to save failure status to database if we have a ScannedFile
                 try
                 {
@@ -203,11 +203,11 @@ public class ScanService : IScanService
         }
 
         System.Console.WriteLine($"[ScanService] Returning {results.Count} ROM files from ScanDirectoriesAsync");
-        
+
         // Clean up temporary files that were created during nested archive scanning
         // These are files in /tmp that were used as ImmediateArchivePath
         CleanupTemporaryArchiveFiles(allArchiveFiles);
-        
+
         return results;
     }
 
@@ -217,7 +217,7 @@ public class ScanService : IScanService
         {
             // Check if ROM file already exists
             System.Console.WriteLine($"[ScanService] Checking if ROM file exists: FilePath={archiveFile.FilePath}, ArchivePath={archiveFile.ArchivePath}");
-            
+
             // First check if it's already tracked
             var tracked = _context.ScannedFiles.Local.FirstOrDefault(rf => rf.FilePath == archiveFile.FilePath && rf.ArchivePath == archiveFile.ArchivePath);
             if (tracked != null)
@@ -226,7 +226,7 @@ public class ScanService : IScanService
                 tracked.LastScannedAt = DateTime.UtcNow;
                 return tracked;
             }
-            
+
             // If not tracked, query from database
             var existing = await _context.ScannedFiles
                 .FirstOrDefaultAsync(rf => rf.FilePath == archiveFile.FilePath && rf.ArchivePath == archiveFile.ArchivePath);
@@ -344,14 +344,14 @@ public class ScanService : IScanService
         var existingChecksums = await _context.Checksums
             .Where(c => c.ScannedFileId == scannedFile.Id)
             .ToListAsync();
-        
+
         // If no checksums exist, we need to calculate them
         if (existingChecksums.Count == 0)
         {
             System.Console.WriteLine($"[ScanService] No checksums found for {scannedFile.FilePath}, will calculate");
             return true;
         }
-        
+
         // If checksums exist, we'll recalculate to check for changes
         // (This could be optimized further by comparing file size/timestamp, but for now we recalculate)
         System.Console.WriteLine($"[ScanService] Checksums exist for {scannedFile.FilePath}, will recalculate to check for changes");
@@ -362,12 +362,12 @@ public class ScanService : IScanService
     {
         bool hasChanges = false;
         bool checksumChanged = false;
-        
+
         // Get existing checksums for this scanned file
         var existingChecksums = await _context.Checksums
             .Where(c => c.ScannedFileId == scannedFile.Id)
             .ToDictionaryAsync(c => c.HashType, c => c.HashValue);
-        
+
         foreach (var (hashType, hashValue) in checksums)
         {
             // Check if checksum already exists for this ROM file
@@ -417,7 +417,7 @@ public class ScanService : IScanService
                 }
             }
         }
-        
+
         // Only save if there are changes
         if (hasChanges)
         {
@@ -426,7 +426,7 @@ public class ScanService : IScanService
                 System.Console.WriteLine($"[ScanService] Checksum changes detected for {scannedFile.FilePath}");
                 // TODO: Store checksum change information (could add a ChecksumHistory table or flag on ScannedFile)
             }
-            
+
             // Save all changes (including LastScannedAt update and checksum changes) in one transaction
             await _context.SaveChangesAsync();
         }

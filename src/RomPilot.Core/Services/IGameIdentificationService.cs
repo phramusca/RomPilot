@@ -15,8 +15,8 @@ public interface IGameIdentificationService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Identified game entry or null if not found</returns>
     Task<GameEntry?> IdentifyGameAsync(
-        ScannedFile scannedFile, 
-        Dictionary<string, string> checksums, 
+        ScannedFile scannedFile,
+        Dictionary<string, string> checksums,
         CancellationToken cancellationToken = default);
 }
 

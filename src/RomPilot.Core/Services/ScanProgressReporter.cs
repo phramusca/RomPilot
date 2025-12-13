@@ -22,7 +22,7 @@ public class ScanProgressReporter : IScanProgressReporter
         _current = current;
         _total = total;
         _currentMessage = message;
-        
+
         if (!string.IsNullOrEmpty(message))
         {
             _messages.Enqueue($"[{current}/{total}] {message}");

@@ -6,30 +6,30 @@ namespace RomPilot.Core.Models;
 public class Game
 {
     public int Id { get; set; }
-    
+
     /// <summary>
     /// Name of the game
     /// </summary>
     public string Name { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Foreign key to Console
     /// </summary>
     public int ConsoleId { get; set; }
-    
+
     /// <summary>
     /// Selected database source ID (when multiple sources available)
     /// </summary>
     public int? SelectedDatabaseSourceId { get; set; }
-    
+
     /// <summary>
     /// Selected ScannedFile ID (renommé de SelectedRomFileId)
     /// </summary>
     public int? SelectedScannedFileId { get; set; }
-    
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    
+
     // Navigation properties
     public Console Console { get; set; } = null!;
     public DatabaseSource? SelectedDatabaseSource { get; set; }

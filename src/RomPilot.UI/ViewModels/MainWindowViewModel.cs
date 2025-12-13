@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,7 +24,7 @@ public partial class MainWindowViewModel : ViewModelBase
         // Initialize ViewModels once and keep references
         _scanViewModel = App.Services?.GetService<ScanViewModel>();
         _libraryViewModel = App.Services?.GetService<LibraryViewModel>();
-        
+
         // Start with scan view
         NavigateToScan();
     }

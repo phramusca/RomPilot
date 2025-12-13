@@ -1,7 +1,7 @@
-using FluentAssertions;
-using RomPilot.Core.Checksums;
 using System.Security.Cryptography;
 using System.Text;
+using FluentAssertions;
+using RomPilot.Core.Checksums;
 using Xunit;
 
 namespace RomPilot.Tests.Unit.Checksums;
@@ -101,7 +101,7 @@ public class ChecksumCalculatorTests
         results.Should().ContainKey("SHA1");
         results.Should().ContainKey("SHA256");
         results.Should().ContainKey("CRC32");
-        
+
         results["MD5"].Should().HaveLength(32);
         results["SHA1"].Should().HaveLength(40);
         results["SHA256"].Should().HaveLength(64);
@@ -130,7 +130,7 @@ public class ChecksumCalculatorTests
         // Arrange
         var content = "test content";
         var bytes = Encoding.UTF8.GetBytes(content);
-        
+
         // Create fresh streams for each call
         // Note: CalculateAllAsync uses parallel execution which may consume streams
         // We test that the method completes successfully and returns all hash types
@@ -148,7 +148,7 @@ public class ChecksumCalculatorTests
         results1.Should().ContainKey("SHA1");
         results1.Should().ContainKey("SHA256");
         results1.Should().ContainKey("CRC32");
-        
+
         // Verify hash formats (not values, as parallel execution may affect stream reading)
         results1["MD5"].Should().MatchRegex("^[0-9a-f]{32}$");
         results1["SHA1"].Should().MatchRegex("^[0-9a-f]{40}$");

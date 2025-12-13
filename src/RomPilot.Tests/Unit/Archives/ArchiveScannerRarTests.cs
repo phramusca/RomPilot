@@ -1,7 +1,7 @@
-using FluentAssertions;
-using RomPilot.Core.Archives;
 using System.IO;
 using System.IO.Compression;
+using FluentAssertions;
+using RomPilot.Core.Archives;
 using Xunit;
 
 namespace RomPilot.Tests.Unit.Archives;
@@ -64,7 +64,7 @@ public class ArchiveScannerRarTests : IDisposable
         // Create a test RAR archive with a ROM file inside
         // Note: This requires actual RAR creation - may need to use test fixtures
         var rarFile = Path.Combine(_testDirectory, "roms.rar");
-        
+
         // For now, we'll test that the scanner attempts to process RAR files
         // Actual RAR processing depends on SharpCompress implementation
         await File.WriteAllBytesAsync(rarFile, new byte[] { 0x52, 0x61, 0x72, 0x21 });

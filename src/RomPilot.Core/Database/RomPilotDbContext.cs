@@ -61,7 +61,7 @@ public class RomPilotDbContext : DbContext
                 .HasForeignKey(e => e.GameEntryId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // ExclusionFilter configuration
         modelBuilder.Entity<ExclusionFilter>(entity =>
         {
@@ -71,7 +71,7 @@ public class RomPilotDbContext : DbContext
             entity.Property(e => e.FilterType).IsRequired();
             entity.Property(e => e.FilterValue).IsRequired();
         });
-        
+
         // ReferenceDatabase configuration
         modelBuilder.Entity<ReferenceDatabase>(entity =>
         {
@@ -83,7 +83,7 @@ public class RomPilotDbContext : DbContext
             entity.Property(e => e.Version).IsRequired();
             entity.Property(e => e.DownloadStatus).IsRequired();
         });
-        
+
         // ExportConfiguration configuration
         modelBuilder.Entity<ExportConfiguration>(entity =>
         {

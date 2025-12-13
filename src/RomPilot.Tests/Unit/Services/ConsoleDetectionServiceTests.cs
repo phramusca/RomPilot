@@ -5,8 +5,8 @@ using RomPilot.Core.Database;
 using RomPilot.Core.Models;
 using RomPilot.Core.Repositories;
 using RomPilot.Core.Services;
-using Models = RomPilot.Core.Models;
 using Xunit;
+using Models = RomPilot.Core.Models;
 
 namespace RomPilot.Tests.Unit.Services;
 

@@ -1,5 +1,5 @@
-﻿using Avalonia;
 using System;
+using Avalonia;
 
 namespace RomPilot.UI;
 
@@ -16,7 +16,7 @@ sealed class Program
         Environment.SetEnvironmentVariable("DCONF_PROFILE", "");
         Environment.SetEnvironmentVariable("NO_AT_BRIDGE", "1");
         Environment.SetEnvironmentVariable("GTK_USE_PORTAL", "0");
-        
+
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }

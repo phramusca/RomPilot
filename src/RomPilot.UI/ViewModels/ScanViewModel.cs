@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -6,12 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using RomPilot.Core.Models;
 using RomPilot.Core.Preferences;
 using RomPilot.Core.Services;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace RomPilot.UI.ViewModels;
 
@@ -32,7 +32,7 @@ public partial class ScanViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isScanning;
-    
+
     [ObservableProperty]
     private bool _hasResults;
 
@@ -66,7 +66,7 @@ public partial class ScanViewModel : ViewModelBase
     {
         _scanService = scanService;
         _serviceProvider = serviceProvider;
-        
+
         // Try to get preferences service (may not be available in all contexts)
         try
         {
@@ -76,7 +76,7 @@ public partial class ScanViewModel : ViewModelBase
         {
             _preferencesService = null;
         }
-        
+
         // Load last scanned directory
         _ = LoadLastScannedDirectoryAsync();
     }
@@ -132,12 +132,12 @@ public partial class ScanViewModel : ViewModelBase
             {
                 var selectedFolder = folder[0];
                 System.Console.WriteLine($"[ScanViewModel] Selected folder: {selectedFolder.Name}");
-                
+
                 // Get the local path from the storage folder
                 // In Avalonia 11, we need to check if it's a file system path
                 var path = selectedFolder.Path;
                 System.Console.WriteLine($"[ScanViewModel] Folder path: {path}");
-                
+
                 if (path != null && path.IsAbsoluteUri && path.Scheme == "file")
                 {
                     SelectedDirectory = path.LocalPath;
@@ -207,12 +207,12 @@ public partial class ScanViewModel : ViewModelBase
             var directories = new[] { SelectedDirectory };
             System.Console.WriteLine($"[ScanViewModel] Calling ScanDirectoriesAsync with {directories.Length} directory(ies)");
             var startTime = DateTime.Now;
-            
+
             // Start a task to periodically update progress from reporter
             var progressUpdateTask = Task.Run(async () =>
             {
                 if (reporter == null) return;
-                
+
                 while (IsScanning)
                 {
                     try
@@ -221,17 +221,17 @@ public partial class ScanViewModel : ViewModelBase
                         await Dispatcher.UIThread.InvokeAsync(() =>
                         {
                             if (reporter == null) return;
-                            
+
                             var messages = reporter.Messages.ToList();
-                            if (messages.Count != ProgressMessages.Count || 
-                                reporter.Current != ProgressCurrent || 
+                            if (messages.Count != ProgressMessages.Count ||
+                                reporter.Current != ProgressCurrent ||
                                 reporter.Total != ProgressTotal)
                             {
                                 ProgressMessages.Clear();
                                 ProgressMessages.AddRange(messages);
                                 ProgressCurrent = reporter.Current;
                                 ProgressTotal = reporter.Total;
-                                
+
                                 // Parse messages to separate processed and failed files
                                 ProcessedFiles.Clear();
                                 FailedFiles.Clear();
@@ -272,7 +272,7 @@ public partial class ScanViewModel : ViewModelBase
                                         }
                                     }
                                 }
-                                
+
                                 // Update status message
                                 if (!string.IsNullOrEmpty(reporter.CurrentMessage))
                                 {
@@ -285,16 +285,16 @@ public partial class ScanViewModel : ViewModelBase
                     {
                         System.Console.WriteLine($"[ScanViewModel] Error updating progress: {ex.Message}");
                     }
-                    
+
                     await Task.Delay(100); // Update every 100ms
                 }
             });
-            
+
             var romFiles = await _scanService.ScanDirectoriesAsync(
                 directories,
                 _progressReporter,
                 CancellationToken.None);
-            
+
             var duration = DateTime.Now - startTime;
             System.Console.WriteLine($"[ScanViewModel] Scan completed in {duration.TotalSeconds:F2} seconds");
             System.Console.WriteLine($"[ScanViewModel] Found {romFiles.Count()} ROM files");
@@ -302,7 +302,7 @@ public partial class ScanViewModel : ViewModelBase
             // Final update of progress messages from reporter on UI thread
             var romFilesList = romFiles.ToList();
             System.Console.WriteLine($"[ScanViewModel] romFiles.Count() = {romFilesList.Count}");
-            
+
             await Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 if (reporter != null)
@@ -321,12 +321,12 @@ public partial class ScanViewModel : ViewModelBase
                 }
 
                 StatusMessage = $"Scan complete! Found {romFilesList.Count} ROM files.";
-                
+
                 // Store scanned files in this view model (results shown in same view)
                 ScannedFiles = romFilesList;
                 HasResults = romFilesList.Count > 0;
                 System.Console.WriteLine($"[ScanViewModel] Stored {romFilesList.Count} ROM files in view model, HasResults={HasResults}");
-                
+
                 // Save last scanned directory
                 if (_preferencesService != null && !string.IsNullOrEmpty(SelectedDirectory))
                 {

@@ -1,9 +1,9 @@
-using SharpCompress.Archives;
-using SharpCompress.Archives.Zip;
-using SharpCompress.Archives.SevenZip;
-using SharpCompress.Archives.Rar;
-using SharpCompress.Common;
 using RomPilot.Core.Services;
+using SharpCompress.Archives;
+using SharpCompress.Archives.Rar;
+using SharpCompress.Archives.SevenZip;
+using SharpCompress.Archives.Zip;
+using SharpCompress.Common;
 
 namespace RomPilot.Core.Archives;
 
@@ -62,14 +62,14 @@ public class ArchiveScanner : IArchiveScanner
             var files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
             System.Console.WriteLine($"[ArchiveScanner] Found {files.Length} files in {path}");
             progressReporter?.ReportProgress(0, 0, $"Found {files.Length} files in {Path.GetFileName(path)}");
-            
+
             foreach (var file in files)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                
+
                 var extension = Path.GetExtension(file);
                 var fileName = Path.GetFileName(file);
-                
+
                 if (_romExtensions.Contains(extension))
                 {
                     var fileInfo = new FileInfo(file);
@@ -132,11 +132,11 @@ public class ArchiveScanner : IArchiveScanner
         var archiveName = Path.GetFileName(archivePath);
         System.Console.WriteLine($"[ArchiveScanner] Opening archive: {archiveName} (depth: {currentDepth})");
         progressReporter?.ReportProgress(0, 0, $"Opening archive: {archiveName}");
-        
+
         try
         {
             IArchive? archive = null;
-            
+
             if (archivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             {
                 System.Console.WriteLine($"[ArchiveScanner] Opening as ZIP: {archiveName}");
@@ -184,28 +184,28 @@ public class ArchiveScanner : IArchiveScanner
                 var entries = archive.Entries.Where(e => !e.IsDirectory).ToList();
                 System.Console.WriteLine($"[ArchiveScanner] Archive {archiveName} contains {entries.Count} files");
                 progressReporter?.ReportProgress(0, entries.Count, $"Scanning archive: {archiveName} ({entries.Count} files)");
-                
+
                 int romCount = 0;
                 int nestedArchiveCount = 0;
                 int skippedCount = 0;
                 int processedCount = 0;
-                
+
                 foreach (var entry in entries)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    
+
                     if (string.IsNullOrEmpty(entry.Key))
                     {
                         skippedCount++;
                         continue;
                     }
-                        
+
                     var extension = Path.GetExtension(entry.Key);
                     var entryName = Path.GetFileName(entry.Key);
-                    
+
                     processedCount++;
                     progressReporter?.ReportProgress(processedCount, entries.Count, $"Scanning {archiveName}: {entryName}");
-                    
+
                     if (!string.IsNullOrEmpty(extension) && _romExtensions.Contains(extension))
                     {
                         romCount++;
@@ -241,10 +241,10 @@ public class ArchiveScanner : IArchiveScanner
                                 entryStream.CopyTo(fileStream);
                                 fileStream.Flush(); // Ensure all data is written
                             } // Both streams are closed here
-                            
+
                             // Small delay to ensure file system has released the file
                             await Task.Delay(10, cancellationToken).ConfigureAwait(false);
-                            
+
                             // Now scan the extracted archive, but keep reference to original archive path
                             // Use originalArchivePath if available, otherwise use current archivePath (for first level nested archives)
                             var sourceArchivePath = originalArchivePath ?? archivePath;
@@ -268,7 +268,7 @@ public class ArchiveScanner : IArchiveScanner
                         }
                     }
                 }
-                
+
                 System.Console.WriteLine($"[ArchiveScanner] Archive {archiveName} summary: {romCount} ROMs, {nestedArchiveCount} nested archives, {skippedCount} skipped files");
             }, cancellationToken);
 
@@ -295,7 +295,7 @@ public class ArchiveScanner : IArchiveScanner
         return await Task.Run(() =>
         {
             IArchive? archive = null;
-            
+
             if (archivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             {
                 archive = ZipArchive.Open(archivePath);
@@ -322,7 +322,7 @@ public class ArchiveScanner : IArchiveScanner
                 entryStream.CopyTo(memoryStream);
             }
             memoryStream.Position = 0;
-            
+
             archive.Dispose();
             return memoryStream;
         });

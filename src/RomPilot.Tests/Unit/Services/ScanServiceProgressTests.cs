@@ -7,8 +7,8 @@ using RomPilot.Core.Database;
 using RomPilot.Core.Models;
 using RomPilot.Core.Repositories;
 using RomPilot.Core.Services;
-using Models = RomPilot.Core.Models;
 using Xunit;
+using Models = RomPilot.Core.Models;
 
 namespace RomPilot.Tests.Unit.Services;
 
@@ -33,17 +33,17 @@ public class ScanServiceProgressTests : IDisposable
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _context = new RomPilotDbContext(options);
-        
+
         // Seed test console
-        _context.Consoles.Add(new Models.Console 
-        { 
-            Id = 1, 
-            Name = "Nintendo Entertainment System", 
+        _context.Consoles.Add(new Models.Console
+        {
+            Id = 1,
+            Name = "Nintendo Entertainment System",
             ShortName = "nes",
             RecalboxFolderName = "nes"
         });
         _context.SaveChanges();
-        
+
         _archiveScannerMock = new Mock<IArchiveScanner>();
         _checksumCalculatorMock = new Mock<IChecksumCalculator>();
         _consoleDetectionServiceMock = new Mock<IConsoleDetectionService>();
@@ -105,10 +105,10 @@ public class ScanServiceProgressTests : IDisposable
             // Verify that progress reporting occurred
             _progressReporter.Messages.Should().NotBeEmpty();
             // The service should report scanning or processing messages
-            var hasProgressMessages = _progressReporter.Messages.Any(m => 
-                m.Contains("Scanning directory") || 
-                m.Contains("Found") || 
-                m.Contains("Processing:") || 
+            var hasProgressMessages = _progressReporter.Messages.Any(m =>
+                m.Contains("Scanning directory") ||
+                m.Contains("Found") ||
+                m.Contains("Processing:") ||
                 m.Contains("Found ROM"));
             hasProgressMessages.Should().BeTrue("Progress messages should be reported");
         }
@@ -148,8 +148,8 @@ public class ScanServiceProgressTests : IDisposable
         _progressReporter.Messages.Should().NotBeEmpty();
         // The service should report that console could not be detected
         // It may report "Could not detect console" or "Directory not found" if directory doesn't exist
-        var hasFailureMessage = _progressReporter.Messages.Any(m => 
-            m.Contains("Could not detect console") || 
+        var hasFailureMessage = _progressReporter.Messages.Any(m =>
+            m.Contains("Could not detect console") ||
             m.Contains("Console not detected") ||
             m.Contains("unknown.rom") ||
             m.Contains("Directory not found"));
@@ -221,8 +221,8 @@ public class ScanServiceProgressTests : IDisposable
         // Verify that progress reporting occurred
         _progressReporter.Messages.Should().NotBeEmpty();
         // The service should report processing or scanning messages
-        var hasProgressMessages = _progressReporter.Messages.Any(m => 
-            m.Contains("Processing:") || 
+        var hasProgressMessages = _progressReporter.Messages.Any(m =>
+            m.Contains("Processing:") ||
             m.Contains("Found ROM") ||
             m.Contains("Scanning directory") ||
             m.Contains("Found"));

@@ -8,7 +8,7 @@ public partial class ScanView : UserControl
     public ScanView()
     {
         InitializeComponent();
-        this.Loaded += ScanView_Loaded;
+        Loaded += ScanView_Loaded;
     }
 
     private void ScanView_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

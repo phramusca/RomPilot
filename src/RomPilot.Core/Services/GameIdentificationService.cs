@@ -30,7 +30,7 @@ public class GameIdentificationService : IGameIdentificationService
                 .FirstOrDefaultAsync(
                     ge => ge.HashType == hashType && ge.HashValue == hashValue,
                     cancellationToken);
-            
+
             if (gameEntry != null)
             {
                 return gameEntry;

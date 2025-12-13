@@ -9,7 +9,7 @@ namespace RomPilot.Core.Services;
 public class FilterService : IFilterService
 {
     private readonly IExclusionFilterRepository _filterRepository;
-    
+
     // Liste des extensions exclues par défaut (selon specs)
     private static readonly string[] DefaultExcludedExtensions = new[]
     {
@@ -44,7 +44,7 @@ public class FilterService : IFilterService
                 IsActive = true,
                 Description = $"Extension exclue par défaut : {extension}"
             };
-            
+
             await _filterRepository.AddAsync(filter);
         }
     }
@@ -52,7 +52,7 @@ public class FilterService : IFilterService
     public async Task<(bool shouldExclude, string? reason)> ShouldExcludeFileAsync(string filePath, long fileSize)
     {
         var activeFilters = await _filterRepository.GetActiveFiltersAsync();
-        
+
         foreach (var filter in activeFilters)
         {
             switch (filter.FilterType)
@@ -61,13 +61,13 @@ public class FilterService : IFilterService
                     var extension = Path.GetExtension(filePath).ToLowerInvariant();
                     if (extension == filter.FilterValue.ToLowerInvariant())
                     {
-                        var reason = filter.IsDefault 
+                        var reason = filter.IsDefault
                             ? $"Extension {extension} exclue par filtre par défaut"
                             : $"Extension {extension} exclue par filtre personnalisé";
                         return (true, reason);
                     }
                     break;
-                    
+
                 case "SizeRange":
                     // Format attendu: "0-1KB", "0-100B", "10MB-50MB"
                     if (IsInSizeRange(fileSize, filter.FilterValue))
@@ -75,7 +75,7 @@ public class FilterService : IFilterService
                         return (true, $"Taille de fichier exclue par filtre : {filter.FilterValue}");
                     }
                     break;
-                    
+
                 case "Pattern":
                     // Pattern de nom de fichier (ex: "*.tmp", "*backup*")
                     if (MatchesPattern(Path.GetFileName(filePath), filter.FilterValue))
@@ -85,7 +85,7 @@ public class FilterService : IFilterService
                     break;
             }
         }
-        
+
         return (false, null);
     }
 
@@ -110,7 +110,7 @@ public class FilterService : IFilterService
         {
             throw new InvalidOperationException($"Le filtre {filterType}:{filterValue} existe déjà");
         }
-        
+
         var filter = new ExclusionFilter
         {
             FilterType = filterType,
@@ -119,7 +119,7 @@ public class FilterService : IFilterService
             IsActive = true,
             Description = description ?? $"Filtre personnalisé : {filterType} = {filterValue}"
         };
-        
+
         await _filterRepository.AddAsync(filter);
     }
 
@@ -130,7 +130,7 @@ public class FilterService : IFilterService
         {
             throw new ArgumentException($"Filtre {filterId} introuvable");
         }
-        
+
         filter.IsActive = isActive;
         await _filterRepository.UpdateAsync(filter);
     }
@@ -142,12 +142,12 @@ public class FilterService : IFilterService
         {
             throw new ArgumentException($"Filtre {filterId} introuvable");
         }
-        
+
         if (filter.IsDefault)
         {
             throw new InvalidOperationException("Impossible de supprimer un filtre par défaut");
         }
-        
+
         await _filterRepository.DeleteAsync(filterId);
     }
 
@@ -158,10 +158,10 @@ public class FilterService : IFilterService
         {
             var parts = range.Split('-');
             if (parts.Length != 2) return false;
-            
+
             long minSize = ParseSize(parts[0].Trim());
             long maxSize = ParseSize(parts[1].Trim());
-            
+
             return fileSize >= minSize && fileSize <= maxSize;
         }
         catch
@@ -173,7 +173,7 @@ public class FilterService : IFilterService
     private long ParseSize(string sizeStr)
     {
         sizeStr = sizeStr.ToUpperInvariant();
-        
+
         long multiplier = 1;
         if (sizeStr.EndsWith("KB"))
         {
@@ -194,7 +194,7 @@ public class FilterService : IFilterService
         {
             sizeStr = sizeStr[..^1];
         }
-        
+
         return long.Parse(sizeStr) * multiplier;
     }
 
@@ -206,10 +206,10 @@ public class FilterService : IFilterService
         var regexPattern = "^" + System.Text.RegularExpressions.Regex.Escape(pattern)
             .Replace("\\*", ".*")
             .Replace("\\?", ".") + "$";
-        
+
         return System.Text.RegularExpressions.Regex.IsMatch(
-            fileName, 
-            regexPattern, 
+            fileName,
+            regexPattern,
             System.Text.RegularExpressions.RegexOptions.IgnoreCase);
     }
 }

@@ -26,7 +26,7 @@ public class NoIntroProvider : INoIntroProvider
         try
         {
             var doc = XDocument.Load(datfilePath);
-            return doc.Root?.Name.LocalName == "datafile" || 
+            return doc.Root?.Name.LocalName == "datafile" ||
                    doc.Root?.Attribute("version") != null;
         }
         catch
@@ -54,7 +54,7 @@ public class NoIntroProvider : INoIntroProvider
 
             // NoIntro datfile structure: <datafile><game><rom .../></game></datafile>
             var games = root.Descendants("game");
-            
+
             foreach (var game in games)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -73,7 +73,7 @@ public class NoIntroProvider : INoIntroProvider
                     // Try to detect console from game name or header
                     // For now, we'll need to match with existing consoles
                     // This is a simplified version - full implementation would parse console info from datfile
-                    
+
                     if (!string.IsNullOrEmpty(md5))
                     {
                         var entry = new GameEntry

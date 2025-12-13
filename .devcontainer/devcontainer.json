@@ -12,22 +12,27 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"muhammad-sammy.csharp",
+				// Extension C# pour Cursor - fournit IntelliSense et autocomplétion
+				// Note : ne supporte pas le debugging avec breakpoints (utiliser VS Code pour ça)
+				"anysphere.csharp",
 				"ms-dotnettools.vscode-dotnet-runtime",
 				"aaron-bond.better-comments",
-				"josefpihrt-vscode.roslynator",
-				"anysphere.csharp",
 				"ms-azuretools.vscode-docker"
 			],
 			"settings": {
+				"dotnet.defaultSolution": "RomPilot.sln",
 				"omnisharp.enableRoslynAnalyzers": true,
 				"omnisharp.enableEditorConfigSupport": true,
 				"files.exclude": {
 					"**/bin": true,
 					"**/obj": true
+				},
+				// Configuration pour améliorer la performance
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll": "explicit"
 				}
 			}
 		}
 	}
 }
-

@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
@@ -5,24 +6,23 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using RomPilot.Core.Archives;
+using RomPilot.Core.Checksums;
 using RomPilot.Core.Database;
+using RomPilot.Core.Preferences;
 using RomPilot.Core.Repositories;
 using RomPilot.Core.Services;
-using RomPilot.Core.Checksums;
-using RomPilot.Core.Archives;
-using RomPilot.Core.Preferences;
 using RomPilot.UI.ViewModels;
 using RomPilot.UI.Views;
-using System;
 
 namespace RomPilot.UI;
 
-    public partial class App : Application
-    {
-        private ServiceProvider? _serviceProvider;
-        
-        public static IServiceProvider? Services { get; private set; }
-        public static MainWindowViewModel? MainViewModel { get; private set; }
+public partial class App : Application
+{
+    private ServiceProvider? _serviceProvider;
+
+    public static IServiceProvider? Services { get; private set; }
+    public static MainWindowViewModel? MainViewModel { get; private set; }
 
     public override void Initialize()
     {
@@ -42,17 +42,17 @@ namespace RomPilot.UI;
             // Line below is needed to remove Avalonia data validation.
             // Without this line you will get duplicate validations from both Avalonia and CT
             BindingPlugins.DataValidators.RemoveAt(0);
-            
+
             // Initialize database and seed data
             using (var scope = _serviceProvider.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<RomPilotDbContext>();
                 context.Database.EnsureCreated();
-                
+
                 var seedService = scope.ServiceProvider.GetRequiredService<SeedDataService>();
                 seedService.SeedAsync().Wait();
             }
-            
+
             var mainViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
             MainViewModel = mainViewModel; // Store reference for access from other ViewModels
             desktop.MainWindow = new MainWindow
@@ -69,7 +69,7 @@ namespace RomPilot.UI;
         // Database
         services.AddDbContext<RomPilotDbContext>(options =>
             options.UseSqlite("Data Source=rompilot.db"));
-        
+
         // Seed data service
         services.AddScoped<SeedDataService>();
 

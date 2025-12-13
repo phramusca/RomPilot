@@ -12,17 +12,17 @@ public interface IScanProgressReporter
     /// <param name="total">Total items to process</param>
     /// <param name="message">Optional status message</param>
     void ReportProgress(int current, int total, string? message = null);
-    
+
     /// <summary>
     /// Reports that a file is being processed.
     /// </summary>
     void ReportFileProcessing(string filePath);
-    
+
     /// <summary>
     /// Reports that a ROM file was found.
     /// </summary>
     void ReportRomFound(string filePath, string consoleName);
-    
+
     /// <summary>
     /// Reports that a file was processed successfully with status details.
     /// </summary>
@@ -30,7 +30,7 @@ public interface IScanProgressReporter
     /// <param name="status">Status: "success", "console_identified", "game_identified", etc.</param>
     /// <param name="details">Optional details about the processing result</param>
     void ReportFileSuccess(string filePath, string status, string? details = null);
-    
+
     /// <summary>
     /// Reports that a file failed to process with explicit failure reason.
     /// </summary>

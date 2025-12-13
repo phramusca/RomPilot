@@ -102,7 +102,7 @@ public class ConsoleDetectionService : IConsoleDetectionService
 
         // TODO: Add header-based detection for ambiguous cases
         // This would read file headers to identify console-specific signatures
-        
+
         return null;
     }
 }

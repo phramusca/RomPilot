@@ -1,7 +1,7 @@
-using FluentAssertions;
-using RomPilot.Core.Archives;
 using System.IO;
 using System.IO.Compression;
+using FluentAssertions;
+using RomPilot.Core.Archives;
 using Xunit;
 
 namespace RomPilot.Tests.Unit.Archives;

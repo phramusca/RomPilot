@@ -55,7 +55,7 @@ public class GoodSetProvider : IGoodSetProvider
 
             // GoodSet datfile structure: <datafile><game><rom .../></game></datafile>
             var games = root.Descendants("game");
-            
+
             foreach (var game in games)
             {
                 cancellationToken.ThrowIfCancellationRequested();

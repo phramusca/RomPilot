@@ -1,6 +1,6 @@
+using System.IO;
 using FluentAssertions;
 using RomPilot.Core.Archives;
-using System.IO;
 using Xunit;
 
 namespace RomPilot.Tests.Unit.Archives;
@@ -73,7 +73,7 @@ public class ArchiveScannerRecursiveTests : IDisposable
         {
             currentPath = Path.Combine(currentPath, $"level{i}");
             Directory.CreateDirectory(currentPath);
-            
+
             var romFile = Path.Combine(currentPath, $"game{i}.nes");
             await File.WriteAllTextAsync(romFile, $"fake rom {i}");
             romFiles.Add(romFile);
@@ -97,7 +97,7 @@ public class ArchiveScannerRecursiveTests : IDisposable
         var romFile = Path.Combine(_testDirectory, "game.nes");
         var textFile = Path.Combine(_testDirectory, "readme.txt");
         var imageFile = Path.Combine(_testDirectory, "cover.jpg");
-        
+
         await File.WriteAllTextAsync(romFile, "fake rom");
         await File.WriteAllTextAsync(textFile, "readme content");
         await File.WriteAllTextAsync(imageFile, "fake image");
@@ -130,7 +130,7 @@ public class ArchiveScannerRecursiveTests : IDisposable
         // Arrange
         var romFile = Path.Combine(_testDirectory, "game.nes");
         await File.WriteAllTextAsync(romFile, "fake rom");
-        
+
         var cts = new CancellationTokenSource();
         // Cancel after a short delay to allow scanning to start
         cts.CancelAfter(10);
