@@ -94,3 +94,8 @@ Thumbs.db
 
 # Avalonia
 .avalonia-build-tasks/
+
+# Test data (généré automatiquement)
+test-data/simple/
+test-data/medium/
+test-data/load/

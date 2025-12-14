@@ -1,79 +1,63 @@
-# 🧪 Données de Test US1
+# Fichiers de Test US1
 
-Ce répertoire contient des fichiers de test pour valider l'US1 (Scanner et Identifier).
+Ce répertoire contient les fichiers de test générés pour tester la fonctionnalité de scan et d'identification (US1).
 
-## 📋 Structure
+## Structure
 
-```
-test-data/
-├── roms/                    # Fichiers ROM de test
-│   ├── game1.nes           # ROM NES (4 octets - header NES)
-│   ├── game2.nes           # ROM NES différente
-│   └── archives/
-│       ├── games.zip       # Archive avec ROMs
-│       └── nested.7z       # Archive imbriquée
-├── excluded/               # Fichiers qui devraient être exclus
-│   ├── cover.jpg          # Image (filtre par défaut)
-│   ├── readme.txt         # Texte (filtre par défaut)
-│   ├── manual.pdf         # Document (filtre par défaut)
-│   └── info.nfo           # NFO (filtre par défaut)
-└── mixed/                 # Mix de fichiers
-    ├── game.nes
-    ├── screenshot.png
-    └── notes.txt
-```
+- **simple/** : Scénario simple (~10 fichiers) - équivalent à "mixed" actuel
+- **medium/** : Scénario moyen (~50 fichiers) avec archives imbriquées
+- **load/** : Scénario de charge (~500 fichiers) pour tests de performance
 
-## 🎯 Scénarios de Test
+## Génération
 
-### Test 1 : Scan Basique
-1. Scanner le dossier `roms/`
-2. **Attendu** :
-   - 2 fichiers scannés (game1.nes, game2.nes)
-   - Statut "Unidentified" (pas de base de données)
-   - Checksums calculés
-
-### Test 2 : Filtres d'Exclusion
-1. Scanner le dossier `excluded/`
-2. **Attendu** :
-   - 4 fichiers exclus (.jpg, .txt, .pdf, .nfo)
-   - Compteur "Exclus" = 4
-   - Raisons d'exclusion affichées
-
-### Test 3 : Mix de Fichiers
-1. Scanner le dossier `mixed/`
-2. **Attendu** :
-   - 1 scanné (game.nes)
-   - 2 exclus (screenshot.png, notes.txt)
-   - Compteurs corrects
-
-### Test 4 : Scan Quick vs Full
-1. Scanner `roms/` en mode Full
-2. Noter le temps de scan
-3. Rescanner en mode Quick
-4. **Attendu** :
-   - Mode Quick beaucoup plus rapide
-   - Checksums réutilisés
-   - Aucun recalcul
-
-### Test 5 : Filtre Personnalisé
-1. Scanner `mixed/`
-2. Ajouter filtre personnalisé `.nes`
-3. Rescanner
-4. **Attendu** :
-   - game.nes maintenant exclu
-   - Compteur "Exclus" augmenté
-
-## 🚀 Création des Fichiers de Test
-
+### Méthode 1: Script bash
 ```bash
-cd /workspace
-bash test-data/create-test-files.sh
+./create-test-data.sh
 ```
 
-## 🧹 Nettoyage
+### Méthode 2: Depuis les tests
+Les tests d'intégration génèrent automatiquement les fichiers s'ils n'existent pas déjà.
 
+### Méthode 3: Manuellement
 ```bash
-cd /workspace
-rm -rf test-data/roms test-data/excluded test-data/mixed
+cd test-data
+dotnet run --project TestDataGenerator.csproj
 ```
 
+## Utilisation
+
+### Tests automatiques
+Les tests d'intégration dans `src/RomPilot.Tests/Integration/` utilisent automatiquement ces fichiers via `TestDataHelper`.
+
+### Tests manuels
+1. Lancez l'application UI
+2. Scannez les répertoires:
+   - `test-data/simple/` pour un test rapide
+   - `test-data/medium/` pour tester les archives imbriquées
+   - `test-data/load/` pour tester les performances
+
+## Hashs maîtrisés
+
+Les fichiers sont générés avec des contenus maîtrisés pour avoir des hashs prévisibles:
+- Les ROMs ont un header NES standard (0x4E 0x45 0x53 0x1A)
+- Le contenu est basé sur un seed pour garantir la reproductibilité
+- Les hashs MD5 et SHA1 peuvent être vérifiés dans la base de données après scan
+
+## Archives imbriquées
+
+Le générateur crée des archives imbriquées pour tester le chemin complet:
+- **Formats simples** : ZIP, 7Z, RAR avec ROMs directement dedans
+- **Archives imbriquées 2 niveaux** : 
+  - ZIP dans ZIP
+  - 7Z dans ZIP
+  - RAR dans 7Z
+- **Archives imbriquées 3 niveaux** : ZIP dans 7Z dans RAR (deep.rar)
+- Le `FilePathInArchive` stocké contient le chemin complet: `level2.7z/level3.zip/game.gba`
+
+## Vérification
+
+Après un scan, vous pouvez vérifier dans la base de données:
+- Les fichiers exclus ont `IdentificationStatus = "Excluded"`
+- Les fichiers scannés ont des checksums calculés
+- Les fichiers dans archives ont `FilePathInArchive` correctement rempli
+- Les archives imbriquées ont `ArchiveDepth > 0`

@@ -1,6 +1,10 @@
 # Use the official .NET 8.0 SDK image
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
+# Enable non-free repositories for rar (non-free software)
+# Note: rar is required to CREATE RAR archives (unrar-free can only extract)
+RUN sed -i 's/Components: main/Components: main contrib non-free/g' /etc/apt/sources.list.d/debian.sources
+
 # Install system dependencies for Avalonia UI (GTK3, X11, etc.)
 RUN apt-get update && apt-get install -y \
     libgtk-3-0 \
@@ -41,6 +45,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     ca-certificates \
+    p7zip-full \
+    unrar-free \
+    rar \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user for development

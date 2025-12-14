@@ -28,4 +28,8 @@
     <ProjectReference Include="..\RomPilot.Core\RomPilot.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SharpCompress" Version="0.41.0" />
+  </ItemGroup>
+
 </Project>

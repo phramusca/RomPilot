@@ -10,6 +10,7 @@ using RomPilot.Core.Database;
 using RomPilot.Core.Models;
 using RomPilot.Core.Repositories;
 using RomPilot.Core.Services;
+using RomPilot.Tests.Helpers;
 using Xunit;
 
 namespace RomPilot.Tests.Integration;
@@ -40,6 +41,9 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
         // Seed test data
         SeedTestData();
 
+        // Ensure test data files are generated
+        TestDataHelper.EnsureTestDataGeneratedAsync().Wait();
+
         // Setup services
         var archiveScanner = new ArchiveScanner();
         var checksumCalculator = new ChecksumCalculator();
@@ -66,9 +70,8 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
 
         _progressReporter = new ScanProgressReporter();
 
-        // Create test directory
-        _testDirectory = Path.Combine(Path.GetTempPath(), "RomPilotTests_US1_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_testDirectory);
+        // Use test data directory instead of temporary directory
+        _testDirectory = TestDataHelper.GetScenarioPath("simple");
     }
 
     private void SeedTestData()
@@ -253,15 +256,102 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
 
     private void CreateTestFiles()
     {
-        // Fichiers qui devraient être scannés
-        File.WriteAllBytes(Path.Combine(_testDirectory, "game1.nes"), new byte[] { 0x4E, 0x45, 0x53, 0x1A });
-        File.WriteAllBytes(Path.Combine(_testDirectory, "game2.nes"), new byte[] { 0x4E, 0x45, 0x53, 0x1A, 0x00, 0x01 });
+        // Les fichiers sont déjà générés par TestDataHelper
+        // Cette méthode est conservée pour compatibilité mais n'est plus nécessaire
+    }
 
-        // Fichiers qui devraient être exclus (filtres par défaut)
-        File.WriteAllText(Path.Combine(_testDirectory, "cover.jpg"), "fake image");
-        File.WriteAllText(Path.Combine(_testDirectory, "readme.txt"), "fake readme");
-        File.WriteAllText(Path.Combine(_testDirectory, "manual.pdf"), "fake pdf");
-        File.WriteAllText(Path.Combine(_testDirectory, "info.nfo"), "fake nfo");
+    [Fact]
+    public async Task US1_ScanNestedArchives_ShouldStoreCorrectFilePathInArchive()
+    {
+        // Arrange - Utiliser le scénario medium qui contient des archives imbriquées
+        var mediumScenario = TestDataHelper.GetScenarioPath("medium");
+
+        // Act
+        var results = await _scanService.ScanDirectoriesAsync(
+            new[] { mediumScenario },
+            progressReporter: _progressReporter);
+
+        var resultsList = results.ToList();
+
+        // Debug: afficher tous les fichiers trouvés
+        System.Console.WriteLine($"\n📊 Total files found: {resultsList.Count}");
+        foreach (var f in resultsList)
+        {
+            if (f.FilePath.Contains("nested") || !string.IsNullOrEmpty(f.ArchivePath))
+            {
+                System.Console.WriteLine($"  - {f.FilePath} | ArchivePath: {f.ArchivePath ?? "null"} | Depth: {f.ArchiveDepth} | InArchive: {f.FilePathInArchive} | Status: {f.IdentificationStatus}");
+            }
+        }
+
+        // Assert - Vérifier que les fichiers dans archives imbriquées ont FilePath correct
+        // Le FilePath devrait contenir le chemin virtuel complet: archive.zip/nested.zip/file.nes
+        var filesInArchives = resultsList.Where(f => !string.IsNullOrEmpty(f.ArchivePath)).ToList();
+        var nestedFiles = filesInArchives.Where(f =>
+            f.FilePath.Contains(".zip/") &&
+            f.FilePath.Split('/').Count(part => part.EndsWith(".zip")) > 1).ToList();
+
+        System.Console.WriteLine($"\n📦 Files in archives: {filesInArchives.Count}");
+        System.Console.WriteLine($"📦 Files in nested archives: {nestedFiles.Count}");
+        foreach (var f in nestedFiles)
+        {
+            System.Console.WriteLine($"  - {f.FilePath}");
+        }
+
+        nestedFiles.Should().NotBeEmpty("because medium scenario contains nested archives");
+
+        // Vérifier qu'au moins un fichier dans archive imbriquée a FilePath avec chemin complet
+        var fileInNestedArchive = nestedFiles.FirstOrDefault(f =>
+            f.FilePath.Contains(".zip/") &&
+            f.FilePath.Split('/').Count(part => part.EndsWith(".zip")) > 1);
+
+        fileInNestedArchive.Should().NotBeNull("because nested archives should have FilePath with nested archive path");
+
+        // Vérifier le format du FilePath: doit contenir archive.zip/nested.zip/file.nes
+        fileInNestedArchive!.FilePath.Should().Contain(".zip/", "because nested archive path should contain .zip/");
+        fileInNestedArchive.FilePath.Should().MatchRegex(@".*\.zip/.*\.zip/.*", "because nested archive should have format: archive.zip/nested.zip/file.nes");
+
+        // Vérifier que ArchivePath pointe vers l'archive source
+        fileInNestedArchive.ArchivePath.Should().NotBeNullOrEmpty();
+        fileInNestedArchive.ArchivePath.Should().EndWith(".zip", "because ArchivePath should point to source archive");
+
+        // Vérifier que FilePathInArchive contient le chemin relatif dans l'archive
+        fileInNestedArchive.FilePathInArchive.Should().Contain("/", "because nested archive should have FilePathInArchive with separator");
+
+        System.Console.WriteLine($"Found nested file:");
+        System.Console.WriteLine($"  FilePath: {fileInNestedArchive.FilePath}");
+        System.Console.WriteLine($"  ArchivePath: {fileInNestedArchive.ArchivePath}");
+        System.Console.WriteLine($"  FilePathInArchive: {fileInNestedArchive.FilePathInArchive}");
+        System.Console.WriteLine($"  ArchiveDepth: {fileInNestedArchive.ArchiveDepth}");
+    }
+
+    [Fact]
+    public async Task US1_ScanLoadScenario_ShouldHandleManyFiles()
+    {
+        // Arrange - Utiliser le scénario de charge
+        var loadScenario = TestDataHelper.GetScenarioPath("load");
+
+        // Act
+        var startTime = DateTime.Now;
+        var results = await _scanService.ScanDirectoriesAsync(
+            new[] { loadScenario },
+            progressReporter: _progressReporter);
+        var duration = DateTime.Now - startTime;
+
+        var resultsList = results.ToList();
+
+        // Assert
+        resultsList.Should().HaveCountGreaterThan(100, "because load scenario contains many files");
+
+        // Vérifier les différents statuts
+        var identified = resultsList.Count(f => f.IdentificationStatus == "Identified");
+        var unidentified = resultsList.Count(f => f.IdentificationStatus == "Unidentified");
+        var excluded = resultsList.Count(f => f.IdentificationStatus == "Excluded");
+
+        excluded.Should().BeGreaterThan(50, "because load scenario has many excluded files");
+        unidentified.Should().BeGreaterThan(50, "because load scenario has many ROMs without database");
+
+        System.Console.WriteLine($"Load scenario scan completed in {duration.TotalSeconds:F2} seconds");
+        System.Console.WriteLine($"Files: {resultsList.Count} total, {identified} identified, {unidentified} unidentified, {excluded} excluded");
     }
 
     public void Dispose()
@@ -270,10 +360,7 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
         _context.Database.CloseConnection();
         _context.Dispose();
 
-        if (Directory.Exists(_testDirectory))
-        {
-            Directory.Delete(_testDirectory, true);
-        }
+        // Ne pas supprimer _testDirectory car c'est maintenant test-data/simple qui est partagé
     }
 }
 

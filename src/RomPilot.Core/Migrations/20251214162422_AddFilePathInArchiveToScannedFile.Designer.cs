@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RomPilot.Core.Database;
 
@@ -10,9 +11,11 @@ using RomPilot.Core.Database;
 namespace RomPilot.Core.Migrations
 {
     [DbContext(typeof(RomPilotDbContext))]
-    partial class RomPilotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251214162422_AddFilePathInArchiveToScannedFile")]
+    partial class AddFilePathInArchiveToScannedFile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");

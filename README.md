@@ -51,7 +51,7 @@ dotnet test
 - **Scans incrémentaux** : Mode Quick (réutilise checksums) vs Full (recalcule tout)
 - **Compteurs détaillés** : Identifiés / Non identifiés / Exclus / Échecs
 - **Interface de gestion** : Vue dédiée pour configurer les filtres
-- **Support archives** : ZIP, 7Z, RAR avec récursion complète
+- **Support archives** : ZIP, 7Z, RAR avec récursion complète et formats mixtes (ZIP dans 7Z, RAR dans 7Z, etc.)
 - **Calcul checksums** : MD5, SHA1, SHA256, CRC32
 - ✅ Détection automatique de console
 - ✅ Identification via bases de données de référence
@@ -103,7 +103,7 @@ dotnet test --filter "FullyQualifiedName~ScanService"
 dotnet test --logger "console;verbosity=detailed"
 ```
 
-**Résultats actuels** : ✅ 36 tests / 36 passés
+**Résultats actuels** : ✅ 54 tests / 54 passés
 
 ## 🔧 Commandes Utiles
 

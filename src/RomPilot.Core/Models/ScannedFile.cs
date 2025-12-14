@@ -10,7 +10,19 @@ public class ScannedFile
     public int Id { get; set; }
 
     /// <summary>
-    /// Chemin complet du fichier
+    /// Chemin virtuel complet du fichier.
+    /// Pour les fichiers directs: chemin réel sur le disque.
+    /// Pour les fichiers dans archives: chemin virtuel incluant les archives imbriquées.
+    /// 
+    /// Exemples:
+    /// - Fichier direct: "/workspace/test-data/medium/game1.nes"
+    /// - Fichier dans archive: "/workspace/test-data/medium/archive.zip/game.nes"
+    /// - Fichier dans archive imbriquée: "/workspace/test-data/medium/nested.zip/inner.zip/nested_game.nes"
+    /// 
+    /// Ce format permet:
+    /// - Comparaison facile pour quick scan (timestamp/size)
+    /// - Extraction facile (parser le chemin pour extraire depuis archives imbriquées)
+    /// - Identification claire de l'emplacement du fichier
     /// </summary>
     public string FilePath { get; set; } = string.Empty;
 
@@ -30,9 +42,17 @@ public class ScannedFile
     public long LastModifiedTimestamp { get; set; }
 
     /// <summary>
-    /// Chemin de l'archive si le fichier est dans une archive ZIP/7Z/RAR
+    /// Chemin de l'archive source si le fichier est dans une archive ZIP/7Z/RAR
     /// </summary>
     public string? ArchivePath { get; set; }
+
+    /// <summary>
+    /// Chemin complet du fichier dans l'archive source, incluant les archives imbriquées.
+    /// Exemple: "archive2.zip/game.nes" (si game.nes est dans archive2.zip qui est dans archive1.zip)
+    /// Exemple: "game.nes" (si fichier directement dans archive source)
+    /// Vide si fichier n'est pas dans une archive.
+    /// </summary>
+    public string FilePathInArchive { get; set; } = string.Empty;
 
     /// <summary>
     /// Profondeur dans les archives imbriquées (0 = fichier direct)

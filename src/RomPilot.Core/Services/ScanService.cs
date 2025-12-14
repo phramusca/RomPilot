@@ -137,6 +137,7 @@ public class ScanService : IScanService
                         FileSize = file.FileSize,
                         LastModifiedTimestamp = file.LastModifiedTimestamp,
                         ArchivePath = file.ArchivePath,
+                        FilePathInArchive = file.FilePathInArchive,
                         ArchiveDepth = file.ArchiveDepth,
                         IdentificationStatus = "Excluded",
                         ExclusionReason = reason,
@@ -341,6 +342,7 @@ public class ScanService : IScanService
                 FileSize = archiveFile.FileSize,
                 LastModifiedTimestamp = archiveFile.LastModifiedTimestamp,
                 ArchivePath = archiveFile.ArchivePath,
+                FilePathInArchive = archiveFile.FilePathInArchive,
                 ArchiveDepth = archiveFile.ArchiveDepth,
                 ConsoleId = consoleId,
                 IdentificationStatus = "Unidentified",
@@ -375,9 +377,12 @@ public class ScanService : IScanService
         {
             if (!string.IsNullOrEmpty(archiveFile.ArchivePath))
             {
-                // Extract from archive - use immediate archive path for extraction (handles nested archives)
-                var archivePathToUse = archiveFile.ImmediateArchivePath ?? archiveFile.ArchivePath;
-                stream = await _archiveScanner.ExtractFileAsync(archivePathToUse, archiveFile.FilePath);
+                // Extract from archive - use source archive path and FilePathInArchive for extraction
+                // FilePathInArchive contains the relative path within the archive (e.g., "inner.zip/nested_game.nes")
+                var filePathInArchive = !string.IsNullOrEmpty(archiveFile.FilePathInArchive)
+                    ? archiveFile.FilePathInArchive
+                    : Path.GetFileName(archiveFile.FilePath); // Fallback if FilePathInArchive is empty
+                stream = await _archiveScanner.ExtractFileAsync(archiveFile.ArchivePath, filePathInArchive);
             }
             else
             {

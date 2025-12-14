@@ -69,8 +69,8 @@ public class ArchiveScanner : IArchiveScanner
                 {
                     System.Console.WriteLine($"[ArchiveScanner] Found archive file: {fileName} ({extension}) - will scan contents");
                     progressReporter?.ReportProgress(0, 0, $"Scanning archive: {fileName}");
-                    // Scan archive contents (this is the original archive, so no originalArchivePath needed)
-                    await ScanArchiveAsync(file, currentDepth + 1, maxDepth, results, cancellationToken, null, progressReporter);
+                    // Scan archive contents - this archive is the source archive, so pass it as originalArchivePath
+                    await ScanArchiveAsync(file, currentDepth + 1, maxDepth, results, cancellationToken, file, null, progressReporter);
                 }
                 else
                 {
@@ -82,6 +82,8 @@ public class ArchiveScanner : IArchiveScanner
                     {
                         FilePath = file,
                         ArchivePath = null,
+                        ImmediateArchivePath = null,
+                        FilePathInArchive = string.Empty, // Empty for files not in archives
                         ArchiveDepth = 0,
                         FileSize = fileInfo.Length,
                         LastModifiedTimestamp = ((DateTimeOffset)fileInfo.LastWriteTimeUtc).ToUnixTimeSeconds()
@@ -117,6 +119,7 @@ public class ArchiveScanner : IArchiveScanner
         List<ArchiveFileInfo> results,
         CancellationToken cancellationToken,
         string? originalArchivePath = null,
+        string? pathInParentArchive = null,
         IScanProgressReporter? progressReporter = null)
     {
         var archiveName = Path.GetFileName(archivePath);
@@ -220,7 +223,11 @@ public class ArchiveScanner : IArchiveScanner
                             // Now scan the extracted archive, but keep reference to original archive path
                             // Use originalArchivePath if available, otherwise use current archivePath (for first level nested archives)
                             var sourceArchivePath = originalArchivePath ?? archivePath;
-                            await ScanArchiveAsync(tempPath, currentDepth + 1, maxDepth, results, cancellationToken, sourceArchivePath, progressReporter).ConfigureAwait(false);
+                            // Build path in parent archive: if we're already in a nested archive, prepend the current path
+                            var nestedPathInArchive = pathInParentArchive != null
+                                ? $"{pathInParentArchive}/{entryName}"
+                                : entryName;
+                            await ScanArchiveAsync(tempPath, currentDepth + 1, maxDepth, results, cancellationToken, sourceArchivePath, nestedPathInArchive, progressReporter).ConfigureAwait(false);
                         }
                         catch (Exception nestedEx)
                         {
@@ -242,13 +249,36 @@ public class ArchiveScanner : IArchiveScanner
                         progressReporter?.ReportProgress(processedCount, entries.Count, $"Found file in {archiveName}: {entryName}");
                         // Use original archive path if available (for nested archives), otherwise use current archive path
                         var sourceArchivePath = originalArchivePath ?? archivePath;
+
+                        // Build virtual FilePath: complete path from source archive including nested archives
+                        // Example: "/workspace/test-data/medium/nested.zip/inner.zip/nested_game.nes"
+                        // This allows easy extraction and comparison for quick scan
+                        string virtualFilePath;
+                        if (sourceArchivePath != null)
+                        {
+                            // Build path in archive: if we're in a nested archive, prepend the path in parent archive
+                            var filePathInArchive = pathInParentArchive != null
+                                ? $"{pathInParentArchive}/{entry.Key}"
+                                : entry.Key;
+                            // Virtual path: sourceArchivePath + "/" + filePathInArchive
+                            virtualFilePath = $"{sourceArchivePath}/{filePathInArchive}";
+                        }
+                        else
+                        {
+                            // Should not happen, but fallback
+                            virtualFilePath = entry.Key;
+                        }
+
                         // Get last modified time from entry, or fallback to archive file's modification time
                         var lastModified = entry.LastModifiedTime ?? new FileInfo(archivePath).LastWriteTimeUtc;
                         results.Add(new ArchiveFileInfo
                         {
-                            FilePath = entry.Key,
-                            ArchivePath = sourceArchivePath, // Original source archive
-                            ImmediateArchivePath = archivePath, // Immediate archive containing this file
+                            FilePath = virtualFilePath, // Virtual path: archive.zip/nested.zip/file.nes
+                            ArchivePath = sourceArchivePath, // Original source archive (real file path)
+                            ImmediateArchivePath = archivePath, // Immediate archive containing this file (for extraction)
+                            FilePathInArchive = pathInParentArchive != null
+                                ? $"{pathInParentArchive}/{entry.Key}"
+                                : entry.Key, // Path within source archive
                             ArchiveDepth = currentDepth,
                             FileSize = entry.Size,
                             LastModifiedTimestamp = ((DateTimeOffset)lastModified).ToUnixTimeSeconds()
@@ -279,40 +309,100 @@ public class ArchiveScanner : IArchiveScanner
 
     public async Task<Stream> ExtractFileAsync(string archivePath, string filePathInArchive)
     {
-        return await Task.Run(() =>
+        return await Task.Run(() => ExtractFileRecursive(archivePath, filePathInArchive));
+    }
+
+    /// <summary>
+    /// Extrait récursivement un fichier depuis une archive, gérant n'importe quel nombre de niveaux d'imbrication.
+    /// Exemple: archive1.zip/archive2.zip/archive3.zip/file.nes
+    /// </summary>
+    private Stream ExtractFileRecursive(string archivePath, string filePathInArchive)
+    {
+        // Parse filePathInArchive to handle nested archives
+        // Example: "inner.zip/nested_game.nes" or "archive1.zip/archive2.zip/file.nes"
+        var pathParts = filePathInArchive.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        if (pathParts.Length == 1)
         {
-            IArchive? archive = null;
+            // Simple case: file is directly in the archive
+            return ExtractFileFromArchive(archivePath, pathParts[0]);
+        }
+        else
+        {
+            // Nested archive case: extract nested archive recursively, then extract file from it
+            // Example: archivePath = "nested.zip", filePathInArchive = "inner.zip/nested_game.nes"
+            // Or: archivePath = "archive1.zip", filePathInArchive = "archive2.zip/archive3.zip/file.nes"
+            // 1. Extract first archive part from current archive
+            // 2. Recursively extract remaining path from nested archive
 
-            if (archivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            var nestedArchiveName = pathParts[0];
+            var remainingPath = string.Join("/", pathParts.Skip(1));
+
+            // Extract nested archive to temp file
+            var nestedArchiveStream = ExtractFileFromArchive(archivePath, nestedArchiveName);
+            var tempNestedArchive = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + Path.GetExtension(nestedArchiveName));
+
+            try
             {
-                archive = ZipArchive.Open(archivePath);
+                using (var fileStream = File.Create(tempNestedArchive))
+                {
+                    nestedArchiveStream.CopyTo(fileStream);
+                }
+
+                // Recursively extract file from nested archive (handles any number of nesting levels)
+                var result = ExtractFileRecursive(tempNestedArchive, remainingPath);
+
+                // Cleanup temp file after stream is read (caller's responsibility)
+                // Note: We can't delete it here because the stream might not be read yet
+                // The temp file will be cleaned up by the system eventually
+
+                return result;
             }
-            else if (archivePath.EndsWith(".7z", StringComparison.OrdinalIgnoreCase))
+            catch
             {
-                archive = SevenZipArchive.Open(archivePath);
+                // Cleanup on error
+                if (File.Exists(tempNestedArchive))
+                {
+                    try { File.Delete(tempNestedArchive); } catch { }
+                }
+                throw;
             }
-            else if (archivePath.EndsWith(".rar", StringComparison.OrdinalIgnoreCase))
-            {
-                archive = RarArchive.Open(archivePath);
-            }
+        }
+    }
 
-            if (archive == null)
-                throw new InvalidOperationException($"Unsupported archive format: {archivePath}");
+    private Stream ExtractFileFromArchive(string archivePath, string filePathInArchive)
+    {
+        IArchive? archive = null;
 
-            var entry = archive.Entries.FirstOrDefault(e => e.Key == filePathInArchive);
-            if (entry == null)
-                throw new FileNotFoundException($"File {filePathInArchive} not found in archive {archivePath}");
+        if (archivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        {
+            archive = ZipArchive.Open(archivePath);
+        }
+        else if (archivePath.EndsWith(".7z", StringComparison.OrdinalIgnoreCase))
+        {
+            archive = SevenZipArchive.Open(archivePath);
+        }
+        else if (archivePath.EndsWith(".rar", StringComparison.OrdinalIgnoreCase))
+        {
+            archive = RarArchive.Open(archivePath);
+        }
 
-            var memoryStream = new MemoryStream();
-            using (var entryStream = entry.OpenEntryStream())
-            {
-                entryStream.CopyTo(memoryStream);
-            }
-            memoryStream.Position = 0;
+        if (archive == null)
+            throw new InvalidOperationException($"Unsupported archive format: {archivePath}");
 
-            archive.Dispose();
-            return memoryStream;
-        });
+        var entry = archive.Entries.FirstOrDefault(e => e.Key == filePathInArchive);
+        if (entry == null)
+            throw new FileNotFoundException($"File {filePathInArchive} not found in archive {archivePath}");
+
+        var memoryStream = new MemoryStream();
+        using (var entryStream = entry.OpenEntryStream())
+        {
+            entryStream.CopyTo(memoryStream);
+        }
+        memoryStream.Position = 0;
+
+        archive.Dispose();
+        return memoryStream;
     }
 
     private static bool IsArchiveFile(string filePath)
