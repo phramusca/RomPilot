@@ -103,6 +103,11 @@ public class FilterService : IFilterService
         return await _filterRepository.GetActiveFiltersAsync();
     }
 
+    public async Task<IEnumerable<ExclusionFilter>> GetAllFiltersAsync()
+    {
+        return await _filterRepository.GetAllAsync();
+    }
+
     public async Task AddCustomFilterAsync(string filterType, string filterValue, string? description = null)
     {
         // Vérifier si le filtre existe déjà
@@ -125,14 +130,10 @@ public class FilterService : IFilterService
 
     public async Task SetFilterActiveAsync(int filterId, bool isActive)
     {
-        var filter = await _filterRepository.GetByIdAsync(filterId);
-        if (filter == null)
-        {
-            throw new ArgumentException($"Filtre {filterId} introuvable");
-        }
+        System.Console.WriteLine($"[FilterService] SetFilterActiveAsync called: filterId={filterId}, isActive={isActive}");
 
-        filter.IsActive = isActive;
-        await _filterRepository.UpdateAsync(filter);
+        await _filterRepository.SetFilterActiveAsync(filterId, isActive);
+        System.Console.WriteLine($"[FilterService] Filter updated successfully via repository");
     }
 
     public async Task DeleteCustomFilterAsync(int filterId)

@@ -17,5 +17,6 @@ public interface IExclusionFilterRepository
     Task UpdateAsync(ExclusionFilter filter);
     Task DeleteAsync(int id);
     Task<bool> ExistsAsync(string filterType, string filterValue);
+    Task SetFilterActiveAsync(int filterId, bool isActive);
 }
 

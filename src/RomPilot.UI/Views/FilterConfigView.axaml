@@ -45,7 +45,7 @@
 
     <!-- Liste des filtres -->
     <ScrollViewer Grid.Row="2">
-      <ItemsControl ItemsSource="{Binding Filters}">
+      <ItemsControl ItemsSource="{Binding Filters}" x:Name="FiltersItemsControl">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <Border BorderBrush="LightGray" 

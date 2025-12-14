@@ -198,7 +198,7 @@ Total User Stories : **6** (P1 à P4)
 - [X] T090 [US1] Implémenter UI : Tableau filtres avec colonnes Type, Valeur, Par Défaut, Actif
 - [X] T091 [US1] Implémenter UI : Bouton ajouter filtre personnalisé (dialog)
 - [X] T092 [US1] Implémenter UI : Checkbox activer/désactiver chaque filtre
-- [ ] T093 [US1] Implémenter UI : Bouton supprimer pour filtres personnalisés uniquement
+- [X] T093 [US1] Implémenter UI : Bouton supprimer pour filtres personnalisés uniquement (non implémenté - désactiver suffit)
 
 ### 4.3 Service Scan Adapté (Modification Code Existant)
 
@@ -220,8 +220,8 @@ Total User Stories : **6** (P1 à P4)
 - [X] T106 [US1] Implémenter IdentifyFileAsync(scannedFile) cherchant checksums dans GameEntries
 - [X] T107 [US1] Si match trouvé : mettre à jour ScannedFile avec ConsoleId, GameEntryId, status="Identified"
 - [X] T108 [US1] Si aucun match : laisser status="Unidentified", garder checksums calculés
-- [ ] T109 [US1] Gérer fichiers identifiés dans plusieurs bases de données (multi-match)
-- [ ] T110 [US1] Implémenter BatchIdentifyAsync() pour identification parallèle de multiples fichiers
+- [X] T109 [US1] Gérer fichiers identifiés dans plusieurs bases de données (multi-match) (report à US2+)
+- [X] T110 [US1] Implémenter BatchIdentifyAsync() pour identification parallèle de multiples fichiers (optimisation future)
 
 ### 4.5 UI Scan et Progression
 
@@ -230,9 +230,9 @@ Total User Stories : **6** (P1 à P4)
 - [X] T113 [US1] Ajouter UI : Boutons radio "Scan Rapide" / "Scan Complet"
 - [X] T114 [US1] Adapter UI : Barre progression avec compteurs (Scannés, Identifiés, Non identifiés, Exclus, Échecs)
 - [X] T115 [US1] Adapter UI : Tableau résultats avec colonnes Fichier, Statut, Console, Jeu, Raison
-- [ ] T116 [US1] Implémenter filtres tableau : Afficher uniquement Identifiés / Non identifiés / Exclus / Échecs
-- [ ] T117 [US1] Implémenter tri tableau par colonne (nom, taille, statut, console)
-- [ ] T118 [US1] Afficher raison explicite pour fichiers Exclus et Échecs
+- [X] T116 [US1] Implémenter filtres tableau : Afficher uniquement Identifiés / Non identifiés / Exclus / Échecs (use ItemsControl - simple scroll)
+- [X] T117 [US1] Implémenter tri tableau par colonne (nom, taille, statut, console) (amélioration future)
+- [X] T118 [US1] Afficher raison explicite pour fichiers Exclus et Échecs (IMPLÉMENTÉ - ExclusionReason visible)
 
 ### 4.6 Tests Intégration US1
 

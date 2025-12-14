@@ -64,8 +64,25 @@ public class ExclusionFilterRepository : IExclusionFilterRepository
     public async Task UpdateAsync(ExclusionFilter filter)
     {
         filter.UpdatedAt = DateTime.UtcNow;
-        _context.ExclusionFilters.Update(filter);
+
+        System.Console.WriteLine($"[ExclusionFilterRepository] UpdateAsync called for filter ID={filter.Id}, IsActive={filter.IsActive}");
+
+        // Ensure EF Core tracks the changes
+        var entry = _context.Entry(filter);
+        System.Console.WriteLine($"[ExclusionFilterRepository] Entry state before: {entry.State}");
+
+        if (entry.State == Microsoft.EntityFrameworkCore.EntityState.Detached)
+        {
+            _context.ExclusionFilters.Update(filter);
+        }
+        else
+        {
+            entry.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+        }
+
+        System.Console.WriteLine($"[ExclusionFilterRepository] Entry state after: {entry.State}");
         await _context.SaveChangesAsync();
+        System.Console.WriteLine($"[ExclusionFilterRepository] SaveChangesAsync completed");
     }
 
     public async Task DeleteAsync(int id)
@@ -82,6 +99,30 @@ public class ExclusionFilterRepository : IExclusionFilterRepository
     {
         return await _context.ExclusionFilters
             .AnyAsync(f => f.FilterType == filterType && f.FilterValue == filterValue);
+    }
+
+    public async Task SetFilterActiveAsync(int filterId, bool isActive)
+    {
+        System.Console.WriteLine($"[ExclusionFilterRepository] SetFilterActiveAsync: filterId={filterId}, isActive={isActive}");
+
+        var filter = await _context.ExclusionFilters.FindAsync(filterId);
+        if (filter == null)
+        {
+            System.Console.WriteLine($"[ExclusionFilterRepository] ERROR: Filter {filterId} not found");
+            throw new ArgumentException($"Filtre {filterId} introuvable");
+        }
+
+        System.Console.WriteLine($"[ExclusionFilterRepository] Filter before: Id={filter.Id}, FilterValue={filter.FilterValue}, IsActive={filter.IsActive}");
+        filter.IsActive = isActive;
+        filter.UpdatedAt = DateTime.UtcNow;
+        System.Console.WriteLine($"[ExclusionFilterRepository] Filter after modification: IsActive={filter.IsActive}");
+
+        await _context.SaveChangesAsync();
+        System.Console.WriteLine($"[ExclusionFilterRepository] SaveChangesAsync completed");
+
+        // Verify the change was saved
+        var verifyFilter = await _context.ExclusionFilters.FindAsync(filterId);
+        System.Console.WriteLine($"[ExclusionFilterRepository] Verification: IsActive={verifyFilter?.IsActive}");
     }
 }
 

@@ -73,19 +73,41 @@ public partial class FilterConfigViewModel : ViewModelBase
             IsLoading = true;
             StatusMessage = "Chargement des filtres d'exclusion...";
 
-            var filters = await _filterService.GetActiveFiltersAsync();
+            var filters = await _filterService.GetAllFiltersAsync();
             var allFilters = filters.ToList();
-            
-            // Note: Pour l'instant on affiche seulement les filtres actifs
-            // Dans une version future, on pourrait charger tous les filtres (actifs + inactifs)
             
             Filters.Clear();
             foreach (var filter in allFilters.OrderBy(f => f.FilterType).ThenBy(f => f.FilterValue))
             {
-                Filters.Add(new ExclusionFilterViewModel(filter));
+                var filterVm = new ExclusionFilterViewModel(filter);
+                
+                // Listen to IsActive changes to save to database
+                filterVm.PropertyChanged += async (sender, e) =>
+                {
+                    if (e.PropertyName == nameof(ExclusionFilterViewModel.IsActive) && sender is ExclusionFilterViewModel vm)
+                    {
+                        System.Console.WriteLine($"[FilterConfigViewModel] IsActive changed for filter {vm.Id} to {vm.IsActive}");
+                        try
+                        {
+                            await _filterService.SetFilterActiveAsync(vm.Id, vm.IsActive);
+                            StatusMessage = vm.IsActive 
+                                ? $"Filtre '{vm.FilterValue}' activé" 
+                                : $"Filtre '{vm.FilterValue}' désactivé";
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Console.WriteLine($"[FilterConfigViewModel] Error updating filter: {ex.Message}");
+                            StatusMessage = $"Erreur : {ex.Message}";
+                            // Revert the change in UI
+                            vm.IsActive = !vm.IsActive;
+                        }
+                    }
+                };
+                
+                Filters.Add(filterVm);
             }
 
-            StatusMessage = $"{Filters.Count} filtres d'exclusion actifs";
+            StatusMessage = $"{Filters.Count} filtres d'exclusion";
         }
         catch (Exception ex)
         {

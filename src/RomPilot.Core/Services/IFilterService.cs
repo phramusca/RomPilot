@@ -29,6 +29,11 @@ public interface IFilterService
     Task<IEnumerable<Models.ExclusionFilter>> GetActiveFiltersAsync();
 
     /// <summary>
+    /// Obtient tous les filtres (actifs et inactifs).
+    /// </summary>
+    Task<IEnumerable<Models.ExclusionFilter>> GetAllFiltersAsync();
+
+    /// <summary>
     /// Ajoute un filtre d'exclusion personnalisé.
     /// </summary>
     Task AddCustomFilterAsync(string filterType, string filterValue, string? description = null);
