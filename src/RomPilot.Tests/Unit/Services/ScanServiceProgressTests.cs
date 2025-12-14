@@ -52,6 +52,11 @@ public class ScanServiceProgressTests : IDisposable
 
         var romFileRepository = new ScannedFileRepository(_context);
         var checksumRepository = new ChecksumRepository(_context);
+        var filterServiceMock = new Mock<IFilterService>();
+
+        // Configure filter service to not exclude any files by default
+        filterServiceMock.Setup(f => f.ShouldExcludeFileAsync(It.IsAny<string>(), It.IsAny<long>()))
+            .ReturnsAsync((false, (string?)null));
 
         _service = new ScanService(
             _context,
@@ -60,7 +65,8 @@ public class ScanServiceProgressTests : IDisposable
             _consoleDetectionServiceMock.Object,
             _gameIdentificationServiceMock.Object,
             romFileRepository,
-            checksumRepository);
+            checksumRepository,
+            filterServiceMock.Object);
     }
 
     [Fact]
@@ -99,7 +105,7 @@ public class ScanServiceProgressTests : IDisposable
                 .ReturnsAsync((GameEntry?)null);
 
             // Act
-            await _service.ScanDirectoriesAsync(new[] { tempDir }, _progressReporter);
+            await _service.ScanDirectoriesAsync(new[] { tempDir }, progressReporter: _progressReporter);
 
             // Assert
             // Verify that progress reporting occurred
@@ -141,7 +147,7 @@ public class ScanServiceProgressTests : IDisposable
             .ReturnsAsync((string?)null);
 
         // Act
-        await _service.ScanDirectoriesAsync(new[] { directoryPath }, _progressReporter);
+        await _service.ScanDirectoriesAsync(new[] { directoryPath }, progressReporter: _progressReporter);
 
         // Assert
         // Verify that failure is reported when console is not detected
@@ -176,7 +182,7 @@ public class ScanServiceProgressTests : IDisposable
             .ThrowsAsync(new InvalidDataException("Corrupted archive"));
 
         // Act
-        await _service.ScanDirectoriesAsync(new[] { directoryPath }, _progressReporter);
+        await _service.ScanDirectoriesAsync(new[] { directoryPath }, progressReporter: _progressReporter);
 
         // Assert
         // Should handle exception gracefully and continue
@@ -215,7 +221,7 @@ public class ScanServiceProgressTests : IDisposable
             .ReturnsAsync((GameEntry?)null);
 
         // Act
-        var results = await _service.ScanDirectoriesAsync(new[] { directoryPath }, _progressReporter);
+        var results = await _service.ScanDirectoriesAsync(new[] { directoryPath }, progressReporter: _progressReporter);
 
         // Assert
         // Verify that progress reporting occurred

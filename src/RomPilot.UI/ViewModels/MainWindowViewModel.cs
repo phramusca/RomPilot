@@ -18,12 +18,14 @@ public partial class MainWindowViewModel : ViewModelBase
     // Keep references to ViewModels to preserve their state
     private ScanViewModel? _scanViewModel;
     private LibraryViewModel? _libraryViewModel;
+    private FilterConfigViewModel? _filterConfigViewModel;
 
     public MainWindowViewModel()
     {
         // Initialize ViewModels once and keep references
         _scanViewModel = App.Services?.GetService<ScanViewModel>();
         _libraryViewModel = App.Services?.GetService<LibraryViewModel>();
+        _filterConfigViewModel = App.Services?.GetService<FilterConfigViewModel>();
 
         // Start with scan view
         NavigateToScan();
@@ -61,5 +63,16 @@ public partial class MainWindowViewModel : ViewModelBase
             _libraryViewModel = App.Services?.GetService<LibraryViewModel>();
         }
         CurrentViewModel = _libraryViewModel;
+    }
+
+    [RelayCommand]
+    private void NavigateToFilters()
+    {
+        // Reuse existing instance or create new one if null
+        if (_filterConfigViewModel == null)
+        {
+            _filterConfigViewModel = App.Services?.GetService<FilterConfigViewModel>();
+        }
+        CurrentViewModel = _filterConfigViewModel;
     }
 }

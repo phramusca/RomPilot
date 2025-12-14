@@ -11,11 +11,13 @@ public interface IScanService
     /// Scans one or more directories for files, calculates checksums, and identifies ROMs.
     /// </summary>
     /// <param name="directoryPaths">Paths to directories to scan</param>
+    /// <param name="scanType">Type of scan: Quick (incremental) or Full (complete recalculation)</param>
     /// <param name="progressReporter">Optional progress reporter for UI updates</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of scanned files</returns>
     Task<IEnumerable<ScannedFile>> ScanDirectoriesAsync(
         IEnumerable<string> directoryPaths,
+        Models.ScanType scanType = Models.ScanType.Quick,
         IScanProgressReporter? progressReporter = null,
         CancellationToken cancellationToken = default);
 }

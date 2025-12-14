@@ -39,6 +39,11 @@ public class ScanProgressReporter : IScanProgressReporter
         _messages.Enqueue($"Found ROM: {Path.GetFileName(filePath)} ({consoleName})");
     }
 
+    public void ReportFileExcluded(string filePath, string exclusionReason)
+    {
+        _messages.Enqueue($"⊘ {Path.GetFileName(filePath)}: EXCLUDED - {exclusionReason}");
+    }
+
     public void ReportFileSuccess(string filePath, string status, string? details = null)
     {
         var message = $"✓ {Path.GetFileName(filePath)}: {status}";

@@ -5,7 +5,7 @@ using RomPilot.Core.Models;
 namespace RomPilot.Core.Database;
 
 /// <summary>
-/// Service for seeding initial database data (consoles, database sources).
+/// Service for seeding initial database data (consoles, database sources, exclusion filters).
 /// </summary>
 public class SeedDataService
 {
@@ -18,8 +18,13 @@ public class SeedDataService
 
     public async Task SeedAsync()
     {
-        if (await _context.Consoles.AnyAsync())
+        // Check if already seeded
+        var alreadySeeded = await _context.Consoles.AnyAsync();
+        
+        if (alreadySeeded)
         {
+            // Even if consoles are seeded, check if exclusion filters need to be seeded
+            await SeedExclusionFiltersIfNeededAsync();
             return; // Already seeded
         }
 
@@ -78,7 +83,71 @@ public class SeedDataService
 
         _context.DatabaseSources.AddRange(databaseSources);
 
+        // Seed exclusion filters
+        SeedExclusionFiltersAsync();
+
         await _context.SaveChangesAsync();
+    }
+
+    private async Task SeedExclusionFiltersIfNeededAsync()
+    {
+        if (!await _context.ExclusionFilters.AnyAsync())
+        {
+            SeedExclusionFiltersAsync();
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private void SeedExclusionFiltersAsync()
+    {
+        var defaultFilters = new List<ExclusionFilter>
+        {
+            // Images
+            new() { FilterType = "Extension", FilterValue = ".jpg", IsDefault = true, IsActive = true, Description = "Images JPEG" },
+            new() { FilterType = "Extension", FilterValue = ".jpeg", IsDefault = true, IsActive = true, Description = "Images JPEG" },
+            new() { FilterType = "Extension", FilterValue = ".png", IsDefault = true, IsActive = true, Description = "Images PNG" },
+            new() { FilterType = "Extension", FilterValue = ".gif", IsDefault = true, IsActive = true, Description = "Images GIF" },
+            new() { FilterType = "Extension", FilterValue = ".bmp", IsDefault = true, IsActive = true, Description = "Images BMP" },
+            new() { FilterType = "Extension", FilterValue = ".tif", IsDefault = true, IsActive = true, Description = "Images TIFF" },
+            new() { FilterType = "Extension", FilterValue = ".tiff", IsDefault = true, IsActive = true, Description = "Images TIFF" },
+            new() { FilterType = "Extension", FilterValue = ".webp", IsDefault = true, IsActive = true, Description = "Images WebP" },
+            
+            // Textes
+            new() { FilterType = "Extension", FilterValue = ".txt", IsDefault = true, IsActive = true, Description = "Fichiers texte" },
+            new() { FilterType = "Extension", FilterValue = ".nfo", IsDefault = true, IsActive = true, Description = "Fichiers NFO" },
+            new() { FilterType = "Extension", FilterValue = ".diz", IsDefault = true, IsActive = true, Description = "Fichiers DIZ" },
+            new() { FilterType = "Extension", FilterValue = ".md", IsDefault = true, IsActive = true, Description = "Fichiers Markdown" },
+            new() { FilterType = "Extension", FilterValue = ".rtf", IsDefault = true, IsActive = true, Description = "Fichiers RTF" },
+            
+            // Exécutables
+            new() { FilterType = "Extension", FilterValue = ".exe", IsDefault = true, IsActive = true, Description = "Exécutables Windows" },
+            new() { FilterType = "Extension", FilterValue = ".dll", IsDefault = true, IsActive = true, Description = "Bibliothèques Windows" },
+            new() { FilterType = "Extension", FilterValue = ".so", IsDefault = true, IsActive = true, Description = "Bibliothèques Linux" },
+            new() { FilterType = "Extension", FilterValue = ".dylib", IsDefault = true, IsActive = true, Description = "Bibliothèques macOS" },
+            new() { FilterType = "Extension", FilterValue = ".bat", IsDefault = true, IsActive = true, Description = "Scripts batch Windows" },
+            new() { FilterType = "Extension", FilterValue = ".sh", IsDefault = true, IsActive = true, Description = "Scripts shell" },
+            new() { FilterType = "Extension", FilterValue = ".cmd", IsDefault = true, IsActive = true, Description = "Scripts CMD Windows" },
+            
+            // Documents
+            new() { FilterType = "Extension", FilterValue = ".doc", IsDefault = true, IsActive = true, Description = "Documents Word" },
+            new() { FilterType = "Extension", FilterValue = ".docx", IsDefault = true, IsActive = true, Description = "Documents Word" },
+            new() { FilterType = "Extension", FilterValue = ".pdf", IsDefault = true, IsActive = true, Description = "Documents PDF" },
+            new() { FilterType = "Extension", FilterValue = ".xls", IsDefault = true, IsActive = true, Description = "Feuilles Excel" },
+            new() { FilterType = "Extension", FilterValue = ".xlsx", IsDefault = true, IsActive = true, Description = "Feuilles Excel" },
+            new() { FilterType = "Extension", FilterValue = ".ppt", IsDefault = true, IsActive = true, Description = "Présentations PowerPoint" },
+            new() { FilterType = "Extension", FilterValue = ".pptx", IsDefault = true, IsActive = true, Description = "Présentations PowerPoint" },
+            
+            // Markup/Config
+            new() { FilterType = "Extension", FilterValue = ".html", IsDefault = true, IsActive = true, Description = "Pages HTML" },
+            new() { FilterType = "Extension", FilterValue = ".htm", IsDefault = true, IsActive = true, Description = "Pages HTML" },
+            new() { FilterType = "Extension", FilterValue = ".xml", IsDefault = true, IsActive = true, Description = "Fichiers XML" },
+            new() { FilterType = "Extension", FilterValue = ".json", IsDefault = true, IsActive = true, Description = "Fichiers JSON" },
+            new() { FilterType = "Extension", FilterValue = ".yaml", IsDefault = true, IsActive = true, Description = "Fichiers YAML" },
+            new() { FilterType = "Extension", FilterValue = ".yml", IsDefault = true, IsActive = true, Description = "Fichiers YAML" },
+            new() { FilterType = "Extension", FilterValue = ".css", IsDefault = true, IsActive = true, Description = "Feuilles de style CSS" }
+        };
+
+        _context.ExclusionFilters.AddRange(defaultFilters);
     }
 }
 

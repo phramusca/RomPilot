@@ -24,6 +24,13 @@ public interface IScanProgressReporter
     void ReportRomFound(string filePath, string consoleName);
 
     /// <summary>
+    /// Reports that a file was excluded by a filter.
+    /// </summary>
+    /// <param name="filePath">Path to the excluded file</param>
+    /// <param name="exclusionReason">Reason for exclusion (e.g., "Extension .jpg excluded by default filter")</param>
+    void ReportFileExcluded(string filePath, string exclusionReason);
+
+    /// <summary>
     /// Reports that a file was processed successfully with status details.
     /// </summary>
     /// <param name="filePath">Path to the processed file</param>

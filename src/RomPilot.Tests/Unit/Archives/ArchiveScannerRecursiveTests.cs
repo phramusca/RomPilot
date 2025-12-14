@@ -91,8 +91,11 @@ public class ArchiveScannerRecursiveTests : IDisposable
     }
 
     [Fact]
-    public async Task ScanDirectoryAsync_ShouldIgnoreNonROMFiles()
+    public async Task ScanDirectoryAsync_ShouldScanAllFilesWithoutPresumption()
     {
+        // CHANGED: ArchiveScanner now scans ALL files without presuming what is a ROM
+        // Filtering is done by FilterService in ScanService
+        
         // Arrange
         var romFile = Path.Combine(_testDirectory, "game.nes");
         var textFile = Path.Combine(_testDirectory, "readme.txt");
@@ -105,9 +108,13 @@ public class ArchiveScannerRecursiveTests : IDisposable
         // Act
         var results = await _scanner.ScanDirectoryAsync(_testDirectory, 5, null);
 
-        // Assert
-        results.Should().HaveCount(1);
-        results.First().FilePath.Should().Be(romFile);
+        // Assert - Should scan ALL files (3 total)
+        results.Should().HaveCount(3, "because ArchiveScanner scans all files without filtering");
+        
+        // Verify all files are present (order may vary)
+        results.Should().Contain(r => r.FilePath == romFile);
+        results.Should().Contain(r => r.FilePath == textFile);
+        results.Should().Contain(r => r.FilePath == imageFile);
     }
 
     [Fact]

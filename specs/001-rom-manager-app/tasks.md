@@ -183,64 +183,64 @@ Total User Stories : **6** (P1 à P4)
 
 ### 4.1 Service Filtres d'Exclusion (Nouveau)
 
-- [ ] T081 [US1] Créer FilterService dans src/RomPilot.Core/Services/FilterService.cs
-- [ ] T082 [US1] Tests FilterService dans tests/RomPilot.Core.Tests/Services/FilterServiceTests.cs
-- [ ] T083 [US1] Implémenter GetActiveFiltersAsync() retournant filtres actifs depuis ExclusionFilters
-- [ ] T084 [US1] Implémenter IsFileExcluded(filePath) vérifiant extension, taille, pattern
-- [ ] T085 [US1] Implémenter AddCustomFilterAsync(filterType, filterValue)
-- [ ] T086 [US1] Implémenter UpdateFilterStatusAsync(filterId, isActive) pour activer/désactiver
-- [ ] T087 [US1] Implémenter DeleteFilterAsync(filterId) pour filtres personnalisés
+- [X] T081 [US1] Créer FilterService dans src/RomPilot.Core/Services/FilterService.cs
+- [X] T082 [US1] Tests FilterService dans tests/RomPilot.Core.Tests/Services/FilterServiceTests.cs
+- [X] T083 [US1] Implémenter GetActiveFiltersAsync() retournant filtres actifs depuis ExclusionFilters
+- [X] T084 [US1] Implémenter IsFileExcluded(filePath) vérifiant extension, taille, pattern
+- [X] T085 [US1] Implémenter AddCustomFilterAsync(filterType, filterValue)
+- [X] T086 [US1] Implémenter UpdateFilterStatusAsync(filterId, isActive) pour activer/désactiver
+- [X] T087 [US1] Implémenter DeleteFilterAsync(filterId) pour filtres personnalisés
 
 ### 4.2 UI Configuration Filtres
 
-- [ ] T088 [US1] Créer FilterConfigViewModel dans src/RomPilot.UI/ViewModels/FilterConfigViewModel.cs
-- [ ] T089 [US1] Créer FilterConfigView.axaml dans src/RomPilot.UI/Views/FilterConfigView.axaml
-- [ ] T090 [US1] Implémenter UI : Tableau filtres avec colonnes Type, Valeur, Par Défaut, Actif
-- [ ] T091 [US1] Implémenter UI : Bouton ajouter filtre personnalisé (dialog)
-- [ ] T092 [US1] Implémenter UI : Checkbox activer/désactiver chaque filtre
+- [X] T088 [US1] Créer FilterConfigViewModel dans src/RomPilot.UI/ViewModels/FilterConfigViewModel.cs
+- [X] T089 [US1] Créer FilterConfigView.axaml dans src/RomPilot.UI/Views/FilterConfigView.axaml
+- [X] T090 [US1] Implémenter UI : Tableau filtres avec colonnes Type, Valeur, Par Défaut, Actif
+- [X] T091 [US1] Implémenter UI : Bouton ajouter filtre personnalisé (dialog)
+- [X] T092 [US1] Implémenter UI : Checkbox activer/désactiver chaque filtre
 - [ ] T093 [US1] Implémenter UI : Bouton supprimer pour filtres personnalisés uniquement
 
 ### 4.3 Service Scan Adapté (Modification Code Existant)
 
-- [ ] T094 [US1] **ADAPTER** ScanService dans src/RomPilot.Core/Services/ScanService.cs pour scan sans présupposition
-- [ ] T095 [US1] Tests ScanService dans tests/RomPilot.Core.Tests/Services/ScanServiceTests.cs
-- [ ] T096 [US1] Modifier ScanDirectoryAsync() pour (1) appeler FilterService avant scan, (2) scanner TOUS fichiers hors exclusions
-- [ ] T097 [US1] Ajouter paramètre scanType (Quick/Full) à ScanDirectoryAsync()
-- [ ] T098 [US1] Implémenter logique scan rapide : comparer timestamp + taille, skip si inchangé
-- [ ] T099 [US1] Implémenter logique scan complet : recalculer tous checksums
-- [ ] T100 [US1] Stocker LastModifiedTimestamp et ScanType dans ScannedFiles
-- [ ] T101 [US1] Pour chaque fichier scanné, définir IdentificationStatus : "Identified"/"Unidentified"/"Excluded"/"Failed"
-- [ ] T102 [US1] Stocker ExclusionReason si status="Excluded" (ex: "Extension .jpg exclue")
-- [ ] T103 [US1] Stocker FailureReason si status="Failed" (ex: "Archive corrompue")
+- [X] T094 [US1] **ADAPTER** ScanService dans src/RomPilot.Core/Services/ScanService.cs pour scan sans présupposition
+- [X] T095 [US1] Tests ScanService dans tests/RomPilot.Core.Tests/Services/ScanServiceTests.cs
+- [X] T096 [US1] Modifier ScanDirectoryAsync() pour (1) appeler FilterService avant scan, (2) scanner TOUS fichiers hors exclusions
+- [X] T097 [US1] Ajouter paramètre scanType (Quick/Full) à ScanDirectoryAsync()
+- [X] T098 [US1] Implémenter logique scan rapide : comparer timestamp + taille, skip si inchangé
+- [X] T099 [US1] Implémenter logique scan complet : recalculer tous checksums
+- [X] T100 [US1] Stocker LastModifiedTimestamp et ScanType dans ScannedFiles
+- [X] T101 [US1] Pour chaque fichier scanné, définir IdentificationStatus : "Identified"/"Unidentified"/"Excluded"/"Failed"
+- [X] T102 [US1] Stocker ExclusionReason si status="Excluded" (ex: "Extension .jpg exclue")
+- [X] T103 [US1] Stocker FailureReason si status="Failed" (ex: "Archive corrompue")
 
 ### 4.4 Service Identification ROMs
 
-- [ ] T104 [US1] Créer IdentificationService dans src/RomPilot.Core/Services/IdentificationService.cs
-- [ ] T105 [US1] Tests IdentificationService dans tests/RomPilot.Core.Tests/Services/IdentificationServiceTests.cs
-- [ ] T106 [US1] Implémenter IdentifyFileAsync(scannedFile) cherchant checksums dans GameEntries
-- [ ] T107 [US1] Si match trouvé : mettre à jour ScannedFile avec ConsoleId, GameEntryId, status="Identified"
-- [ ] T108 [US1] Si aucun match : laisser status="Unidentified", garder checksums calculés
+- [X] T104 [US1] Créer IdentificationService dans src/RomPilot.Core/Services/IdentificationService.cs (GameIdentificationService)
+- [X] T105 [US1] Tests IdentificationService dans tests/RomPilot.Core.Tests/Services/IdentificationServiceTests.cs
+- [X] T106 [US1] Implémenter IdentifyFileAsync(scannedFile) cherchant checksums dans GameEntries
+- [X] T107 [US1] Si match trouvé : mettre à jour ScannedFile avec ConsoleId, GameEntryId, status="Identified"
+- [X] T108 [US1] Si aucun match : laisser status="Unidentified", garder checksums calculés
 - [ ] T109 [US1] Gérer fichiers identifiés dans plusieurs bases de données (multi-match)
 - [ ] T110 [US1] Implémenter BatchIdentifyAsync() pour identification parallèle de multiples fichiers
 
 ### 4.5 UI Scan et Progression
 
-- [ ] T111 [US1] **ADAPTER** ScanViewModel dans src/RomPilot.UI/ViewModels/ScanViewModel.cs
-- [ ] T112 [US1] **ADAPTER** ScanView.axaml dans src/RomPilot.UI/Views/ScanView.axaml
-- [ ] T113 [US1] Ajouter UI : Boutons radio "Scan Rapide" / "Scan Complet"
-- [ ] T114 [US1] Adapter UI : Barre progression avec compteurs (Scannés, Identifiés, Non identifiés, Exclus, Échecs)
-- [ ] T115 [US1] Adapter UI : Tableau résultats avec colonnes Fichier, Statut, Console, Jeu, Raison
+- [X] T111 [US1] **ADAPTER** ScanViewModel dans src/RomPilot.UI/ViewModels/ScanViewModel.cs
+- [X] T112 [US1] **ADAPTER** ScanView.axaml dans src/RomPilot.UI/Views/ScanView.axaml
+- [X] T113 [US1] Ajouter UI : Boutons radio "Scan Rapide" / "Scan Complet"
+- [X] T114 [US1] Adapter UI : Barre progression avec compteurs (Scannés, Identifiés, Non identifiés, Exclus, Échecs)
+- [X] T115 [US1] Adapter UI : Tableau résultats avec colonnes Fichier, Statut, Console, Jeu, Raison
 - [ ] T116 [US1] Implémenter filtres tableau : Afficher uniquement Identifiés / Non identifiés / Exclus / Échecs
 - [ ] T117 [US1] Implémenter tri tableau par colonne (nom, taille, statut, console)
 - [ ] T118 [US1] Afficher raison explicite pour fichiers Exclus et Échecs
 
 ### 4.6 Tests Intégration US1
 
-- [ ] T119 [US1] Test intégration : Scan répertoire test avec .zip, .nes, .jpg (identifier ROMs, exclure images)
-- [ ] T120 [US1] Test intégration : Scan rapide répertoire déjà scanné, vérifier réutilisation checksums
-- [ ] T121 [US1] Test intégration : Scan complet même répertoire, vérifier recalcul checksums
-- [ ] T122 [US1] Test intégration : Ajouter filtre personnalisé (.mp3), rescanner, vérifier exclusion
-- [ ] T123 [US1] Test intégration : Scan archives imbriquées (ZIP dans ZIP dans RAR), vérifier profondeur récursive
+- [X] T119 [US1] Test intégration : Scan répertoire test avec .zip, .nes, .jpg (identifier ROMs, exclure images)
+- [X] T120 [US1] Test intégration : Scan rapide répertoire déjà scanné, vérifier réutilisation checksums
+- [X] T121 [US1] Test intégration : Scan complet même répertoire, vérifier recalcul checksums
+- [X] T122 [US1] Test intégration : Ajouter filtre personnalisé (.mp3), rescanner, vérifier exclusion
+- [X] T123 [US1] Test intégration : Scan archives imbriquées (ZIP dans ZIP dans RAR), vérifier profondeur récursive
 
 ---
 

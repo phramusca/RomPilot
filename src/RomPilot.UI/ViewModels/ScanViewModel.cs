@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -28,7 +29,10 @@ public partial class ScanViewModel : ViewModelBase
     private string _selectedDirectory = string.Empty;
 
     [ObservableProperty]
-    private List<ScannedFile> _scannedFiles = new();
+    private ObservableCollection<ScannedFile> _scannedFiles = new();
+
+    [ObservableProperty]
+    private int _scannedFilesCount;
 
     [ObservableProperty]
     private bool _isScanning;
@@ -56,6 +60,21 @@ public partial class ScanViewModel : ViewModelBase
 
     [ObservableProperty]
     private List<FileProcessingResult> _failedFiles = new();
+
+    [ObservableProperty]
+    private bool _isQuickScan = true;  // Par défaut : scan rapide
+
+    [ObservableProperty]
+    private int _identifiedCount;
+
+    [ObservableProperty]
+    private int _unidentifiedCount;
+
+    [ObservableProperty]
+    private int _excludedCount;
+
+    [ObservableProperty]
+    private int _failedCount;
 
     private IScanProgressReporter? _progressReporter;
     private Window? _parentWindow;
@@ -181,6 +200,7 @@ public partial class ScanViewModel : ViewModelBase
         ProcessedFiles.Clear();
         FailedFiles.Clear();
         ScannedFiles.Clear(); // Clear previous results
+        ScannedFilesCount = 0;
         HasResults = false;
         ProgressCurrent = 0;
         ProgressTotal = 0;
@@ -290,20 +310,34 @@ public partial class ScanViewModel : ViewModelBase
                 }
             });
 
+            // Choisir le type de scan selon la sélection de l'utilisateur
+            var scanType = IsQuickScan ? Core.Models.ScanType.Quick : Core.Models.ScanType.Full;
+            System.Console.WriteLine($"[ScanViewModel] Starting scan with type: {scanType}");
+
             var romFiles = await _scanService.ScanDirectoriesAsync(
                 directories,
-                _progressReporter,
-                CancellationToken.None);
+                scanType,
+                progressReporter: _progressReporter,
+                cancellationToken: CancellationToken.None);
 
             var duration = DateTime.Now - startTime;
             System.Console.WriteLine($"[ScanViewModel] Scan completed in {duration.TotalSeconds:F2} seconds");
-            System.Console.WriteLine($"[ScanViewModel] Found {romFiles.Count()} ROM files");
+            System.Console.WriteLine($"[ScanViewModel] Found {romFiles.Count()} files");
 
             // Final update of progress messages from reporter on UI thread
             var romFilesList = romFiles.ToList();
             System.Console.WriteLine($"[ScanViewModel] romFiles.Count() = {romFilesList.Count}");
 
-            await Dispatcher.UIThread.InvokeAsync(async () =>
+            // Calculer les compteurs par statut
+            var identified = romFilesList.Count(f => f.IdentificationStatus == "Identified");
+            var unidentified = romFilesList.Count(f => f.IdentificationStatus == "Unidentified");
+            var excluded = romFilesList.Count(f => f.IdentificationStatus == "Excluded");
+            var failed = romFilesList.Count(f => f.IdentificationStatus == "Failed");
+
+            System.Console.WriteLine($"[ScanViewModel] Status counts - Identified: {identified}, Unidentified: {unidentified}, Excluded: {excluded}, Failed: {failed}");
+
+            // Update UI on UI thread - SYNCHRONOUS to ensure immediate update
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (reporter != null)
                 {
@@ -320,27 +354,49 @@ public partial class ScanViewModel : ViewModelBase
                     System.Console.WriteLine("[ScanViewModel] WARNING: No progress reporter available");
                 }
 
-                StatusMessage = $"Scan complete! Found {romFilesList.Count} ROM files.";
+                // Mettre à jour les compteurs
+                IdentifiedCount = identified;
+                UnidentifiedCount = unidentified;
+                ExcludedCount = excluded;
+                FailedCount = failed;
+
+                StatusMessage = $"Scan terminé! {romFilesList.Count} fichiers ({identified} identifiés, {unidentified} non identifiés, {excluded} exclus, {failed} échecs)";
 
                 // Store scanned files in this view model (results shown in same view)
-                ScannedFiles = romFilesList;
-                HasResults = romFilesList.Count > 0;
-                System.Console.WriteLine($"[ScanViewModel] Stored {romFilesList.Count} ROM files in view model, HasResults={HasResults}");
+                // Create NEW ObservableCollection to force UI rebind
+                var newCollection = new ObservableCollection<ScannedFile>(romFilesList);
+                System.Console.WriteLine($"[ScanViewModel] Created new collection with {newCollection.Count} files");
 
-                // Save last scanned directory
-                if (_preferencesService != null && !string.IsNullOrEmpty(SelectedDirectory))
+                // Debug: Print first few files' status
+                foreach (var file in newCollection.Take(3))
                 {
-                    try
-                    {
-                        await _preferencesService.SetPreferenceAsync("last_scanned_directory", SelectedDirectory);
-                        System.Console.WriteLine($"[ScanViewModel] Saved last scanned directory: {SelectedDirectory}");
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Console.WriteLine($"[ScanViewModel] Error saving last directory: {ex.Message}");
-                    }
+                    System.Console.WriteLine($"[ScanViewModel] File: {file.FileName}, Status: {file.IdentificationStatus}, ConsoleId: {file.ConsoleId}");
                 }
+
+                // Use SetProperty to ensure proper notification
+                SetProperty(ref _scannedFiles, newCollection, nameof(ScannedFiles));
+                SetProperty(ref _scannedFilesCount, newCollection.Count, nameof(ScannedFilesCount));
+                SetProperty(ref _hasResults, newCollection.Count > 0, nameof(HasResults));
+                System.Console.WriteLine($"[ScanViewModel] SetProperty called - HasResults={HasResults}, ScannedFilesCount={ScannedFilesCount}");
             });
+
+            // Small delay to ensure UI has time to process changes
+            await Task.Delay(50);
+            System.Console.WriteLine("[ScanViewModel] Post-update delay complete");
+
+            // Save last scanned directory (async, can be done after UI update)
+            if (_preferencesService != null && !string.IsNullOrEmpty(SelectedDirectory))
+            {
+                try
+                {
+                    await _preferencesService.SetPreferenceAsync("last_scanned_directory", SelectedDirectory);
+                    System.Console.WriteLine($"[ScanViewModel] Saved last scanned directory: {SelectedDirectory}");
+                }
+                catch (Exception ex)
+                {
+                    System.Console.WriteLine($"[ScanViewModel] Error saving last directory: {ex.Message}");
+                }
+            }
         }
         catch (Exception ex)
         {

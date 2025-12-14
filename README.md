@@ -45,16 +45,23 @@ dotnet test
 
 ## ✨ Fonctionnalités
 
-- ✅ Scan de répertoires (récursif)
-- ✅ Support des archives (ZIP, 7Z, RAR, imbriquées)
-- ✅ Calcul de checksums
+### ✅ US1 : Scanner et Identifier (COMPLÉTÉ)
+- **Scan sans présupposition** : Scanne TOUS les fichiers sans filtrer par extension
+- **Filtres d'exclusion** : 36 filtres par défaut (images, textes, docs, etc.) + ajout de filtres personnalisés
+- **Scans incrémentaux** : Mode Quick (réutilise checksums) vs Full (recalcule tout)
+- **Compteurs détaillés** : Identifiés / Non identifiés / Exclus / Échecs
+- **Interface de gestion** : Vue dédiée pour configurer les filtres
+- **Support archives** : ZIP, 7Z, RAR avec récursion complète
+- **Calcul checksums** : MD5, SHA1, SHA256, CRC32
 - ✅ Détection automatique de console
 - ✅ Identification via bases de données de référence
-- 🚧 Gestionnaire de bases de données (NoIntro, Redump, GoodSet)
-- 🚧 Filtrage et groupement des ROMs
-- 🚧 Export vers Recalbox et Romm
-- 🚧 Synchronisation des métadonnées
-- 🚧 Interface Bibliothèque
+
+### ⏳ En Cours de Développement
+- 🔜 **US2** : Gestionnaire de bases de données (NoIntro, Redump, GoodSet)
+- 🔜 **US3** : Export vers Recalbox
+- 🔜 **US4** : Export vers Romm
+- 🔜 **US5** : Gestion des doublons
+- 🔜 **US6** : Statistiques et rapports
 
 ## 📂 Structure du Projet
 

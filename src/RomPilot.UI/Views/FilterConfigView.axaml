@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RomPilot.UI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="RomPilot.UI.Views.FilterConfigView"
+             x:DataType="vm:FilterConfigViewModel">
+  
+  <Design.DataContext>
+    <vm:FilterConfigViewModel/>
+  </Design.DataContext>
+
+  <Grid Margin="20" RowDefinitions="Auto,Auto,*,Auto">
+    
+    <!-- En-tête -->
+    <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,20">
+      <TextBlock Text="Configuration des Filtres d'Exclusion" 
+                 FontSize="24" 
+                 FontWeight="Bold"/>
+      <TextBlock Text="Gérez les types de fichiers exclus lors du scan" 
+                 FontSize="14" 
+                 Foreground="Gray"/>
+    </StackPanel>
+
+    <!-- Ajouter un filtre personnalisé (Extension uniquement) -->
+    <Border Grid.Row="1" 
+            Background="LightYellow" 
+            Padding="10" 
+            Margin="0,0,0,20"
+            CornerRadius="4">
+      <StackPanel Spacing="10">
+        <TextBlock Text="➕ Ajouter un filtre d'extension personnalisé" FontWeight="SemiBold"/>
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Grid.Column="0" 
+                   Text="{Binding NewFilterValue}" 
+                   Watermark="Ex: .mp3, .avi, .mp4"
+                   Margin="0,0,10,0"/>
+          <Button Grid.Column="1" 
+                  Content="Ajouter" 
+                  Command="{Binding AddCustomFilterCommand}"/>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <!-- Liste des filtres -->
+    <ScrollViewer Grid.Row="2">
+      <ItemsControl ItemsSource="{Binding Filters}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border BorderBrush="LightGray" 
+                    BorderThickness="0,0,0,1" 
+                    Padding="10"
+                    Margin="0,0,0,5">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                
+                <!-- Checkbox pour activer/désactiver -->
+                <CheckBox Grid.Column="0"
+                          IsChecked="{Binding IsActive}"
+                          VerticalAlignment="Center"
+                          Margin="0,0,10,0"/>
+                
+                <!-- Informations du filtre -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding DisplayText}" 
+                             FontWeight="SemiBold"
+                             FontSize="14"/>
+                  <TextBlock Text="{Binding Description}" 
+                             FontSize="12" 
+                             Foreground="Gray"
+                             IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                  <TextBlock Text="{Binding FilterType, StringFormat='Type : {0}'}" 
+                             FontSize="11" 
+                             Foreground="DarkGray"/>
+                </StackPanel>
+                
+                <!-- Badge "Par défaut" -->
+                <Border Grid.Column="2"
+                        Background="LightBlue"
+                        CornerRadius="3"
+                        Padding="6,2"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsDefault}">
+                  <TextBlock Text="Par défaut" 
+                             FontSize="10" 
+                             FontWeight="SemiBold"/>
+                </Border>
+                
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <!-- Barre de statut -->
+    <Border Grid.Row="3" 
+            Background="LightGray" 
+            Padding="10" 
+            Margin="0,20,0,0"
+            CornerRadius="4">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0"
+                   Text="{Binding StatusMessage}" 
+                   VerticalAlignment="Center"/>
+        <Button Grid.Column="1"
+                Content="Rafraîchir"
+                Command="{Binding LoadFiltersCommand}"
+                IsEnabled="{Binding !IsLoading}"/>
+      </Grid>
+    </Border>
+    
+  </Grid>
+  
+</UserControl>
+

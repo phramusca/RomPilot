@@ -8,19 +8,13 @@ using SharpCompress.Common;
 namespace RomPilot.Core.Archives;
 
 /// <summary>
-/// Implementation of archive scanner for ZIP and 7Z archives with recursive support.
+/// Implementation of archive scanner for ZIP, 7Z and RAR archives with recursive support.
+/// IMPORTANT: Scans ALL files without presuming what is a ROM - filtering is done by FilterService.
 /// </summary>
 public class ArchiveScanner : IArchiveScanner
 {
-    private readonly HashSet<string> _romExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".nes", ".snes", ".smc", ".gb", ".gbc", ".gba", ".n64", ".z64", ".v64",
-        ".md", ".gen", ".sms", ".gg", ".pce", ".ngp", ".ngc", ".ws", ".wsc",
-        ".psx", ".bin", ".cue", ".iso", ".img", ".mdf", ".chd",
-        ".nds", ".dsi", ".3ds", ".cia", ".cci",
-        ".gcz", ".wbfs", ".wad", ".rvz",
-        ".rom", ".sfc", ".smd", ".32x", ".a26", ".lynx", ".jag"
-    };
+    // REMOVED: Hard-coded ROM extensions list - no longer presupposing what is a ROM
+    // Filtering is now done by FilterService in ScanService
 
     public async Task<IEnumerable<ArchiveFileInfo>> ScanDirectoryAsync(
         string directoryPath,
@@ -70,21 +64,8 @@ public class ArchiveScanner : IArchiveScanner
                 var extension = Path.GetExtension(file);
                 var fileName = Path.GetFileName(file);
 
-                if (_romExtensions.Contains(extension))
-                {
-                    var fileInfo = new FileInfo(file);
-                    System.Console.WriteLine($"[ArchiveScanner] Found ROM file: {fileName} ({extension})");
-                    progressReporter?.ReportProgress(0, 0, $"Found ROM: {fileName}");
-                    results.Add(new ArchiveFileInfo
-                    {
-                        FilePath = file,
-                        ArchivePath = null,
-                        ArchiveDepth = 0,
-                        FileSize = fileInfo.Length,
-                        LastModifiedTimestamp = ((DateTimeOffset)fileInfo.LastWriteTimeUtc).ToUnixTimeSeconds()
-                    });
-                }
-                else if (IsArchiveFile(file) && currentDepth < maxDepth)
+                // Check if it's an archive to scan recursively
+                if (IsArchiveFile(file) && currentDepth < maxDepth)
                 {
                     System.Console.WriteLine($"[ArchiveScanner] Found archive file: {fileName} ({extension}) - will scan contents");
                     progressReporter?.ReportProgress(0, 0, $"Scanning archive: {fileName}");
@@ -93,10 +74,18 @@ public class ArchiveScanner : IArchiveScanner
                 }
                 else
                 {
-                    if (files.Length <= 10) // Only log if few files to avoid spam
+                    // CHANGED: Scan ALL files without presumption - filtering done later by FilterService
+                    var fileInfo = new FileInfo(file);
+                    System.Console.WriteLine($"[ArchiveScanner] Found file: {fileName} ({extension}, {fileInfo.Length} bytes)");
+                    progressReporter?.ReportProgress(0, 0, $"Found file: {fileName}");
+                    results.Add(new ArchiveFileInfo
                     {
-                        System.Console.WriteLine($"[ArchiveScanner] Skipping file: {fileName} ({extension}) - not ROM or archive");
-                    }
+                        FilePath = file,
+                        ArchivePath = null,
+                        ArchiveDepth = 0,
+                        FileSize = fileInfo.Length,
+                        LastModifiedTimestamp = ((DateTimeOffset)fileInfo.LastWriteTimeUtc).ToUnixTimeSeconds()
+                    });
                 }
             }
 
@@ -207,29 +196,8 @@ public class ArchiveScanner : IArchiveScanner
                     processedCount++;
                     progressReporter?.ReportProgress(processedCount, entries.Count, $"Scanning {archiveName}: {entryName}");
 
-                    if (!string.IsNullOrEmpty(extension) && _romExtensions.Contains(extension))
-                    {
-                        romCount++;
-                        if (romCount <= 10) // Log first 10 ROMs
-                        {
-                            System.Console.WriteLine($"[ArchiveScanner] Found ROM in {archiveName}: {entryName} ({extension})");
-                        }
-                        progressReporter?.ReportProgress(processedCount, entries.Count, $"Found ROM in {archiveName}: {entryName}");
-                        // Use original archive path if available (for nested archives), otherwise use current archive path
-                        var sourceArchivePath = originalArchivePath ?? archivePath;
-                        // Get last modified time from entry, or fallback to archive file's modification time
-                        var lastModified = entry.LastModifiedTime ?? new FileInfo(archivePath).LastWriteTimeUtc;
-                        results.Add(new ArchiveFileInfo
-                        {
-                            FilePath = entry.Key,
-                            ArchivePath = sourceArchivePath, // Original source archive
-                            ImmediateArchivePath = archivePath, // Immediate archive containing this file
-                            ArchiveDepth = currentDepth,
-                            FileSize = entry.Size,
-                            LastModifiedTimestamp = ((DateTimeOffset)lastModified).ToUnixTimeSeconds()
-                        });
-                    }
-                    else if (!string.IsNullOrEmpty(entry.Key) && IsArchiveFile(entry.Key) && currentDepth < maxDepth)
+                    // Check if it's a nested archive to scan recursively
+                    if (!string.IsNullOrEmpty(entry.Key) && IsArchiveFile(entry.Key) && currentDepth < maxDepth)
                     {
                         nestedArchiveCount++;
                         System.Console.WriteLine($"[ArchiveScanner] Found nested archive in {archiveName}: {entryName}");
@@ -265,15 +233,30 @@ public class ArchiveScanner : IArchiveScanner
                     }
                     else
                     {
-                        skippedCount++;
-                        if (skippedCount <= 5) // Log first 5 skipped files
+                        // CHANGED: Include ALL files without presumption - filtering done later by FilterService
+                        romCount++;
+                        if (romCount <= 10) // Log first 10 files
                         {
-                            System.Console.WriteLine($"[ArchiveScanner] Skipped file in {archiveName}: {entryName} ({extension})");
+                            System.Console.WriteLine($"[ArchiveScanner] Found file in {archiveName}: {entryName} ({extension}, {entry.Size} bytes)");
                         }
+                        progressReporter?.ReportProgress(processedCount, entries.Count, $"Found file in {archiveName}: {entryName}");
+                        // Use original archive path if available (for nested archives), otherwise use current archive path
+                        var sourceArchivePath = originalArchivePath ?? archivePath;
+                        // Get last modified time from entry, or fallback to archive file's modification time
+                        var lastModified = entry.LastModifiedTime ?? new FileInfo(archivePath).LastWriteTimeUtc;
+                        results.Add(new ArchiveFileInfo
+                        {
+                            FilePath = entry.Key,
+                            ArchivePath = sourceArchivePath, // Original source archive
+                            ImmediateArchivePath = archivePath, // Immediate archive containing this file
+                            ArchiveDepth = currentDepth,
+                            FileSize = entry.Size,
+                            LastModifiedTimestamp = ((DateTimeOffset)lastModified).ToUnixTimeSeconds()
+                        });
                     }
                 }
 
-                System.Console.WriteLine($"[ArchiveScanner] Archive {archiveName} summary: {romCount} ROMs, {nestedArchiveCount} nested archives, {skippedCount} skipped files");
+                System.Console.WriteLine($"[ArchiveScanner] Archive {archiveName} summary: {romCount} files found, {nestedArchiveCount} nested archives scanned");
             }, cancellationToken);
 
             archive.Dispose();

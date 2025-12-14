@@ -46,8 +46,11 @@ public class ScanServiceIntegrationTests : IDisposable
         var gameIdentificationService = new GameIdentificationService(_context);
         var romFileRepository = new ScannedFileRepository(_context);
         var checksumRepository = new ChecksumRepository(_context);
+        var exclusionFilterRepository = new ExclusionFilterRepository(_context);
+        var filterService = new FilterService(exclusionFilterRepository);
 
-        // Note: ScanService constructor may need adjustment based on actual implementation
+        // Initialize default exclusion filters (synchronously in constructor)
+        filterService.InitializeDefaultFiltersAsync().Wait();
 
         _scanService = new ScanService(
             _context,
@@ -56,7 +59,8 @@ public class ScanServiceIntegrationTests : IDisposable
             consoleDetectionService,
             gameIdentificationService,
             romFileRepository,
-            checksumRepository);
+            checksumRepository,
+            filterService);
 
         _progressReporter = new ScanProgressReporter();
     }
@@ -71,7 +75,7 @@ public class ScanServiceIntegrationTests : IDisposable
         // Act
         var results = await _scanService.ScanDirectoriesAsync(
             new[] { _testDirectory },
-            _progressReporter);
+            progressReporter: _progressReporter);
 
         // Assert
         results.Should().NotBeEmpty();
@@ -91,7 +95,7 @@ public class ScanServiceIntegrationTests : IDisposable
         // Act
         var results = await _scanService.ScanDirectoriesAsync(
             new[] { _testDirectory },
-            _progressReporter);
+            progressReporter: _progressReporter);
 
         // Assert
         // Verify that scanning occurred (recursive scanning should be attempted)
@@ -134,7 +138,7 @@ public class ScanServiceIntegrationTests : IDisposable
         // Act
         var results = await _scanService.ScanDirectoriesAsync(
             new[] { _testDirectory },
-            _progressReporter);
+            progressReporter: _progressReporter);
 
         // Assert
         results.Should().Contain(r => r.FilePath.Contains("game.nes"));
@@ -151,7 +155,7 @@ public class ScanServiceIntegrationTests : IDisposable
         // Act
         await _scanService.ScanDirectoriesAsync(
             new[] { _testDirectory },
-            _progressReporter);
+            progressReporter: _progressReporter);
 
         // Assert
         _progressReporter.Messages.Should().Contain(m => m.Contains("Scanning directory"));
