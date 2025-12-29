@@ -20,7 +20,8 @@
 				"DavidAnson.vscode-markdownlint",
 				"mechatroner.rainbow-csv",
 				"Gruntfuggly.todo-tree",
-				"TakumiI.markdowntable"
+				"TakumiI.markdowntable",
+				"eamodio.gitlens"
 			],
 			"settings": {
 				// Editor
