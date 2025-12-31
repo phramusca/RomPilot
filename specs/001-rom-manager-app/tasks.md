@@ -9,6 +9,7 @@
 ## Vue d'Ensemble
 
 Total User Stories : **6** (P1 à P4)
+
 - ✅ **US1 : Scanner et identifier (P1) - COMPLÉTÉ** ✅
 - ⏳ US2 : Gérer bases de données (P1.5) - En cours
 - US3 : Grouper et filtrer (P2)
@@ -17,23 +18,27 @@ Total User Stories : **6** (P1 à P4)
 - US5 : Synchroniser métadonnées (P4)
 
 **MVP Suggéré** : US1 + US2 (fondation pour tout le reste)
+
 - ✅ US1 complétée (Phase 3)
 - ⏳ US2 en cours (Phase 4)
 
 ## Stratégie d'Implémentation
 
 ### Approche TDD
+
 - ✅ Tests écrits AVANT l'implémentation (QA-001)
 - ✅ Couverture minimale 80% (QA-002, SC-014)
 - ✅ Tests d'intégration pour US critiques (QA-003, SC-015)
 
 ### Ordre de Livraison
+
 1. **Itération 1** : ✅ Fondations + ✅ US1 adapté (scan complet) + ⏳ US2 (bases de données)
 2. **Itération 2** : US3 (filtrage et sélection automatique)
 3. **Itération 3** : US4 + US6 (export et visualisation)
 4. **Itération 4** : US5 (synchronisation)
 
 ### Opportunités de Parallélisme
+
 - Setup tasks : Peuvent être exécutés en parallèle (marqués [P])
 - Tâches au sein d'une US : Modèles, services et UI peuvent être en parallèle si fichiers différents
 - US indépendantes : US4 et US6 peuvent être développées en parallèle
@@ -165,11 +170,12 @@ Total User Stories : **6** (P1 à P4)
 - [X] T101 [US1] Pour chaque fichier scanné, définir IdentificationStatus : "Identified"/"Unidentified"/"Excluded"/"Failed"
 - [X] T102 [US1] Stocker ExclusionReason si status="Excluded" (ex: "Extension .jpg exclue")
 - [X] T103 [US1] Stocker FailureReason si status="Failed" (ex: "Archive corrompue")
+- [X] T104 [US1] Implémenter logique de suppression fichiers supprimés (FR-028) : retirer de la BD les fichiers qui n'existent plus lors du rescan
 
 ### 3.4 Service Identification ROMs
 
-- [X] T104 [US1] Créer IdentificationService dans src/RomPilot.Core/Services/IdentificationService.cs (GameIdentificationService)
-- [X] T105 [US1] Tests IdentificationService dans tests/RomPilot.Core.Tests/Services/IdentificationServiceTests.cs
+- [X] T105 [US1] Créer IdentificationService dans src/RomPilot.Core/Services/IdentificationService.cs (GameIdentificationService)
+- [X] T106 [US1] Tests IdentificationService dans tests/RomPilot.Core.Tests/Services/IdentificationServiceTests.cs
 - [X] T106 [US1] Implémenter IdentifyFileAsync(scannedFile) cherchant checksums dans GameEntries
 - [X] T107 [US1] Si match trouvé : mettre à jour ScannedFile avec ConsoleId, GameEntryId, status="Identified"
 - [X] T108 [US1] Si aucun match : laisser status="Unidentified", garder checksums calculés
@@ -178,22 +184,23 @@ Total User Stories : **6** (P1 à P4)
 
 ### 3.5 UI Scan et Progression
 
-- [X] T111 [US1] **ADAPTER** ScanViewModel dans src/RomPilot.UI/ViewModels/ScanViewModel.cs
-- [X] T112 [US1] **ADAPTER** ScanView.axaml dans src/RomPilot.UI/Views/ScanView.axaml
-- [X] T113 [US1] Ajouter UI : Boutons radio "Scan Rapide" / "Scan Complet"
-- [X] T114 [US1] Adapter UI : Barre progression avec compteurs (Scannés, Identifiés, Non identifiés, Exclus, Échecs)
-- [X] T115 [US1] Adapter UI : Tableau résultats avec colonnes Fichier, Statut, Console, Jeu, Raison
-- [X] T116 [US1] Implémenter filtres tableau : Afficher uniquement Identifiés / Non identifiés / Exclus / Échecs (use ItemsControl - simple scroll)
-- [X] T117 [US1] Implémenter tri tableau par colonne (nom, taille, statut, console) (amélioration future)
-- [X] T118 [US1] Afficher raison explicite pour fichiers Exclus et Échecs (IMPLÉMENTÉ - ExclusionReason visible)
+- [X] T112 [US1] **ADAPTER** ScanViewModel dans src/RomPilot.UI/ViewModels/ScanViewModel.cs
+- [X] T113 [US1] **ADAPTER** ScanView.axaml dans src/RomPilot.UI/Views/ScanView.axaml
+- [X] T114 [US1] Ajouter UI : Boutons radio "Scan Rapide" / "Scan Complet"
+- [X] T115 [US1] Adapter UI : Barre progression avec compteurs (Scannés, Identifiés, Non identifiés, Exclus, Échecs)
+- [X] T116 [US1] Adapter UI : Tableau résultats avec colonnes Fichier, Statut, Console, Jeu, Raison
+- [X] T117 [US1] Implémenter filtres tableau : Afficher uniquement Identifiés / Non identifiés / Exclus / Échecs (use ItemsControl - simple scroll)
+- [X] T118 [US1] Implémenter tri tableau par colonne (nom, taille, statut, console) (amélioration future)
+- [X] T119 [US1] Afficher raison explicite pour fichiers Exclus et Échecs (IMPLÉMENTÉ - ExclusionReason visible)
 
 ### 3.6 Tests Intégration US1
 
-- [X] T119 [US1] Test intégration : Scan répertoire test avec .zip, .nes, .jpg (identifier ROMs, exclure images)
-- [X] T120 [US1] Test intégration : Scan rapide répertoire déjà scanné, vérifier réutilisation checksums
-- [X] T121 [US1] Test intégration : Scan complet même répertoire, vérifier recalcul checksums
-- [X] T122 [US1] Test intégration : Ajouter filtre personnalisé (.mp3), rescanner, vérifier exclusion
-- [X] T123 [US1] Test intégration : Scan archives imbriquées (ZIP dans ZIP dans RAR), vérifier profondeur récursive
+- [X] T120 [US1] Test intégration : Scan répertoire test avec .zip, .nes, .jpg (identifier ROMs, exclure images)
+- [X] T121 [US1] Test intégration : Scan rapide répertoire déjà scanné, vérifier réutilisation checksums
+- [X] T122 [US1] Test intégration : Scan complet même répertoire, vérifier recalcul checksums
+- [X] T123 [US1] Test intégration : Ajouter filtre personnalisé (.mp3), rescanner, vérifier exclusion
+- [X] T124 [US1] Test intégration : Scan archives imbriquées (ZIP dans ZIP dans RAR), vérifier profondeur récursive
+- [X] T125 [US1] Test intégration : Rescan après suppression fichier, vérifier suppression de la BD (FR-028)
 
 ---
 
@@ -571,6 +578,7 @@ Phase 6    Phase 7
 ```
 
 **Ordre de Complétion Requis** :
+
 1. ✅ Setup + Fondations (Phase 1-2) : COMPLÉTÉ
 2. ✅ US1 (Phase 3) : COMPLÉTÉ - Scanner et identifier fonctionne
 3. US2 (Phase 4) : Peut être implémentée maintenant (téléchargement bases de données)
@@ -580,6 +588,7 @@ Phase 6    Phase 7
 7. US5 après US4 (sync utilise métadonnées exportées)
 
 **US Indépendantes (Parallélisables)** :
+
 - US4 (Export) et US6 (Bibliothèque) après US3
 
 ---
@@ -589,16 +598,19 @@ Phase 6    Phase 7
 ### Par Phase
 
 **Phase 3 (US1)** - ✅ COMPLÉTÉ :
+
 - T081-T087 (FilterService) ✅
 - T088-T093 (UI Filtres) ✅
 - T094-T103 (ScanService adapté) ✅
 - T111-T118 (UI Scan) ✅
 
 **Phase 4 (US2)** - Opportunités parallèles :
+
 - T061-T068 (Service) peuvent commencer dès T054-T060 (Tests) écrits
 - T069-T077 (UI) peuvent commencer en parallèle de T061-T068 si interfaces définies
 
 **Phase 6 (US4) + Phase 7 (US6)** - Parallèles complets :
+
 - Toute la Phase 6 peut être développée en parallèle de Phase 7
 - T164-T178 (Services Export) indépendants de T203-T209 (Service Bibliothèque)
 - T179-T191 (UI Export) indépendants de T210-T232 (UI Bibliothèque)
@@ -606,10 +618,12 @@ Phase 6    Phase 7
 ### Par Développeur
 
 **Développeur 1** :
+
 - Phase 4 : US2 Services + UI
 - Phase 6 : US4 Export Services + UI
 
 **Développeur 2** :
+
 - Phase 4 : US2 Tests
 - Phase 7 : US6 LibraryService + UI complète
 
@@ -631,6 +645,7 @@ Phase 6    Phase 7
 **Tâches Parallélisables** : ~85 tâches marquées [P]
 
 **MVP Recommandé** : Phase 1-4 (Setup + Fondations + US1 + US2) = ~123 tâches
+
 - ✅ Phase 1-3 complétées (~89 tâches)
 - ⏳ Phase 4 en cours (27 tâches)
 
@@ -639,6 +654,7 @@ Phase 6    Phase 7
 **Total Tests** : ~70 tâches (23% du total) - Objectif 80% couverture
 
 **Estimation Temps** :
+
 - MVP (Setup + US2 + US1) : 4-6 semaines
 - Version Complète : 10-12 semaines
 - (Estimation 1 développeur temps plein, 2-3 jours par tâche complexe)
@@ -650,6 +666,7 @@ Phase 6    Phase 7
 ### Adaptation Code Existant US1
 
 Si code partiel existe pour US1 :
+
 1. **Renommer** `RomFile` → `ScannedFile` dans tout le code (T021, migration BD)
 2. **Ajouter** FilterService (T081-T087) - nouveau composant
 3. **Modifier** ScanService (T094-T103) pour scan sans présupposition
@@ -658,23 +675,28 @@ Si code partiel existe pour US1 :
 ### Priorités selon Itérations
 
 **Itération 1 (MVP)** :
+
 - ✅ Phase 1-2 : Setup + Fondations (COMPLÉTÉ)
 - ✅ Phase 3 : US1 complète et adaptée (COMPLÉTÉ)
 - ⏳ Phase 4 : US2 complète (en cours)
 
 **Itération 2** :
+
 - Phase 5 : US3 complète
 
 **Itération 3** :
+
 - Phase 6 + 7 : US4 et US6 en parallèle
 
 **Itération 4** :
+
 - Phase 8 : US5 complète
 - Phase 9 : Polish
 
 ### TDD Workflow
 
 Pour chaque service :
+
 1. Écrire tests d'abord (tâches marquées "Tests")
 2. Vérifier que tests échouent (red)
 3. Implémenter service (green)

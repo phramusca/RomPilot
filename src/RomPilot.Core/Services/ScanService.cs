@@ -293,6 +293,11 @@ public class ScanService : IScanService
             }
         }
 
+        // Step 3: Remove deleted files from database (FR-028)
+        // Identify files that exist in database but are no longer present in the scanned directories
+        System.Console.WriteLine($"[ScanService] Checking for deleted files to remove from database...");
+        await RemoveDeletedFilesAsync(directoryPaths, allArchiveFiles, progressReporter, cancellationToken);
+
         // Clean up temporary files that were created during nested archive scanning
         // These are files in /tmp that were used as ImmediateArchivePath
         CleanupTemporaryArchiveFiles(allArchiveFiles);
@@ -395,6 +400,102 @@ public class ScanService : IScanService
         finally
         {
             stream?.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Removes files from database that no longer exist in the scanned directories (FR-028).
+    /// </summary>
+    private async Task RemoveDeletedFilesAsync(
+        IEnumerable<string> directoryPaths,
+        List<ArchiveFileInfo> currentFiles,
+        IScanProgressReporter? progressReporter,
+        CancellationToken cancellationToken)
+    {
+        // Create a HashSet of (FilePath, ArchivePath) for currently scanned files
+        var currentFileKeys = new HashSet<(string FilePath, string? ArchivePath)>(
+            currentFiles.Select(f => (f.FilePath, f.ArchivePath)),
+            new FilePathArchivePathComparer());
+
+        var deletedCount = 0;
+
+        foreach (var directoryPath in directoryPaths)
+        {
+            if (!Directory.Exists(directoryPath))
+            {
+                continue;
+            }
+
+            // Normalize directory path for comparison (use both with and without trailing slash)
+            var normalizedDirectoryPath1 = Path.GetFullPath(directoryPath).Replace('\\', '/');
+            var normalizedDirectoryPath2 = normalizedDirectoryPath1.EndsWith("/")
+                ? normalizedDirectoryPath1
+                : normalizedDirectoryPath1 + "/";
+
+            // Get all ScannedFiles in the database for this directory
+            // Match files where FilePath starts with the directory path (try both variations)
+            var dbFilesInDirectory = await _context.ScannedFiles
+                .Include(sf => sf.Checksums)
+                .Where(sf => sf.FilePath.StartsWith(normalizedDirectoryPath1) ||
+                            sf.FilePath.StartsWith(normalizedDirectoryPath2) ||
+                            (sf.ArchivePath != null && (sf.ArchivePath.StartsWith(normalizedDirectoryPath1) ||
+                                                        sf.ArchivePath.StartsWith(normalizedDirectoryPath2))))
+                .ToListAsync(cancellationToken);
+
+            System.Console.WriteLine($"[ScanService] Checking {dbFilesInDirectory.Count} files in database for directory: {directoryPath}");
+
+            foreach (var dbFile in dbFilesInDirectory)
+            {
+                var fileKey = (dbFile.FilePath, dbFile.ArchivePath);
+
+                // If file is not in current scan results, it has been deleted
+                if (!currentFileKeys.Contains(fileKey))
+                {
+                    System.Console.WriteLine($"[ScanService] File no longer exists, removing from database: {dbFile.FilePath} (ID={dbFile.Id})");
+
+                    // Delete checksums first (explicit delete since cascade might not be configured)
+                    foreach (var checksum in dbFile.Checksums.ToList())
+                    {
+                        _context.Checksums.Remove(checksum);
+                    }
+
+                    // Delete the ScannedFile
+                    _context.ScannedFiles.Remove(dbFile);
+                    deletedCount++;
+
+                    progressReporter?.ReportProgress(0, 0, $"Removed deleted file: {Path.GetFileName(dbFile.FilePath)}");
+                }
+            }
+        }
+
+        if (deletedCount > 0)
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+            System.Console.WriteLine($"[ScanService] Removed {deletedCount} deleted files from database");
+            progressReporter?.ReportProgress(0, 0, $"Removed {deletedCount} deleted files from database");
+        }
+        else
+        {
+            System.Console.WriteLine($"[ScanService] No deleted files to remove");
+        }
+    }
+
+    /// <summary>
+    /// Comparer for (FilePath, ArchivePath) tuples.
+    /// </summary>
+    private class FilePathArchivePathComparer : IEqualityComparer<(string FilePath, string? ArchivePath)>
+    {
+        public bool Equals((string FilePath, string? ArchivePath) x, (string FilePath, string? ArchivePath) y)
+        {
+            return x.FilePath == y.FilePath &&
+                   string.Equals(x.ArchivePath, y.ArchivePath, StringComparison.Ordinal);
+        }
+
+        public int GetHashCode((string FilePath, string? ArchivePath) obj)
+        {
+            return HashCode.Combine(
+                obj.FilePath?.GetHashCode(StringComparison.Ordinal) ?? 0,
+                obj.ArchivePath?.GetHashCode(StringComparison.Ordinal) ?? 0);
         }
     }
 
@@ -515,14 +616,14 @@ public class ScanService : IScanService
                 // New checksum - always store it, even if another file has the same checksum value
                 // This allows duplicate detection: multiple files can have the same checksum
                 System.Console.WriteLine($"[ScanService] Adding new checksum for {scannedFile.FilePath} ({hashType})");
-                
+
                 // Check if this checksum value exists for another file (for duplicate detection info)
                 var existingByHash = await _checksumRepository.GetByHashAsync(hashType, hashValue);
                 if (existingByHash != null)
                 {
                     System.Console.WriteLine($"[ScanService] Checksum {hashType} value {hashValue} already exists for file ID {existingByHash.ScannedFileId} - potential duplicate detected");
                 }
-                
+
                 var checksum = new Checksum
                 {
                     ScannedFileId = scannedFile.Id,

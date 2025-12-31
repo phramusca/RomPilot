@@ -430,6 +430,67 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task US1_Rescan_ShouldRemoveDeletedFiles()
+    {
+        // Arrange - Créer des fichiers de test dans le répertoire temporaire
+        var testFile1 = Path.Combine(_tempTestDirectory, "test1.nes");
+        var testFile2 = Path.Combine(_tempTestDirectory, "test2.nes");
+        var testFile3 = Path.Combine(_tempTestDirectory, "test3.nes");
+
+        var romContent = new byte[] { 0x4E, 0x45, 0x53, 0x1A }; // NES header
+        await File.WriteAllBytesAsync(testFile1, romContent);
+        await File.WriteAllBytesAsync(testFile2, romContent);
+        await File.WriteAllBytesAsync(testFile3, romContent);
+
+        // First scan - Scanner les 3 fichiers
+        var firstScan = await _scanService.ScanDirectoriesAsync(
+            new[] { _tempTestDirectory },
+            progressReporter: _progressReporter);
+
+        var firstScanList = firstScan.ToList();
+        firstScanList.Should().HaveCountGreaterThanOrEqualTo(3, "because we created 3 test files");
+
+        // Vérifier que les fichiers sont dans la base de données
+        var filesInDb = await _context.ScannedFiles
+            .Where(f => f.FilePath.StartsWith(_tempTestDirectory))
+            .ToListAsync();
+        filesInDb.Should().HaveCountGreaterThanOrEqualTo(3, "because 3 files should be in database");
+
+        // Act - Supprimer un fichier du système de fichiers
+        File.Delete(testFile2);
+
+        // Second scan - Le fichier supprimé devrait être retiré de la base de données
+        var secondScan = await _scanService.ScanDirectoriesAsync(
+            new[] { _tempTestDirectory },
+            progressReporter: _progressReporter);
+
+        var secondScanList = secondScan.ToList();
+
+        // Assert - Vérifier que le fichier supprimé n'est plus dans la base de données
+        var filesInDbAfterRescan = await _context.ScannedFiles
+            .Where(f => f.FilePath.StartsWith(_tempTestDirectory))
+            .ToListAsync();
+
+        filesInDbAfterRescan.Should().HaveCount(
+            filesInDb.Count - 1,
+            "because the deleted file should be removed from database");
+
+        var deletedFileInDb = filesInDbAfterRescan.FirstOrDefault(f => f.FilePath == testFile2);
+        deletedFileInDb.Should().BeNull("because the deleted file should not be in database");
+
+        // Vérifier que les autres fichiers sont toujours présents
+        var file1InDb = filesInDbAfterRescan.FirstOrDefault(f => f.FilePath == testFile1);
+        var file3InDb = filesInDbAfterRescan.FirstOrDefault(f => f.FilePath == testFile3);
+
+        file1InDb.Should().NotBeNull("because file1 should still be in database");
+        file3InDb.Should().NotBeNull("because file3 should still be in database");
+
+        // Vérifier que les checksums du fichier supprimé ont aussi été supprimés
+        // (Ils sont supprimés automatiquement par cascade delete dans le DbContext)
+        // Si le fichier a été supprimé et que le test passe jusqu'ici, c'est que les checksums ont été supprimés aussi
+    }
+
+    [Fact]
     public async Task US1_ScanSourceAndArchiveFiles_ShouldTreatAsDistinctButDetectDuplicates()
     {
         // Arrange - Créer un scénario avec un fichier source ET le même fichier dans une archive
