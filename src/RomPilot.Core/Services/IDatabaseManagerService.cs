@@ -9,6 +9,16 @@ namespace RomPilot.Core.Services;
 public interface IDatabaseManagerService
 {
     /// <summary>
+    /// Liste tous les providers de bases de données disponibles (NoIntro, Redump, GoodSet).
+    /// </summary>
+    Task<IEnumerable<string>> GetAvailableProvidersAsync();
+
+    /// <summary>
+    /// Liste toutes les versions disponibles pour un provider et une console donnés.
+    /// </summary>
+    Task<IEnumerable<ReferenceDatabase>> GetAvailableVersionsAsync(string provider, string console);
+
+    /// <summary>
     /// Liste toutes les bases de données disponibles pour un provider donné.
     /// </summary>
     Task<IEnumerable<ReferenceDatabase>> GetAvailableDatabasesAsync(string provider);

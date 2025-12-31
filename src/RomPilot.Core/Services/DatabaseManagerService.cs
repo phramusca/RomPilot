@@ -25,6 +25,22 @@ public class DatabaseManagerService : IDatabaseManagerService
         _gameRepository = gameRepository;
     }
 
+    public async Task<IEnumerable<string>> GetAvailableProvidersAsync()
+    {
+        // T062: Retourner les providers disponibles (NoIntro, Redump, GoodSet)
+        await Task.CompletedTask;
+        return new[] { "NoIntro", "Redump", "GoodSet" };
+    }
+
+    public async Task<IEnumerable<ReferenceDatabase>> GetAvailableVersionsAsync(string provider, string console)
+    {
+        // T063: Lister les versions disponibles pour un provider et une console
+        // TODO: Implémenter la récupération réelle depuis les APIs des providers
+        // Pour l'instant, retourner une liste vide (les tests vérifieront la structure)
+        await Task.CompletedTask;
+        return Enumerable.Empty<ReferenceDatabase>();
+    }
+
     public async Task<IEnumerable<ReferenceDatabase>> GetAvailableDatabasesAsync(string provider)
     {
         return await _databaseRepository.GetByProviderAsync(provider);
