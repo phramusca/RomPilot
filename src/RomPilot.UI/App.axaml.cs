@@ -47,16 +47,16 @@ public partial class App : Application
             using (var scope = _serviceProvider.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<RomPilotDbContext>();
-                
+
                 // Use Migrate() instead of EnsureCreated() to apply migrations properly
                 // This will create the database if it doesn't exist AND apply any pending migrations
                 context.Database.Migrate();
-                
+
                 System.Console.WriteLine("[App] Database migrated successfully");
 
                 var seedService = scope.ServiceProvider.GetRequiredService<SeedDataService>();
                 seedService.SeedAsync().Wait();
-                
+
                 System.Console.WriteLine("[App] Seed data initialized");
             }
 
@@ -91,6 +91,9 @@ public partial class App : Application
         services.AddScoped<IDatabaseSourceRepository, DatabaseSourceRepository>();
         services.AddScoped<IMetadataRepository, MetadataRepository>();
 
+        // HTTP Client for database downloads
+        services.AddHttpClient();
+
         // Services
         services.AddScoped<IChecksumCalculator, ChecksumCalculator>();
         services.AddScoped<IArchiveScanner, ArchiveScanner>();
@@ -108,6 +111,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.ScanViewModel>();
         services.AddTransient<ViewModels.LibraryViewModel>();
         services.AddTransient<ViewModels.FilterConfigViewModel>();
+        services.AddTransient<ViewModels.DatabaseManagerViewModel>();
     }
 
 }

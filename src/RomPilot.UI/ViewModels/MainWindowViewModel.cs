@@ -19,6 +19,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private ScanViewModel? _scanViewModel;
     private LibraryViewModel? _libraryViewModel;
     private FilterConfigViewModel? _filterConfigViewModel;
+    private DatabaseManagerViewModel? _databaseManagerViewModel;
 
     public MainWindowViewModel()
     {
@@ -26,6 +27,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _scanViewModel = App.Services?.GetService<ScanViewModel>();
         _libraryViewModel = App.Services?.GetService<LibraryViewModel>();
         _filterConfigViewModel = App.Services?.GetService<FilterConfigViewModel>();
+        _databaseManagerViewModel = App.Services?.GetService<DatabaseManagerViewModel>();
 
         // Start with scan view
         NavigateToScan();
@@ -74,5 +76,16 @@ public partial class MainWindowViewModel : ViewModelBase
             _filterConfigViewModel = App.Services?.GetService<FilterConfigViewModel>();
         }
         CurrentViewModel = _filterConfigViewModel;
+    }
+
+    [RelayCommand]
+    private void NavigateToDatabaseManager()
+    {
+        // Reuse existing instance or create new one if null
+        if (_databaseManagerViewModel == null)
+        {
+            _databaseManagerViewModel = App.Services?.GetService<DatabaseManagerViewModel>();
+        }
+        CurrentViewModel = _databaseManagerViewModel;
     }
 }

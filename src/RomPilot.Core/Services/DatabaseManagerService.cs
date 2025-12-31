@@ -1,3 +1,4 @@
+using System.Net.Http;
 using RomPilot.Core.Models;
 using RomPilot.Core.Repositories;
 
@@ -11,6 +12,9 @@ public class DatabaseManagerService : IDatabaseManagerService
 {
     private readonly IReferenceDatabaseRepository _databaseRepository;
     private readonly IGameRepository _gameRepository;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private const int MaxRetryAttempts = 3;
+    private const int RetryDelayMs = 1000;
 
     // TODO: Injecter les providers réels (NoIntro, Redump, GoodSet)
     // private readonly INoIntroProvider _noIntroProvider;
@@ -19,10 +23,12 @@ public class DatabaseManagerService : IDatabaseManagerService
 
     public DatabaseManagerService(
         IReferenceDatabaseRepository databaseRepository,
-        IGameRepository gameRepository)
+        IGameRepository gameRepository,
+        IHttpClientFactory httpClientFactory)
     {
         _databaseRepository = databaseRepository;
         _gameRepository = gameRepository;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<IEnumerable<string>> GetAvailableProvidersAsync()
@@ -84,33 +90,95 @@ public class DatabaseManagerService : IDatabaseManagerService
             await _databaseRepository.UpdateAsync(database);
         }
 
+        // T064: Téléchargement réel avec HttpClient
+        // T065: Progress reporting
+        // T068: Retry logic pour erreurs réseau
+        var downloadPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "RomPilot",
+            "Databases",
+            provider,
+            console,
+            $"{version}.dat");
+
+        // Créer le répertoire si nécessaire
+        Directory.CreateDirectory(Path.GetDirectoryName(downloadPath)!);
+
         try
         {
-            // TODO: Implémenter le téléchargement réel via les providers
-            // Pour l'instant, simulation
             progressCallback?.Report(0);
 
-            // Simuler le téléchargement
-            await Task.Delay(100); // Placeholder pour téléchargement réel
-            progressCallback?.Report(50);
+            // T064: Télécharger le fichier avec HttpClient
+            // TODO: Implémenter les URLs réelles des providers (NoIntro, Redump, GoodSet)
+            // Pour l'instant, utiliser une URL placeholder qui sera remplacée par les vraies URLs
+            var downloadUrl = GetDownloadUrl(provider, console, version);
 
-            // TODO: Sauvegarder le fichier localement
-            var downloadPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "RomPilot",
-                "Databases",
-                provider,
-                console,
-                $"{version}.dat");
+            var httpClient = _httpClientFactory.CreateClient();
+            httpClient.Timeout = TimeSpan.FromMinutes(10); // Timeout long pour gros fichiers
 
-            // Créer le répertoire si nécessaire
-            Directory.CreateDirectory(Path.GetDirectoryName(downloadPath)!);
+            // T068: Retry logic avec exponential backoff
+            Exception? lastException = null;
+            for (int attempt = 1; attempt <= MaxRetryAttempts; attempt++)
+            {
+                try
+                {
+                    // T064: Télécharger avec HttpClient et progress reporting
+                    using var response = await httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
 
-            // TODO: Télécharger et sauvegarder le fichier réel
-            // Pour l'instant, créer un fichier vide comme placeholder
-            await File.WriteAllTextAsync(downloadPath, "<!-- Placeholder database file -->");
+                    var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+                    var canReportProgress = totalBytes > 0 && progressCallback != null;
 
-            progressCallback?.Report(100);
+                    using var contentStream = await response.Content.ReadAsStreamAsync();
+                    using var fileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+
+                    var buffer = new byte[8192];
+                    long totalBytesRead = 0;
+                    int bytesRead;
+
+                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    {
+                        await fileStream.WriteAsync(buffer, 0, bytesRead);
+                        totalBytesRead += bytesRead;
+
+                        // T065: Progress reporting
+                        if (canReportProgress)
+                        {
+                            var progress = (int)((double)totalBytesRead / totalBytes * 100);
+                            progressCallback?.Report(progress);
+                        }
+                    }
+
+                    // Si pas de Content-Length, reporter 100% à la fin
+                    if (!canReportProgress)
+                    {
+                        progressCallback?.Report(100);
+                    }
+
+                    break; // Succès, sortir de la boucle de retry
+                }
+                catch (HttpRequestException ex) when (attempt < MaxRetryAttempts)
+                {
+                    lastException = ex;
+                    // Exponential backoff: attendre avant de réessayer
+                    var delay = RetryDelayMs * (int)Math.Pow(2, attempt - 1);
+                    await Task.Delay(delay);
+                    continue;
+                }
+                catch (TaskCanceledException ex) when (attempt < MaxRetryAttempts && ex.InnerException is TimeoutException)
+                {
+                    lastException = ex;
+                    // Timeout, réessayer avec exponential backoff
+                    var delay = RetryDelayMs * (int)Math.Pow(2, attempt - 1);
+                    await Task.Delay(delay);
+                    continue;
+                }
+            }
+
+            if (lastException != null && !File.Exists(downloadPath))
+            {
+                throw lastException;
+            }
 
             // Mettre à jour le statut
             database.DownloadStatus = "Downloaded";
@@ -127,6 +195,20 @@ public class DatabaseManagerService : IDatabaseManagerService
             database.DownloadStatus = "Error";
             database.ErrorMessage = ex.Message;
             await _databaseRepository.UpdateAsync(database);
+
+            // Nettoyer le fichier partiellement téléchargé
+            if (File.Exists(downloadPath))
+            {
+                try
+                {
+                    File.Delete(downloadPath);
+                }
+                catch
+                {
+                    // Ignorer erreurs de suppression
+                }
+            }
+
             throw;
         }
     }
@@ -199,6 +281,26 @@ public class DatabaseManagerService : IDatabaseManagerService
         // Pour l'instant, on garde les entrées (DeleteBehavior.Restrict)
 
         await _databaseRepository.DeleteAsync(databaseId);
+    }
+
+    /// <summary>
+    /// T064: Construit l'URL de téléchargement pour un provider, console et version donnés.
+    /// TODO: Implémenter les URLs réelles des providers (NoIntro, Redump, GoodSet).
+    /// Pour l'instant, retourne une URL placeholder qui sera remplacée par les vraies URLs.
+    /// </summary>
+    private string GetDownloadUrl(string provider, string console, string version)
+    {
+        // TODO: Implémenter les URLs réelles selon le provider
+        // Exemples de structure attendue:
+        // - NoIntro: https://www.no-intro.org/datfile/...
+        // - Redump: https://redump.org/datfile/...
+        // - GoodSet: https://goodset.datfiles.com/...
+
+        // Pour l'instant, utiliser une URL qui échouera de manière contrôlée
+        // afin que les tests puissent valider la structure sans nécessiter de connexion réelle
+        throw new NotImplementedException(
+            $"Le téléchargement depuis {provider} n'est pas encore implémenté. " +
+            $"Les URLs des datfiles doivent être configurées pour {provider}/{console}/{version}");
     }
 
     public async Task<int> LoadDatabaseEntriesAsync(int databaseId)

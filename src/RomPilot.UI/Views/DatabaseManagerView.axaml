@@ -1,0 +1,190 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RomPilot.UI.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="RomPilot.UI.Views.DatabaseManagerView"
+             x:DataType="vm:DatabaseManagerViewModel"
+             x:Name="RootControl">
+
+    <Design.DataContext>
+        <vm:DatabaseManagerViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" ColumnDefinitions="*,*" Margin="20">
+        <!-- Title -->
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Gestionnaire de Bases de Données" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
+
+        <!-- Left Panel: Télécharger de nouvelles bases -->
+        <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="15" Background="#FAFAFA">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+                <TextBlock Grid.Row="0" Text="Télécharger une base de données" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+
+                <!-- Provider Selection -->
+                <StackPanel Grid.Row="1" Spacing="5" Margin="0,0,0,10">
+                    <TextBlock Text="Provider:" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding Providers}" 
+                              SelectedItem="{Binding SelectedProvider}"
+                              IsEnabled="{Binding !IsLoading}"/>
+                </StackPanel>
+
+                <!-- Console Selection -->
+                <StackPanel Grid.Row="2" Spacing="5" Margin="0,0,0,10">
+                    <TextBlock Text="Console:" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding Consoles}" 
+                              SelectedItem="{Binding SelectedConsole}"
+                              IsEnabled="{Binding !IsLoading}"/>
+                </StackPanel>
+
+                <!-- Versions Available -->
+                <StackPanel Grid.Row="3" Spacing="5" Margin="0,0,0,10">
+                    <TextBlock Text="Version:" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding AvailableVersions}" 
+                              SelectedItem="{Binding SelectedVersion}"
+                              IsEnabled="{Binding !IsLoading}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Version}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Download Progress -->
+                <StackPanel Grid.Row="4" Spacing="5" IsVisible="{Binding IsDownloading}" Margin="0,0,0,10">
+                    <TextBlock FontWeight="SemiBold">
+                        <Run Text="Téléchargement: "/>
+                        <Run Text="{Binding DownloadingDatabaseName}"/>
+                    </TextBlock>
+                    <ProgressBar Value="{Binding DownloadProgress}" Minimum="0" Maximum="100" Height="25"/>
+                    <TextBlock HorizontalAlignment="Center">
+                        <Run Text="{Binding DownloadProgress}"/>
+                        <Run Text="%"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Download Button -->
+                <Button Grid.Row="5" 
+                        Content="Télécharger" 
+                        Command="{Binding DownloadSelectedVersionCommand}"
+                        IsEnabled="{Binding !IsDownloading}"
+                        Margin="0,0,0,15"
+                        HorizontalAlignment="Stretch"
+                        Height="40"/>
+
+                <!-- Spacer -->
+                <Border Grid.Row="6"/>
+
+                <!-- Status Message -->
+                <TextBlock Grid.Row="7" Text="{Binding StatusMessage}" FontSize="12" Foreground="Gray" TextWrapping="Wrap"/>
+            </Grid>
+        </Border>
+
+        <!-- Right Panel: Bases téléchargées -->
+        <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="15" Background="#FAFAFA">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                    <TextBlock Grid.Column="0" Text="Bases téléchargées" FontSize="18" FontWeight="Bold"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                        <Button Content="🔄" Command="{Binding RefreshDownloadedDatabasesCommand}" ToolTip.Tip="Actualiser" Width="30" Height="30"/>
+                        <Button Content="🔍 Vérifier mises à jour" Command="{Binding CheckForUpdatesCommand}" ToolTip.Tip="Vérifier les mises à jour disponibles"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Actions sur base sélectionnée -->
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Right" Margin="0,30,0,0" IsVisible="{Binding SelectedDownloadedDatabase, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <Button Content="⭐ Définir par défaut" 
+                            Command="{Binding SetAsDefaultCommand}"
+                            CommandParameter="{Binding SelectedDownloadedDatabase}"
+                            ToolTip.Tip="Définir la base sélectionnée comme version par défaut"/>
+                    <Button Content="🗑️ Supprimer" 
+                            Command="{Binding DeleteDatabaseCommand}"
+                            CommandParameter="{Binding SelectedDownloadedDatabase}"
+                            ToolTip.Tip="Supprimer la base sélectionnée"/>
+                </StackPanel>
+
+                <!-- Updates Available Notification -->
+                <Border Grid.Row="2" 
+                        Background="#FFF3E0" 
+                        BorderBrush="#F57C00" 
+                        BorderThickness="1" 
+                        CornerRadius="4" 
+                        Padding="10"
+                        Margin="0,0,0,10"
+                        IsVisible="{Binding AvailableUpdates.Count, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Foreground="#F57C00">
+                            <Run Text="⚠️ "/>
+                            <Run Text="{Binding AvailableUpdates.Count}"/>
+                            <Run Text=" mise(s) à jour disponible(s)"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Downloaded Databases List -->
+                <Border Grid.Row="3" 
+                        BorderBrush="#E0E0E0" 
+                        BorderThickness="1" 
+                        CornerRadius="4"
+                        Background="White"
+                        Margin="0,0,0,10">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ListBox ItemsSource="{Binding DownloadedDatabases}" 
+                                 SelectedItem="{Binding SelectedDownloadedDatabase}"
+                                 Margin="10">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#E0E0E0" 
+                                            BorderThickness="0,0,0,1" 
+                                            Padding="10,8"
+                                            Background="#FAFAFA">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock FontWeight="Bold" FontSize="14">
+                                                    <Run Text="{Binding Provider}"/>
+                                                    <Run Text=" / "/>
+                                                    <Run Text="{Binding Console}"/>
+                                                    <Run Text=" / "/>
+                                                    <Run Text="{Binding Version}"/>
+                                                </TextBlock>
+                                                <TextBlock FontSize="11" Foreground="Gray">
+                                                    <Run Text="Publié le: "/>
+                                                    <Run Text="{Binding ReleaseDate}"/>
+                                                </TextBlock>
+                                                <TextBlock FontSize="11" Foreground="Gray">
+                                                    <Run Text="Taille: "/>
+                                                    <Run Text="{Binding FileSize}"/>
+                                                    <Run Text=" octets"/>
+                                                </TextBlock>
+                                                <TextBlock FontSize="11" Foreground="Gray">
+                                                    <Run Text="Téléchargé le: "/>
+                                                    <Run Text="{Binding DownloadedAt}"/>
+                                                </TextBlock>
+                                                <TextBlock Text="⭐ Version par défaut" FontSize="11" Foreground="#FF6F00" FontWeight="SemiBold" IsVisible="{Binding IsDefault}"/>
+                                                <TextBlock FontSize="11" Foreground="Red" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                    <Run Text="❌ Erreur: "/>
+                                                    <Run Text="{Binding ErrorMessage}"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" 
+                                                       Text="{Binding DownloadStatus}" 
+                                                       FontSize="11" 
+                                                       Foreground="DarkGray"
+                                                       VerticalAlignment="Center"
+                                                       Margin="10,0,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Status Message -->
+                <TextBlock Grid.Row="4" Text="{Binding StatusMessage}" FontSize="12" Foreground="Gray" TextWrapping="Wrap"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
+
