@@ -2,7 +2,30 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "🚀 run",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}/src/RomPilot.UI/RomPilot.UI.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "🧪 test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/src/RomPilot.Tests/RomPilot.Tests.csproj",
+                "--logger",
+                "console;verbosity=normal"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "🔨 build",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -12,6 +35,23 @@
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "🗑️ clean-test-data",
+            "command": "rm",
+            "type": "shell",
+            "args": [
+                "-rf",
+                "${workspaceFolder}/test-data/simple",
+                "${workspaceFolder}/test-data/medium",
+                "${workspaceFolder}/test-data/load"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
         },
         {
             "label": "build-ui",
@@ -38,18 +78,6 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "test",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "test",
-                "${workspaceFolder}/src/RomPilot.Tests/RomPilot.Tests.csproj",
-                "--logger",
-                "console;verbosity=normal"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
             "label": "publish",
             "command": "dotnet",
             "type": "process",
@@ -58,17 +86,6 @@
                 "${workspaceFolder}/src/RomPilot.UI/RomPilot.UI.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "run",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "run",
-                "--project",
-                "${workspaceFolder}/src/RomPilot.UI/RomPilot.UI.csproj"
             ],
             "problemMatcher": "$msCompile"
         },

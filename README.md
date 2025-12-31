@@ -5,17 +5,20 @@ Application de gestion de ROMs (lecture seule) avec support de multiples formats
 ## 🚀 Démarrage Rapide
 
 ### 1. Ouvrir dans Cursor
+
 ```bash
 cursor .
 ```
 
 ### 2. Reopen in Container
+
 ```bash
 F1 > Dev Containers: Reopen in Container
 # Choisir: "RomPilot"
 ```
 
 ### 3. Lancer l'Application avec Debug
+
 ```bash
 # F5 > "🐛 Debug UI"
 # Les breakpoints fonctionnent ! ✅
@@ -24,11 +27,15 @@ dotnet run --project src/RomPilot.UI/RomPilot.UI.csproj
 ```
 
 ### 4. Lancer les tests
+
 ```bash
-# Avec F5 > "🧪 Lancer les Tests"
-# Ou :
+# Avec la tâche VS Code: F1 > "Tasks: Run Task" > "🧪 test"
+# Ou avec F5 > "🧪 Lancer les Tests"
+# Ou en ligne de commande :
 dotnet test
 ```
+
+**Note** : Les données de test sont générées automatiquement lors de l'exécution des tests si elles sont manquantes. Pour forcer une régénération, supprimez-les d'abord avec la tâche `🗑️ clean-test-data`.
 
 ## 📋 Prérequis
 
@@ -46,6 +53,7 @@ dotnet test
 ## ✨ Fonctionnalités
 
 ### ✅ US1 : Scanner et Identifier (COMPLÉTÉ)
+
 - **Scan sans présupposition** : Scanne TOUS les fichiers sans filtrer par extension
 - **Filtres d'exclusion** : 36 filtres par défaut (images, textes, docs, etc.) + ajout de filtres personnalisés
 - **Scans incrémentaux** : Mode Quick (réutilise checksums) vs Full (recalcule tout)
@@ -57,6 +65,7 @@ dotnet test
 - ✅ Identification via bases de données de référence
 
 ### ⏳ En Cours de Développement
+
 - 🔜 **US2** : Gestionnaire de bases de données (NoIntro, Redump, GoodSet)
 - 🔜 **US3** : Export vers Recalbox
 - 🔜 **US4** : Export vers Romm
@@ -89,9 +98,33 @@ RomPilot/
 
 ## 🧪 Tests
 
+### Génération des données de test
+
+Les tests d'intégration nécessitent des fichiers de test générés dans le répertoire `test-data/`.
+
+**Gérer les données de test :**
+
+Les données de test sont générées automatiquement lors de l'exécution des tests si elles sont manquantes. Pour forcer une régénération, supprimez-les simplement :
+
+```bash
+# Supprimer les données (elles seront recréées au prochain test)
+F1 > Tasks: Run Task > 🗑️ clean-test-data
+```
+
+Les données générées incluent trois scénarios :
+
+- `test-data/simple/` : Scénario simple avec quelques ROMs et archives
+- `test-data/medium/` : Scénario moyen avec archives imbriquées
+- `test-data/load/` : Scénario de charge avec de nombreux fichiers
+
+### Exécution des tests
+
 ```bash
 # Tous les tests
 dotnet test
+
+# Avec la tâche VS Code
+F1 > Tasks: Run Task > 🧪 test
 
 # Avec couverture
 dotnet test --collect:"XPlat Code Coverage"
@@ -142,6 +175,7 @@ dotnet ef database update --project src/RomPilot.Core
 ## 🎯 État d'Avancement
 
 ### ✅ Itération 1 : Fondations
+
 - [x] Modèle de données (ScannedFile, ExclusionFilter, ReferenceDatabase, ExportConfiguration)
 - [x] Repositories et services de base
 - [x] Scan de fichiers et archives
@@ -152,23 +186,27 @@ dotnet ef database update --project src/RomPilot.Core
 - [x] Configuration environnement de développement
 
 ### 🚧 Itération 2 : Scanner Amélioré (US1)
+
 - [ ] Scan sans présupposition (tous les fichiers)
 - [ ] Application des filtres d'exclusion
 - [ ] Scans incrémentaux (Quick vs Full)
 - [ ] Interface pour gérer les filtres
 
 ### 🚧 Itération 3 : Gestionnaire de Bases de Données (US2)
+
 - [x] Service DatabaseManager
 - [ ] Interface UI pour le gestionnaire
 - [ ] Téléchargement réel des bases
 - [ ] Parsing des fichiers DAT
 
 ### 📋 Itération 4 : Filtrage et Export (US3, US4)
+
 - [ ] Regroupement par version
 - [ ] Sélection selon préférences (région, langue, format vidéo)
 - [ ] Export local et SSH/SFTP
 
 ### 📋 Itération 5 : Visualisation et Synchronisation (US5, US6)
+
 - [ ] Interface Bibliothèque
 - [ ] Synchronisation métadonnées bidirectionnelle
 
