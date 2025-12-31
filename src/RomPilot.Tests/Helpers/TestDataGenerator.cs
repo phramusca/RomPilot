@@ -47,14 +47,17 @@ public class TestDataGenerator
         var romInZip = Path.Combine(archiveDir, "game_zip.nes");
         await CreateRomFileAsync(romInZip, "ZIP_ROM_001", 1536, "nes");
         CreateZipArchive(Path.Combine(archiveDir, "games.zip"), new[] { romInZip });
+        File.Delete(romInZip);
         
         var romIn7z = Path.Combine(archiveDir, "game_7z.smc");
         await CreateRomFileAsync(romIn7z, "7Z_ROM_001", 2048, "smc");
         Create7zArchive(Path.Combine(archiveDir, "games.7z"), new[] { romIn7z });
+        File.Delete(romIn7z);
         
         var romInRar = Path.Combine(archiveDir, "game_rar.iso");
         await CreateRomFileAsync(romInRar, "RAR_ROM_001", 3072, "iso");
         CreateRarArchive(Path.Combine(archiveDir, "games.rar"), new[] { romInRar });
+        File.Delete(romInRar);
 
         Console.WriteLine($"✅ Scénario simple créé dans {scenarioDir}");
     }
@@ -114,6 +117,7 @@ public class TestDataGenerator
             romsInArchive1.Add(rom);
         }
         CreateZipArchive(Path.Combine(scenarioDir, "archive1.zip"), romsInArchive1);
+        Directory.Delete(archive1Dir, recursive: true);
         
         // Archive 7Z avec ROMs
         var archive7zDir = Path.Combine(scenarioDir, "archive7z");
@@ -128,6 +132,7 @@ public class TestDataGenerator
             romsIn7z.Add(rom);
         }
         Create7zArchive(Path.Combine(scenarioDir, "archive7z.7z"), romsIn7z);
+        Directory.Delete(archive7zDir, recursive: true);
         
         // Archive RAR avec ROMs
         var archiveRarDir = Path.Combine(scenarioDir, "archiveRar");
@@ -142,6 +147,7 @@ public class TestDataGenerator
             romsInRar.Add(rom);
         }
         CreateRarArchive(Path.Combine(scenarioDir, "archiveRar.rar"), romsInRar);
+        Directory.Delete(archiveRarDir, recursive: true);
 
         // Archives imbriquées 2 niveaux avec formats mixtes
         // ZIP dans ZIP
@@ -153,7 +159,10 @@ public class TestDataGenerator
         await CreateRomFileWithHeaderAsync(romInInnerZip, "NESTED_ROM_001", 3072, romHeaders[".nes"]);
         var innerZipArchive = Path.Combine(nestedZipDir, "inner.zip");
         CreateZipArchive(innerZipArchive, new[] { romInInnerZip });
+        File.Delete(romInInnerZip);
+        Directory.Delete(innerZipDir);
         CreateZipArchive(Path.Combine(scenarioDir, "nested.zip"), new[] { innerZipArchive });
+        Directory.Delete(nestedZipDir, recursive: true);
         
         // 7Z dans ZIP
         var nested7zDir = Path.Combine(scenarioDir, "nested7z");
@@ -164,7 +173,10 @@ public class TestDataGenerator
         await CreateRomFileWithHeaderAsync(romInInner7z, "NESTED7Z_ROM_001", 3584, romHeaders[".smc"]);
         var inner7zArchive = Path.Combine(nested7zDir, "inner.7z");
         Create7zArchive(inner7zArchive, new[] { romInInner7z });
+        File.Delete(romInInner7z);
+        Directory.Delete(inner7zDir);
         CreateZipArchive(Path.Combine(scenarioDir, "nested7z.zip"), new[] { inner7zArchive });
+        Directory.Delete(nested7zDir, recursive: true);
         
         // RAR dans 7Z
         var nestedRarDir = Path.Combine(scenarioDir, "nestedRar");
@@ -175,7 +187,10 @@ public class TestDataGenerator
         await CreateRomFileWithHeaderAsync(romInInnerRar, "NESTEDRAR_ROM_001", 4096, romHeaders[".iso"]);
         var innerRarArchive = Path.Combine(nestedRarDir, "inner.rar");
         CreateRarArchive(innerRarArchive, new[] { romInInnerRar });
+        File.Delete(romInInnerRar);
+        Directory.Delete(innerRarDir);
         Create7zArchive(Path.Combine(scenarioDir, "nestedRar.7z"), new[] { innerRarArchive });
+        Directory.Delete(nestedRarDir, recursive: true);
         
         // Archive imbriquée 3 niveaux avec formats mixtes (ZIP dans 7Z dans RAR)
         var deepNestedDir = Path.Combine(scenarioDir, "deep");
@@ -188,9 +203,15 @@ public class TestDataGenerator
         await CreateRomFileWithHeaderAsync(romInLevel3, "DEEP_ROM_001", 5120, romHeaders[".gba"]);
         var level3Archive = Path.Combine(level2Dir, "level3.zip");
         CreateZipArchive(level3Archive, new[] { romInLevel3 });
+        File.Delete(romInLevel3);
+        Directory.Delete(level3Dir);
         var level2Archive = Path.Combine(deepNestedDir, "level2.7z");
         Create7zArchive(level2Archive, new[] { level3Archive });
+        File.Delete(level3Archive);
+        Directory.Delete(level2Dir);
         CreateRarArchive(Path.Combine(scenarioDir, "deep.rar"), new[] { level2Archive });
+        File.Delete(level2Archive);
+        Directory.Delete(deepNestedDir, recursive: true);
 
         Console.WriteLine($"✅ Scénario moyen créé dans {scenarioDir}");
     }
@@ -253,6 +274,7 @@ public class TestDataGenerator
             }
             
             CreateZipArchive(Path.Combine(scenarioDir, $"archive{archiveNum}.zip"), roms);
+            Directory.Delete(archiveDir, recursive: true);
         }
 
         // Archives imbriquées multiples
@@ -273,9 +295,11 @@ public class TestDataGenerator
             }
             var innerArchive = Path.Combine(nestedDir, "inner.zip");
             CreateZipArchive(innerArchive, innerRoms);
+            Directory.Delete(innerDir, recursive: true);
             
             // Archive externe
             CreateZipArchive(Path.Combine(scenarioDir, $"nested{nestedNum}.zip"), new[] { innerArchive });
+            Directory.Delete(nestedDir, recursive: true);
         }
 
         Console.WriteLine($"✅ Scénario de charge créé dans {scenarioDir}");
