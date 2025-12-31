@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -352,6 +353,92 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
 
         System.Console.WriteLine($"Load scenario scan completed in {duration.TotalSeconds:F2} seconds");
         System.Console.WriteLine($"Files: {resultsList.Count} total, {identified} identified, {unidentified} unidentified, {excluded} excluded");
+    }
+
+    [Fact]
+    public async Task US1_ScanSourceAndArchiveFiles_ShouldTreatAsDistinctButDetectDuplicates()
+    {
+        // Arrange - Créer un scénario avec un fichier source ET le même fichier dans une archive
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            // Créer un fichier ROM source
+            var sourceRomPath = Path.Combine(tempDir, "source_game.nes");
+            var romContent = new byte[] { 0x4E, 0x45, 0x53, 0x1A }; // NES header
+            await File.WriteAllBytesAsync(sourceRomPath, romContent);
+
+            // Créer une archive contenant le même fichier
+            var archiveDir = Path.Combine(tempDir, "archive_source");
+            Directory.CreateDirectory(archiveDir);
+            var romInArchivePath = Path.Combine(archiveDir, "source_game.nes");
+            await File.WriteAllBytesAsync(romInArchivePath, romContent);
+            var archivePath = Path.Combine(tempDir, "archive.zip");
+            ZipFile.CreateFromDirectory(archiveDir, archivePath);
+            // Supprimer le répertoire source après création de l'archive
+            Directory.Delete(archiveDir, recursive: true);
+
+            // Act
+            var results = await _scanService.ScanDirectoriesAsync(
+                new[] { tempDir },
+                ScanType.Full,
+                progressReporter: _progressReporter);
+
+            var resultsList = results.ToList();
+
+            // Assert - Les deux fichiers doivent être traités comme distincts
+            var sourceFile = resultsList.FirstOrDefault(f => f.FilePath == sourceRomPath && f.ArchivePath == null);
+            var archiveFile = resultsList.FirstOrDefault(f => f.FilePath.Contains("archive.zip") && f.ArchivePath == archivePath);
+
+            sourceFile.Should().NotBeNull("because source file should be scanned");
+            archiveFile.Should().NotBeNull("because file in archive should be scanned");
+
+            // Vérifier qu'ils sont bien distincts (IDs différents)
+            sourceFile!.Id.Should().NotBe(archiveFile!.Id, "because source file and archive file should be distinct entries");
+
+            // Vérifier qu'ils ont le même checksum (donc sont des doublons)
+            var sourceChecksums = await _context.Checksums
+                .Where(c => c.ScannedFileId == sourceFile.Id)
+                .ToListAsync();
+            var archiveChecksums = await _context.Checksums
+                .Where(c => c.ScannedFileId == archiveFile.Id)
+                .ToListAsync();
+
+            sourceChecksums.Should().NotBeEmpty("because source file should have checksums");
+            archiveChecksums.Should().NotBeEmpty("because archive file should have checksums");
+
+            // Vérifier qu'au moins un checksum (MD5) est identique
+            var sourceMD5 = sourceChecksums.FirstOrDefault(c => c.HashType == "MD5");
+            var archiveMD5 = archiveChecksums.FirstOrDefault(c => c.HashType == "MD5");
+
+            sourceMD5.Should().NotBeNull("because source file should have MD5 checksum");
+            archiveMD5.Should().NotBeNull("because archive file should have MD5 checksum");
+            sourceMD5!.HashValue.Should().Be(archiveMD5!.HashValue, "because same file content should produce same MD5 checksum");
+
+            // Vérifier que les checksums sont bien stockés dans la base de données pour les deux fichiers
+            var checksumRepository = new ChecksumRepository(_context);
+            var allFilesWithSameMD5 = await checksumRepository.GetAllByHashAsync("MD5", sourceMD5.HashValue);
+            var filesWithSameMD5 = allFilesWithSameMD5.ToList();
+            
+            filesWithSameMD5.Should().HaveCountGreaterThanOrEqualTo(2, "because both source and archive files should have the same MD5 checksum stored");
+            filesWithSameMD5.Should().Contain(c => c.ScannedFileId == sourceFile.Id, "because source file checksum should be stored");
+            filesWithSameMD5.Should().Contain(c => c.ScannedFileId == archiveFile.Id, "because archive file checksum should be stored");
+
+            System.Console.WriteLine($"✅ Duplicate detection test:");
+            System.Console.WriteLine($"  Source file ID: {sourceFile.Id}, Path: {sourceFile.FilePath}");
+            System.Console.WriteLine($"  Archive file ID: {archiveFile.Id}, Path: {archiveFile.FilePath}");
+            System.Console.WriteLine($"  MD5 checksum (both): {sourceMD5.HashValue}");
+            System.Console.WriteLine($"  Files with same MD5: {filesWithSameMD5.Count}");
+        }
+        finally
+        {
+            // Cleanup
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
     }
 
     public void Dispose()

@@ -512,25 +512,26 @@ public class ScanService : IScanService
             }
             else
             {
-                // New checksum - check if this hash value exists for another ROM file
+                // New checksum - always store it, even if another file has the same checksum value
+                // This allows duplicate detection: multiple files can have the same checksum
+                System.Console.WriteLine($"[ScanService] Adding new checksum for {scannedFile.FilePath} ({hashType})");
+                
+                // Check if this checksum value exists for another file (for duplicate detection info)
                 var existingByHash = await _checksumRepository.GetByHashAsync(hashType, hashValue);
-                if (existingByHash == null)
+                if (existingByHash != null)
                 {
-                    System.Console.WriteLine($"[ScanService] Adding new checksum for {scannedFile.FilePath} ({hashType})");
-                    var checksum = new Checksum
-                    {
-                        ScannedFileId = scannedFile.Id,
-                        HashType = hashType,
-                        HashValue = hashValue,
-                        CalculatedAt = DateTime.UtcNow
-                    };
-                    await _checksumRepository.AddAsync(checksum);
-                    hasChanges = true;
+                    System.Console.WriteLine($"[ScanService] Checksum {hashType} value {hashValue} already exists for file ID {existingByHash.ScannedFileId} - potential duplicate detected");
                 }
-                else
+                
+                var checksum = new Checksum
                 {
-                    System.Console.WriteLine($"[ScanService] Checksum {hashType} already exists for another ROM file, skipping");
-                }
+                    ScannedFileId = scannedFile.Id,
+                    HashType = hashType,
+                    HashValue = hashValue,
+                    CalculatedAt = DateTime.UtcNow
+                };
+                await _checksumRepository.AddAsync(checksum);
+                hasChanges = true;
             }
         }
 

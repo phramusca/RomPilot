@@ -30,6 +30,18 @@ public class ChecksumRepository : IChecksumRepository
             .FirstOrDefaultAsync(c => c.HashType == hashType && c.HashValue == hashValue);
     }
 
+    /// <summary>
+    /// Gets all checksums with the same hash value (for duplicate detection).
+    /// Returns all files that have the same checksum, allowing duplicate detection.
+    /// </summary>
+    public async Task<IEnumerable<Checksum>> GetAllByHashAsync(string hashType, string hashValue)
+    {
+        return await _context.Checksums
+            .Include(c => c.ScannedFile)
+            .Where(c => c.HashType == hashType && c.HashValue == hashValue)
+            .ToListAsync();
+    }
+
     public async Task<Checksum> AddAsync(Checksum checksum)
     {
         _context.Checksums.Add(checksum);
