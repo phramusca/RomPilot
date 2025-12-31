@@ -104,12 +104,45 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
 
         var resultsList = results.ToList();
 
-        // Assert - Vérifier les compteurs
+        // Assert - Vérifier les compteurs exacts
+        // Scénario simple devrait contenir :
+        // - 3 ROMs directes (game1.nes, game2.smc, game3.iso)
+        // - 3 fichiers exclus (cover.jpg, readme.txt, manual.pdf)
+        // - 3 ROMs dans archives (games.zip/game_zip.nes, games.7z/game_7z.smc, games.rar/game_rar.iso)
+        // Total attendu : 9 fichiers (sans répertoires sources)
+        // Si les répertoires sources existent, il y aura 3 fichiers de plus (doublons)
+
         var excluded = resultsList.Count(f => f.IdentificationStatus == "Excluded");
         var unidentified = resultsList.Count(f => f.IdentificationStatus == "Unidentified");
 
-        excluded.Should().BeGreaterThanOrEqualTo(3, "because .jpg, .txt, and .pdf files should be excluded");
-        unidentified.Should().BeGreaterThanOrEqualTo(1, "because .nes file should be scanned but not identified (no database)");
+        // Vérifier le nombre exact de fichiers exclus (3 fichiers : .jpg, .txt, .pdf)
+        excluded.Should().Be(3, "because exactly 3 files (.jpg, .txt, .pdf) should be excluded in simple scenario");
+
+        // Vérifier qu'il n'y a pas de doublons (fichiers sources non supprimés)
+        // C'est le point crucial : si les répertoires sources existent, il y aura des fichiers dans archives/ avec ArchivePath == null
+        var sourceFilesInArchivesDir = resultsList.Where(f => f.FilePath.Contains("/archives/") && f.ArchivePath == null).ToList();
+        sourceFilesInArchivesDir.Should().BeEmpty("because source directories should be deleted after archive creation - no direct files in archives/ directory");
+
+        // Vérifier le nombre de fichiers non identifiés
+        // Scénario simple devrait avoir : 3 ROMs directes + 3 ROMs dans archives = 6 ROMs
+        // Mais test.nes peut être créé par d'autres tests, donc on vérifie >= 6
+        // Si les répertoires sources existent, il y aura 3 fichiers de plus (doublons)
+        unidentified.Should().BeGreaterThanOrEqualTo(6, "because at least 6 ROMs (3 direct + 3 in archives) should be scanned but not identified (no database)");
+
+        // Si les répertoires sources existent, il y aura 3 fichiers de plus (les ROMs sources dans archives/)
+        // On vérifie qu'il n'y a pas trop de fichiers (indiquant des doublons)
+        // Maximum attendu : 6 ROMs de base + 1 test.nes + 1 music.mp3 (créés par d'autres tests) = 8
+        // Si on trouve 9 ou plus, c'est qu'il y a des doublons (répertoires sources non supprimés)
+        if (sourceFilesInArchivesDir.Count > 0)
+        {
+            // Si des fichiers sources existent, on devrait avoir 3 fichiers de plus
+            unidentified.Should().BeGreaterThanOrEqualTo(11, "because with source directories, there should be at least 11 unidentified files (6 base + 2 from other tests + 3 duplicates)");
+        }
+        else
+        {
+            // Sans fichiers sources, maximum 8 (6 ROMs + test.nes + music.mp3 créés par d'autres tests)
+            unidentified.Should().BeLessThanOrEqualTo(8, "because without source directories, there should be at most 8 unidentified files (6 ROMs + test.nes + music.mp3 from other tests)");
+        }
 
         // Vérifier que les fichiers exclus ont une raison
         var excludedFiles = resultsList.Where(f => f.IdentificationStatus == "Excluded").ToList();
@@ -117,7 +150,7 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
 
         // Vérifier le contenu de la base de données
         var dbFiles = await _context.ScannedFiles.ToListAsync();
-        dbFiles.Count.Should().BeGreaterThanOrEqualTo(resultsList.Count);
+        dbFiles.Count.Should().Be(resultsList.Count, "because database should contain exactly the same number of files as scan results");
     }
 
     [Fact]
@@ -236,7 +269,7 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
 
         var resultsList = results.ToList();
 
-        // Assert - Calculer les compteurs
+        // Assert - Calculer les compteurs exacts
         var identified = resultsList.Count(f => f.IdentificationStatus == "Identified");
         var unidentified = resultsList.Count(f => f.IdentificationStatus == "Unidentified");
         var excluded = resultsList.Count(f => f.IdentificationStatus == "Excluded");
@@ -245,11 +278,32 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
         // Vérifier que tous les fichiers ont un statut
         (identified + unidentified + excluded + failed).Should().Be(resultsList.Count);
 
-        // Vérifier qu'on a bien des fichiers exclus (images, textes, docs)
-        excluded.Should().BeGreaterThan(0);
+        // Vérifier les nombres exacts pour le scénario simple
+        excluded.Should().Be(3, "because exactly 3 files should be excluded in simple scenario");
+        identified.Should().Be(0, "because no ROMs should be identified without database");
+        failed.Should().Be(0, "because no files should fail in simple scenario");
 
-        // Vérifier qu'on a bien des fichiers non identifiés (ROMs sans base de données)
-        unidentified.Should().BeGreaterThan(0);
+        // Vérifier qu'il n'y a pas de doublons (fichiers sources non supprimés)
+        // C'est le point crucial : si les répertoires sources existent, il y aura des fichiers dans archives/ avec ArchivePath == null
+        var sourceFilesInArchivesDir = resultsList.Where(f => f.FilePath.Contains("/archives/") && f.ArchivePath == null).ToList();
+        sourceFilesInArchivesDir.Should().BeEmpty("because source directories should be deleted after archive creation");
+
+        // Vérifier le nombre de fichiers non identifiés
+        // Scénario simple devrait avoir : 3 ROMs directes + 3 ROMs dans archives = 6 ROMs
+        // Mais test.nes peut être créé par d'autres tests, donc on vérifie >= 6
+        // Si les répertoires sources existent, il y aura 3 fichiers de plus (doublons)
+        unidentified.Should().BeGreaterThanOrEqualTo(6, "because at least 6 ROMs (3 direct + 3 in archives) should be scanned but not identified (no database)");
+
+        if (sourceFilesInArchivesDir.Count > 0)
+        {
+            // Si des fichiers sources existent, on devrait avoir 3 fichiers de plus
+            unidentified.Should().BeGreaterThanOrEqualTo(11, "because with source directories, there should be at least 11 unidentified files (6 base + 2 from other tests + 3 duplicates)");
+        }
+        else
+        {
+            // Sans fichiers sources, maximum 8 (6 ROMs + test.nes + music.mp3 créés par d'autres tests)
+            unidentified.Should().BeLessThanOrEqualTo(8, "because without source directories, there should be at most 8 unidentified files (6 ROMs + test.nes + music.mp3 from other tests)");
+        }
 
         // Log pour debug
         System.Console.WriteLine($"Status counts - Identified: {identified}, Unidentified: {unidentified}, Excluded: {excluded}, Failed: {failed}");
@@ -341,15 +395,30 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
         var resultsList = results.ToList();
 
         // Assert
-        resultsList.Should().HaveCountGreaterThan(100, "because load scenario contains many files");
+        // Scénario load devrait contenir :
+        // - 100 ROMs directes
+        // - 100 fichiers exclus
+        // - 200 ROMs dans archives (10 archives × 20 ROMs)
+        // - 25 ROMs dans archives imbriquées (5 archives × 5 ROMs)
+        // Total attendu : 425 fichiers (sans répertoires sources)
+        // Si les répertoires sources existent, il y aura beaucoup plus de fichiers (doublons)
+
+        resultsList.Count.Should().Be(425, "because load scenario should have exactly 425 files (100 ROMs + 100 excluded + 200 in archives + 25 in nested) without source directories");
 
         // Vérifier les différents statuts
         var identified = resultsList.Count(f => f.IdentificationStatus == "Identified");
         var unidentified = resultsList.Count(f => f.IdentificationStatus == "Unidentified");
         var excluded = resultsList.Count(f => f.IdentificationStatus == "Excluded");
 
-        excluded.Should().BeGreaterThan(50, "because load scenario has many excluded files");
-        unidentified.Should().BeGreaterThan(50, "because load scenario has many ROMs without database");
+        excluded.Should().Be(100, "because load scenario should have exactly 100 excluded files");
+        unidentified.Should().Be(325, "because load scenario should have exactly 325 ROMs (100 direct + 200 in archives + 25 in nested) without database");
+
+        // Vérifier qu'il n'y a pas de doublons (fichiers sources non supprimés)
+        var filesInArchiveDirs = resultsList.Where(f =>
+            (f.FilePath.Contains("/archive") && f.ArchivePath == null) ||
+            (f.FilePath.Contains("/nested") && f.ArchivePath == null && !f.FilePath.Contains(".zip") && !f.FilePath.Contains(".7z") && !f.FilePath.Contains(".rar"))
+        ).ToList();
+        filesInArchiveDirs.Should().BeEmpty("because source directories should be deleted after archive creation - no direct files in archive*/ or nested*/ directories");
 
         System.Console.WriteLine($"Load scenario scan completed in {duration.TotalSeconds:F2} seconds");
         System.Console.WriteLine($"Files: {resultsList.Count} total, {identified} identified, {unidentified} unidentified, {excluded} excluded");
@@ -420,7 +489,7 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
             var checksumRepository = new ChecksumRepository(_context);
             var allFilesWithSameMD5 = await checksumRepository.GetAllByHashAsync("MD5", sourceMD5.HashValue);
             var filesWithSameMD5 = allFilesWithSameMD5.ToList();
-            
+
             filesWithSameMD5.Should().HaveCountGreaterThanOrEqualTo(2, "because both source and archive files should have the same MD5 checksum stored");
             filesWithSameMD5.Should().Contain(c => c.ScannedFileId == sourceFile.Id, "because source file checksum should be stored");
             filesWithSameMD5.Should().Contain(c => c.ScannedFileId == archiveFile.Id, "because archive file checksum should be stored");
