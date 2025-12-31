@@ -12,6 +12,8 @@ public static class TestDataHelper
 {
     private static string? _testDataRoot;
     private static bool _dataGenerated = false;
+    private static readonly object _lockObject = new object();
+    private static Task? _generationTask = null;
 
     /// <summary>
     /// Obtient le répertoire racine des fichiers de test
@@ -25,7 +27,7 @@ public static class TestDataHelper
         var testProjectDir = Path.GetDirectoryName(typeof(TestDataHelper).Assembly.Location);
         var solutionRoot = FindSolutionRoot(testProjectDir!);
         _testDataRoot = Path.Combine(solutionRoot, "test-data");
-        
+
         return _testDataRoot;
     }
 
@@ -34,9 +36,43 @@ public static class TestDataHelper
     /// </summary>
     public static async Task EnsureTestDataGeneratedAsync()
     {
+        // Double-check locking pattern pour thread-safety
         if (_dataGenerated)
             return;
 
+        Task? taskToWait = null;
+        lock (_lockObject)
+        {
+            if (_dataGenerated)
+                return;
+
+            // Si une génération est déjà en cours, attendre qu'elle se termine
+            if (_generationTask != null)
+            {
+                taskToWait = _generationTask;
+            }
+            else
+            {
+                // Créer la tâche de génération
+                _generationTask = EnsureTestDataGeneratedAsyncInternal();
+                taskToWait = _generationTask;
+            }
+        }
+
+        if (taskToWait != null)
+        {
+            await taskToWait;
+        }
+
+        // Marquer comme généré après l'attente
+        lock (_lockObject)
+        {
+            _dataGenerated = true;
+        }
+    }
+
+    private static async Task EnsureTestDataGeneratedAsyncInternal()
+    {
         var root = GetTestDataRoot();
         var generator = new TestDataGenerator(root);
 
@@ -64,13 +100,11 @@ public static class TestDataHelper
             if (simpleExists) Directory.Delete(Path.Combine(root, "simple"), recursive: true);
             if (mediumExists) Directory.Delete(Path.Combine(root, "medium"), recursive: true);
             if (loadExists) Directory.Delete(Path.Combine(root, "load"), recursive: true);
-            
+
             await generator.GenerateSimpleScenarioAsync();
             await generator.GenerateMediumScenarioAsync();
             await generator.GenerateLoadScenarioAsync();
         }
-
-        _dataGenerated = true;
     }
 
     /// <summary>
@@ -99,4 +133,3 @@ public static class TestDataHelper
         throw new DirectoryNotFoundException("Impossible de trouver la racine de la solution");
     }
 }
-

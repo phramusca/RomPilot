@@ -26,6 +26,7 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
     private readonly IScanService _scanService;
     private readonly IFilterService _filterService;
     private readonly string _testDirectory;
+    private readonly string _tempTestDirectory; // Répertoire temporaire pour les fichiers créés par les tests
     private readonly ScanProgressReporter _progressReporter;
 
     public US1_ScanAndIdentifyIntegrationTests()
@@ -73,6 +74,10 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
 
         // Use test data directory instead of temporary directory
         _testDirectory = TestDataHelper.GetScenarioPath("simple");
+
+        // Créer un répertoire temporaire unique pour les fichiers créés par les tests
+        _tempTestDirectory = Path.Combine(Path.GetTempPath(), $"RomPilotTests_{Guid.NewGuid()}");
+        Directory.CreateDirectory(_tempTestDirectory);
     }
 
     private void SeedTestData()
@@ -156,13 +161,13 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
     [Fact]
     public async Task US1_QuickScan_ShouldReuseChecksumsForUnchangedFiles()
     {
-        // Arrange
-        var testFile = Path.Combine(_testDirectory, "test.nes");
+        // Arrange - Utiliser le répertoire temporaire pour éviter de polluer test-data
+        var testFile = Path.Combine(_tempTestDirectory, "test.nes");
         await File.WriteAllBytesAsync(testFile, new byte[] { 0x4E, 0x45, 0x53, 0x1A }); // NES header
 
-        // First scan (Full)
+        // First scan (Full) - Scanner le répertoire temporaire
         var firstScan = await _scanService.ScanDirectoriesAsync(
-            new[] { _testDirectory },
+            new[] { _tempTestDirectory },
             ScanType.Full,
             progressReporter: _progressReporter);
 
@@ -177,7 +182,7 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
 
         // Act - Second scan (Quick) sans modifier le fichier
         var secondScan = await _scanService.ScanDirectoriesAsync(
-            new[] { _testDirectory },
+            new[] { _tempTestDirectory },
             ScanType.Quick,
             progressReporter: _progressReporter);
 
@@ -197,19 +202,19 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
     [Fact]
     public async Task US1_FullScan_ShouldRecalculateAllChecksums()
     {
-        // Arrange
-        var testFile = Path.Combine(_testDirectory, "test.nes");
+        // Arrange - Utiliser le répertoire temporaire
+        var testFile = Path.Combine(_tempTestDirectory, "test.nes");
         await File.WriteAllBytesAsync(testFile, new byte[] { 0x4E, 0x45, 0x53, 0x1A });
 
         // First scan
         await _scanService.ScanDirectoriesAsync(
-            new[] { _testDirectory },
+            new[] { _tempTestDirectory },
             ScanType.Quick,
             progressReporter: _progressReporter);
 
         // Act - Full scan
         var fullScan = await _scanService.ScanDirectoriesAsync(
-            new[] { _testDirectory },
+            new[] { _tempTestDirectory },
             ScanType.Full,
             progressReporter: _progressReporter);
 
@@ -228,13 +233,13 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
     [Fact]
     public async Task US1_AddCustomFilter_ShouldExcludeNewFileType()
     {
-        // Arrange
-        var mp3File = Path.Combine(_testDirectory, "music.mp3");
+        // Arrange - Utiliser le répertoire temporaire
+        var mp3File = Path.Combine(_tempTestDirectory, "music.mp3");
         await File.WriteAllTextAsync(mp3File, "fake mp3 content");
 
         // First scan without mp3 filter
         var firstScan = await _scanService.ScanDirectoriesAsync(
-            new[] { _testDirectory },
+            new[] { _tempTestDirectory },
             progressReporter: _progressReporter);
 
         var firstMp3 = firstScan.FirstOrDefault(f => f.FileName == "music.mp3");
@@ -245,7 +250,7 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
 
         // Second scan with mp3 filter
         var secondScan = await _scanService.ScanDirectoriesAsync(
-            new[] { _testDirectory },
+            new[] { _tempTestDirectory },
             progressReporter: _progressReporter);
 
         var secondMp3 = secondScan.FirstOrDefault(f => f.FileName == "music.mp3");
@@ -515,6 +520,12 @@ public class US1_ScanAndIdentifyIntegrationTests : IDisposable
         // Cleanup
         _context.Database.CloseConnection();
         _context.Dispose();
+
+        // Nettoyer le répertoire temporaire créé pour les tests
+        if (Directory.Exists(_tempTestDirectory))
+        {
+            Directory.Delete(_tempTestDirectory, recursive: true);
+        }
 
         // Ne pas supprimer _testDirectory car c'est maintenant test-data/simple qui est partagé
     }
